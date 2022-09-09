@@ -1,0 +1,18 @@
+flow: ControlDataDump
+configuration:
+  host: '192.168.122.197'
+operators: []
+sources:
+  - id : CarlaObstacles
+    descriptor : /home/ato/Workspace/romeo/nodes/sources/ground-truth/carla-obstacles/carla-obstacles.yml
+sinks:
+  - id : PyPrint
+    descriptor : /home/ato/Workspace/romeo/nodes/sinks/generic-sink-py/generic-sink.yml
+
+links:
+- from:
+    node : CarlaObstacles
+    output : Obstacles
+  to:
+    node : PyPrint
+    input : Data

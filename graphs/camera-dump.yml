@@ -1,0 +1,18 @@
+flow: ControlDataDump
+configuration:
+  host: '192.168.122.197'
+operators: []
+sources:
+  - id : CarlaCamera
+    descriptor : /home/ato/Workspace/romeo/nodes/sources/carla-camera/carla-camera.yml
+sinks:
+  - id : PyPrint
+    descriptor : /home/ato/Workspace/romeo/nodes/sinks/generic-sink-py/generic-sink.yml
+
+links:
+- from:
+    node : CarlaCamera
+    output : Image
+  to:
+    node : PyPrint
+    input : Data

@@ -1,0 +1,10 @@
+id: CarlaGNSSSrc
+uri: file:///home/ato/Workspace/romeo/nodes/sources/carla-gnss/carla-gnss.py
+configuration:
+  host: '192.168.122.197'
+  port: 2000
+  frequency: 5
+outputs :
+  - id: GNSS
+    type: Coordinates
+tags: []

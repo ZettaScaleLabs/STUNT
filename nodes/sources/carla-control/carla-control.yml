@@ -1,0 +1,10 @@
+id: CarlaControlSrc
+uri: file:///home/ato/Workspace/romeo/nodes/sources/carla-control/carla-control.py
+configuration:
+  host: '192.168.122.197'
+  port: 2000
+  frequency: 100
+outputs :
+  - id: Control
+    type: CtrlData
+tags: []

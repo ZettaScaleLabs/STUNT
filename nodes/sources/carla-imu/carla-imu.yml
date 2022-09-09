@@ -1,0 +1,10 @@
+id: CarlaIMUSrc
+uri: file:///home/ato/Workspace/romeo/nodes/sources/carla-imu/carla-imu.py
+configuration:
+  host: '192.168.122.197'
+  port: 2000
+  frequency: 100
+outputs :
+  - id: IMU
+    type: IMUData
+tags: []

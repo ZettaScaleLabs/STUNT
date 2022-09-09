@@ -1,0 +1,20 @@
+id: EKFLocalization
+uri: file:///home/ato/Workspace/romeo/nodes/operators/ekf-localization/localization.py
+configuration:
+  host: '192.168.122.197'
+  port: 2000
+  gravity: [0.0, 0.0,-9.81]
+  kalman:
+    imu_f: 0.5
+    imu_w: 0.5
+    gnss: 0.1
+
+inputs :
+  - id: GNSS
+    type: Coordinates
+  - id: IMU
+    type: IMUData
+outputs :
+  - id: Pose
+    type: Pose
+tags: []

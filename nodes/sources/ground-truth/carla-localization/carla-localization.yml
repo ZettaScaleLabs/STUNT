@@ -1,0 +1,10 @@
+id: CarlaLocalization
+uri: file:///home/ato/Workspace/romeo/nodes/sources/ground-truth/carla-localization/carla-localization.py
+configuration:
+  host: '192.168.122.197'
+  port: 2000
+  frequency: 30
+outputs :
+  - id: Pose
+    type: Pose
+tags: []
