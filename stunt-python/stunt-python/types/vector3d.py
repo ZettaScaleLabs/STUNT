@@ -128,18 +128,24 @@ class Vector3D(object):
         )
         return type(self)(x_, y_, self.z)
 
-    def serialize(self):
-        d = {
+    def to_dict(self):
+        return {
             "x": self.x,
             "y": self.y,
             "x": self.z,
         }
-        return json.dumps(d).encode("utf-8")
+
+    @classmethod
+    def from_dict(dictionary):
+        return cls(dictionary["x"], dictionary["y"], dictionary["z"])
+
+    def serialize(self):
+        return json.dumps(self.to_dict()).encode("utf-8")
 
     @classmethod
     def deserialize(cls, serialized):
         deserialized = json.loads(serialized.decode("utf-8"))
-        return cls(deserialized["x"], deserialized["y"], deserialized["z"])
+        return cls.from_dict(deserialized)
 
     def __add__(self, other):
         """Adds the two vectors together and returns the result."""

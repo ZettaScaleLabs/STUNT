@@ -69,14 +69,32 @@ class Vector2D(object):
 
     @classmethod
     def from_simulator_vector(cls, vector):
-        """Creates a STUNT Vector2D from a simulator 3D vector.
+        """Creates a STUNT Vector2D from a simulator 2D vector.
 
         Args:
-            vector: An instance of a simulator 3D vector.
+            vector: An instance of a simulator 2D vector.
 
         Returns:
-            :py:class:`.Vector3D`: A STUNT 3D vector.
+            :py:class:`.Vector2D`: A STUNT 2D vector.
         """
-        if not isinstance(vector, CarlaVector3D):
-            raise ValueError("The vector must be a Vector3D")
-        return cls(vector.x, vector.y, vector.z)
+        if not isinstance(vector, CarlaVector2D):
+            raise ValueError("The vector must be a Vector2D")
+        return cls(vector.x, vector.y)
+
+    def to_dict(self):
+        return {
+            "x": self.x,
+            "y": self.y,
+        }
+
+    @classmethod
+    def from_dict(dictionary):
+        return cls(dictionary["x"], dictionary["y"])
+
+    def serialize(self):
+        return json.dumps(self.to_dict()).encode("utf-8")
+
+    @classmethod
+    def deserialize(cls, serialized):
+        deserialized = json.loads(serialized.decode("utf-8"))
+        return cls.from_dict(deserialized)

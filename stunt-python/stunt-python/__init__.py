@@ -2,6 +2,9 @@ import carla
 import time
 
 
+from stunt import types
+
+
 class CarlaSrcState(object):
     def __init__(self, configuration):
 
