@@ -118,7 +118,7 @@ class Location(Vector3D):
         return {
             "x": self.x,
             "y": self.y,
-            "x": self.z,
+            "z": self.z,
         }
 
     @classmethod

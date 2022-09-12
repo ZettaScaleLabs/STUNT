@@ -1,0 +1,12 @@
+id: PerfectLocalization
+uri: file:///home/ato/Workspace/STUNT/nodes/operators/twist-to-control/twist-to-control.py
+configuration:
+  sensitivity: 1
+
+inputs :
+  - id: Twist
+    type: twist
+outputs :
+  - id: Control
+    type: CtrlData
+tags: []

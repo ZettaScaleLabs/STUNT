@@ -10,17 +10,17 @@ import carla
 import array
 import numpy as np
 
-DEFAULT_SAMPLING_FREQUENCY = 30
-DEFAULT_CARLA_HOST = "localhost"
-DEFAULT_CARLA_PORT = 2000
+from stunt.types import Obstacle
+from stunt import DEFAULT_SAMPLING_FREQUENCY, DEFAULT_CARLA_HOST, DEFAULT_CARLA_PORT
+
 DEFAULT_OBSTACLE_TYPE = "traffic.traffic_light*"
 
 
 class GTObstaclesState:
     def __init__(self, configuration):
 
-        self.carla_port = 2000
-        self.carla_host = "localhost"
+        self.carla_port = DEFAULT_CARLA_PORT
+        self.carla_host = DEFAULT_CARLA_HOST
         self.carla_world = None
         self.carla_client = None
         self.player = None
@@ -76,16 +76,8 @@ class GroundTruthObstacles(Source):
         obstacles = []
 
         for obstacle in data:
-            obst_dict = {
-                "attributes": obstacle.attributes,
-                "id": obstacle.id,
-                "is_alive": obstacle.is_alive,
-                "parent": None if obstacle.parent is None else obstacle.parent.id,
-                # TODO: bump CARLA version, this crashes in 0.9.10
-                # "semantic_tags": obstacle.semantic_tags,
-                "type_id": obstacle.type_id,
-            }
-            obstacles.append(obst_dict)
+            obstacle_dict = Obstacle.from_simulator(obstacle).to_dict()
+            obstacles.append(obstacle_dict)
 
         d = {
             "obstacles": obstacles,

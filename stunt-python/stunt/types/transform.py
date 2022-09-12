@@ -314,7 +314,7 @@ class Transform(object):
 
     @classmethod
     def from_dict(cls, dictionary):
-        location = Location.from_dict(dictionary["locations"])
+        location = Location.from_dict(dictionary["location"])
         rotation = Rotation.from_dict(dictionary["rotation"])
 
         return cls(location, rotation)

@@ -1,0 +1,10 @@
+id: TwistSource
+uri: file:///home/ato/Workspace/STUNT/nodes/sources/twist-source/twist.py
+configuration:
+  frequency: 30
+  router: "tcp/192.168.86.13:7447"
+  key_expr: /rt/cmd_vel
+outputs :
+  - id: Twist
+    type: twist
+tags: []

@@ -10,6 +10,10 @@ import carla
 import numpy as np
 
 
+from stunt.types import Pose, EgoInfo, Transform, Rotation, Location, Waypoints
+from stunt import DEFAULT_CARLA_HOST, DEFAULT_CARLA_PORT
+
+
 class BehaviorPlannerState(enum.Enum):
     """States in which the FSM behavior planner can be in."""
 
@@ -23,8 +27,6 @@ class BehaviorPlannerState(enum.Enum):
     OVERTAKE = 7
 
 
-DEFAULT_CARLA_HOST = "localhost"
-DEFAULT_CARLA_PORT = 2000
 DEFAULT_LOCATION_GOAL = (0.0, 0.0, 0.0)
 DEFAULT_INITIAL_STATE = BehaviorPlannerState.FOLLOW_WAYPOINTS
 DEFAULT_MIN_MOVING_SPEED = 0.7
@@ -36,9 +38,7 @@ class State(object):
 
         self.carla_port = int(configuration.get("port", DEFAULT_CARLA_PORT))
         self.carla_host = configuration.get("host", DEFAULT_CARLA_HOST)
-        self.goal_location = carla.Location(
-            *configuration.get("goal", DEFAULT_LOCATION_GOAL)
-        )
+        self.goal_location = Location(*configuration.get("goal", DEFAULT_LOCATION_GOAL))
 
         self.carla_world = None
         self.carla_client = None
@@ -54,16 +54,10 @@ class State(object):
         self.cost_functions = []
         self.function_weights = []
 
-        self.ego_info = {
-            "last_time_moving": 0,
-            "last_time_stopped": 0,
-            "current_time": 0,
-        }
+        self.ego_info = EgoInfo()
 
         # initialize the route with the given goal
-        self.route = carla.Waypoints(
-            deque([carla.Transform(self.goal_location, carla.Rotation())])
-        )
+        self.route = Waypoints(deque([Transform(self.goal_location, Rotation())]))
 
 
 class BehaviourPlanning(Operator):
@@ -76,19 +70,15 @@ class BehaviourPlanning(Operator):
 
         # wait for location data
         data_msg = await self.pose_input.recv()
-        pose = json.loads(data_msg.data.decode("utf-8"))
+        pose = Pose.deserialize(data_msg.data)
 
         # update ego information
-        self.state.ego_info["current_time"] = pose["localization_time"]
-        if pose["forward_speed"] > DEFAULT_MIN_MOVING_SPEED:
-            self.state.ego_info["last_time_moving"] = pose["localization_time"]
-        else:
-            self.state.ego_info["last_time_stopped"] = pose["localization_time"]
+        self.state.ego_info.update(pose)
 
         # check if we the car can change its behaviour
         new_state = self.best_state_transition()
 
-        await self.output.send(json.dumps({'state':new_state}).encode("utf-8"))
+        await self.output.send(json.dumps({"state": new_state}).encode("utf-8"))
 
         return None
 

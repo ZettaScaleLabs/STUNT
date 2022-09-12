@@ -9,9 +9,9 @@ import carla
 import array
 import numpy as np
 
-DEFAULT_SAMPLING_FREQUENCY = 30
-DEFAULT_CARLA_HOST = "localhost"
-DEFAULT_CARLA_PORT = 2000
+from stunt.types import Transform, Vector3D, Pose
+from stunt import DEFAULT_SAMPLING_FREQUENCY, DEFAULT_CARLA_HOST, DEFAULT_CARLA_PORT
+
 S_TO_MS = 1000
 
 
@@ -53,33 +53,19 @@ class GTLocalizationState:
 
     def on_world_tick(self, snapshot):
 
-        vec_transform = self.player.get_transform()
-        velocity_vector = self.player.get_velocity()
+        vec_transform = Transform.from_simulator_transform(self.player.get_transform())
+        velocity_vector = Vector3D.from_simulator_vector(self.player.get_velocity())
+
         forward_speed = np.linalg.norm(
             np.array([velocity_vector.x, velocity_vector.y, velocity_vector.z])
         )
 
-        self.pose = {
-            "transform": {
-                "location": (
-                    vec_transform.location.x,
-                    vec_transform.location.y,
-                    vec_transform.location.z,
-                ),
-                "rotation": (
-                    vec_transform.rotation.pitch,
-                    vec_transform.rotation.yaw,
-                    vec_transform.rotation.roll,
-                ),
-            },
-            "forward_speed": forward_speed,
-            "velocity_vector": (
-                velocity_vector.x,
-                velocity_vector.y,
-                velocity_vector.z,
-            ),
-            "localization_time": snapshot.timestamp.elapsed_seconds * S_TO_MS,
-        }
+        self.pose = Pose(
+            vec_transform,
+            forward_speed,
+            velocity_vector,
+            snapshot.timestamp.elapsed_seconds * S_TO_MS,
+        )
 
 
 class GroundTruthLocalization(Source):
@@ -91,7 +77,7 @@ class GroundTruthLocalization(Source):
         await asyncio.sleep(self.state.period)
 
         if self.state.pose is not None:
-            await self.output.send(json.dumps(self.state.pose).encode("utf-8"))
+            await self.output.send(self.state.pose.serialize())
 
         return None
 

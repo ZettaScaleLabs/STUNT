@@ -1,0 +1,18 @@
+flow: ControlDataDump
+configuration:
+  host: '192.168.122.197'
+operators: []
+sources:
+  - id : TwistSrc
+    descriptor : /home/ato/Workspace/STUNT/nodes/sources/twist-source/twist.yml
+sinks:
+  - id : PyPrint
+    descriptor : /home/ato/Workspace/STUNT/nodes/sinks/generic-sink-py/generic-sink.yml
+
+links:
+- from:
+    node : TwistSrc
+    output : Twist
+  to:
+    node : PyPrint
+    input : Data

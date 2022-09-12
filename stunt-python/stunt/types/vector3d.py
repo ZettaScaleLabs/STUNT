@@ -132,7 +132,7 @@ class Vector3D(object):
         return {
             "x": self.x,
             "y": self.y,
-            "x": self.z,
+            "z": self.z,
         }
 
     @classmethod

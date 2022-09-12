@@ -1,0 +1,27 @@
+flow: ControlDataDump
+configuration:
+  host: '192.168.122.197'
+operators:
+  - id : T2C
+    descriptor : /home/ato/Workspace/STUNT/nodes/operators/twist-to-control/twist-to-control.yml
+sources:
+  - id : TwistSrc
+    descriptor : /home/ato/Workspace/STUNT/nodes/sources/twist-source/twist.yml
+sinks:
+  - id : Car
+    descriptor : /home/ato/Workspace/STUNT/nodes/sinks/carla-control/carla-control.yml
+
+links:
+- from:
+    node : TwistSrc
+    output : Twist
+  to:
+    node : T2C
+    input : Twist
+
+- from:
+    node : T2C
+    output : Control
+  to:
+    node : Car
+    input : Data

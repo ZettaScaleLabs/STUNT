@@ -63,9 +63,9 @@ class Rotation(object):
 
     def to_dict(self):
         return {
-            "pitch": self.x,
-            "yaw": self.y,
-            "roll": self.z,
+            "pitch": self.pitch,
+            "yaw": self.yaw,
+            "roll": self.roll,
         }
 
     @classmethod
