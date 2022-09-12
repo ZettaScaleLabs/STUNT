@@ -69,7 +69,7 @@ class Rotation(object):
         }
 
     @classmethod
-    def from_dict(dictionary):
+    def from_dict(cls, dictionary):
         return cls(dictionary["pitch"], dictionary["yaw"], dictionary["roll"])
 
     def serialize(self):

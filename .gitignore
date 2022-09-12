@@ -3,3 +3,8 @@
 Cargo.lock
 target/
 *.pyc
+
+venv/
+dist/
+*.egg-info/
+build/

@@ -88,7 +88,7 @@ class Vector2D(object):
         }
 
     @classmethod
-    def from_dict(dictionary):
+    def from_dict(cls, dictionary):
         return cls(dictionary["x"], dictionary["y"])
 
     def serialize(self):
