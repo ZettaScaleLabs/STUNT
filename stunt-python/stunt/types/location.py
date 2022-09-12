@@ -1,9 +1,9 @@
 import json
 import numpy as np
-import carla.Vector3D as CarlaVector3D
-import carla.Location as CarlaLocation
+from carla import Vector3D as CarlaVector3D
+from carla import Location as CarlaLocation
 
-from stunt.types import Vector3D
+from stunt.types import Vector3D, Vector2D
 
 
 class Location(Vector3D):
@@ -105,9 +105,8 @@ class Location(Vector3D):
         Returns:
             An instance of the simulator class representing the location.
         """
-        from carla import Location
 
-        return Location(self.x, self.y, self.z)
+        return CarlaLocation(self.x, self.y, self.z)
 
     def __repr__(self):
         return self.__str__()

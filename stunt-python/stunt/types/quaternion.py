@@ -1,6 +1,6 @@
 import json
 import numpy as np
-import stunt.types.Rotation
+from stunt.types import Rotation
 
 
 class Quaternion(object):

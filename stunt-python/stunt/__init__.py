@@ -1,6 +1,9 @@
 import carla
 import time
+import logging
+import os
 
+import cv2
 
 from stunt import types
 
@@ -99,8 +102,6 @@ def time_epoch_ms() -> int:
 
 def set_tf_loglevel(level):
     """To be used to suppress TensorFlow logging."""
-    import logging
-    import os
 
     if level >= logging.FATAL:
         os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"

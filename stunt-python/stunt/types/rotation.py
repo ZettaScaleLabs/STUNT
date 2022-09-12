@@ -1,5 +1,5 @@
 import numpy as np
-import carla.Rotation as CarlaRotation
+from carla import Rotation as CarlaRotation
 
 
 class Rotation(object):

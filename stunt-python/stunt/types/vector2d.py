@@ -1,6 +1,6 @@
 import json
 import numpy as np
-import carla.Vector2D as CarlaVector2D
+from carla import Vector2D as CarlaVector2D
 
 
 class Vector2D(object):
