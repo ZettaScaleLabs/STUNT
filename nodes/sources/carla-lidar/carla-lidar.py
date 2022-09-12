@@ -10,6 +10,9 @@ import carla
 import array
 import numpy as np
 
+from stunt.types import LidarMeasurement
+from stunt import DEFAULT_CARLA_HOST, DEFAULT_CARLA_PORT
+
 DEFAULT_LIDAR_LOCATION = (0.0, 0.0, 2.0)
 DEFAULT_LIDAR_ROTATION = (0.0, 0.0, 0.0)
 DEFAULT_LIDAR_ROTATION_FREQUENCY = 20
@@ -27,8 +30,8 @@ DEFAULT_INTENSITY_LIMIT = 0.6
 class CarlaLidarSrcState:
     def __init__(self, configuration):
 
-        self.carla_port = 2000
-        self.carla_host = "localhost"
+        self.carla_port = DEFAULT_CARLA_PORT
+        self.carla_host = DEFAULT_CARLA_HOST
         self.carla_world = None
         self.carla_client = None
         self.player = None
@@ -100,11 +103,7 @@ class CarlaLidarSrcState:
         self.sensor.listen(self.on_sensor_update)
 
     def on_sensor_update(self, data):
-        self.lidar_reading = {
-            "channels": data.channels,
-            "horizontal_angle": data.horizontal_angle,
-            "point_cloud": np.frombuffer(data.raw_data, dtype=np.dtype("f4")).tolist(),
-        }
+        self.lidar_reading = LidarMeasurement.from_simulator(data)
 
 
 class CarlaLidarSrc(Source):
@@ -116,7 +115,7 @@ class CarlaLidarSrc(Source):
         await asyncio.sleep(self.state.period)
 
         if self.state.lidar_reading is not None:
-            await self.output.send(json.dumps(self.state.lidar_reading).encode("utf-8"))
+            await self.output.send(self.state.lidar_reading.serialize())
 
         return None
 

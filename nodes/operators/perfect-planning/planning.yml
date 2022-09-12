@@ -1,5 +1,5 @@
 id: PerfectLocalization
-uri: file:///home/ato/Workspace/romeo/nodes/operators/perfect-planning/planning.py
+uri: file:///home/ato/Workspace/STUNT/nodes/operators/perfect-planning/planning.py
 configuration:
   gravity: [0.0, 0.0,-9.81]
   kalman:

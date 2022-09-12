@@ -7,9 +7,8 @@ import asyncio
 import json
 import carla
 
-DEFAULT_SAMPLING_FREQUENCY = 30
-DEFAULT_CARLA_HOST = "localhost"
-DEFAULT_CARLA_PORT = 2000
+from stunt.types import GnssMeasurement
+from stunt import DEFAULT_SAMPLING_FREQUENCY, DEFAULT_CARLA_HOST, DEFAULT_CARLA_PORT
 
 
 class CarlaGNSSSrcState:
@@ -40,9 +39,7 @@ class CarlaGNSSSrcState:
                     self.player = vehicle
                     break
 
-        self.lat = 0.0
-        self.lon = 0.0
-        self.alt = 0.0
+        self.data = GnssMeasurement()
 
         bp = self.carla_world.get_blueprint_library().find("sensor.other.gnss")
         self.sensor = self.carla_world.spawn_actor(
@@ -52,9 +49,7 @@ class CarlaGNSSSrcState:
         self.sensor.listen(self.on_sensor_update)
 
     def on_sensor_update(self, data):
-        self.lat = data.latitude
-        self.lon = data.longitude
-        self.alt = data.altitude
+        self.data = GnssMeasurement.from_simulator(data)
 
 
 class CarlaGNSSSrc(Source):
@@ -64,14 +59,7 @@ class CarlaGNSSSrc(Source):
 
     async def create_data(self):
         await asyncio.sleep(self.state.period)
-
-        d = {
-            "latitude": self.state.lat,
-            "longitude": self.state.lon,
-            "altitude": self.state.alt,
-        }
-
-        await self.output.send(json.dumps(d).encode("utf-8"))
+        await self.output.send(self.state.data.serialize())
         return None
 
     def setup(

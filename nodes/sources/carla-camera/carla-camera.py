@@ -10,7 +10,9 @@ import carla
 import array
 import numpy as np
 
-DEFAULT_SAMPLING_FREQUENCY = 30
+from stunt.types import Image
+from stunt import DEFAULT_SAMPLING_FREQUENCY, DEFAULT_CARLA_HOST, DEFAULT_CARLA_PORT
+
 DEFAULT_CAMERA_LOCATION = (0.0, 0.0, 0.0)
 DEFAULT_CAMERA_ROTATION = (0.0, 0.0, 0.0)
 DEFAULT_CAMERA_TYPE = "sensor.camera.rgb"
@@ -22,8 +24,8 @@ DEFAULT_CAMERA_FOV = 90
 class CarlaCameraSrcState:
     def __init__(self, configuration):
 
-        self.carla_port = 2000
-        self.carla_host = "localhost"
+        self.carla_port = DEFAULT_CARLA_PORT
+        self.carla_host = DEFAULT_CARLA_HOST
         self.carla_world = None
         self.carla_client = None
         self.player = None
@@ -79,12 +81,7 @@ class CarlaCameraSrcState:
         self.sensor.listen(self.on_sensor_update)
 
     def on_sensor_update(self, data):
-        self.frame = {
-            "fov": data.fov,
-            "height": data.height,
-            "width": data.width,
-            "raw_data": np.frombuffer(data.raw_data, dtype=np.dtype("uint8")).tolist(),
-        }
+        self.frame = Image.from_simulator(data)
 
 
 class CarlaCameraSrc(Source):
@@ -96,7 +93,7 @@ class CarlaCameraSrc(Source):
         await asyncio.sleep(self.state.period)
 
         if self.state.frame is not None:
-            await self.output.send(json.dumps(self.state.frame).encode("utf-8"))
+            await self.output.send(self.state.frame.serialize())
 
         return None
 

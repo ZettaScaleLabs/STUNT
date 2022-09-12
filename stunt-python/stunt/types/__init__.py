@@ -13,3 +13,9 @@ from stunt.types.line import (
     RoadOption,
     LaneMarking,
 )
+
+from stunt.types.control import VehicleControl
+from stunt.types.gnss import GnssMeasurement
+from stunt.types.imu import IMUMeasurement
+from stunt.types.lidar import LidarMeasurement
+from stunt.types.frame import Image

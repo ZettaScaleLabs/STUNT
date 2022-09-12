@@ -8,7 +8,7 @@ class LaneMarkingColor(Enum):
     """Enum that defines the lane marking colors according to OpenDrive 1.4.
 
     The goal of this enum is to make sure that lane colors are correctly
-    propogated from the simulator to Pylot.
+    propogated from the simulator to STUNT.
     """
 
     WHITE = 0
@@ -52,7 +52,7 @@ class LaneMarkingType(Enum):
     """Enum that defines the lane marking types according to OpenDrive 1.4.
 
     The goal of this enum is to make sure that lane markings are correctly
-    propogated from the simulator to Pylot.
+    propogated from the simulator to STUNT.
     """
 
     OTHER = 0
@@ -122,7 +122,7 @@ class LaneChange(Enum):
     none for a given lane.
 
     The goal of this enum is to make sure that the lane change types are
-    correctly propogated from the simulator to Pylot.
+    correctly propogated from the simulator to STUNT.
     """
 
     NONE = 0
@@ -135,7 +135,7 @@ class LaneType(Enum):
     """Enum that defines the type of the lane according to OpenDrive 1.4.
 
     The goal of this enum is to make sure that the lane change types are
-    correctly propogated from the simulator to Pylot.
+    correctly propogated from the simulator to STUNT.
     """
 
     NONE = 1
@@ -203,13 +203,13 @@ class LaneMarking(object):
 
     @classmethod
     def from_simulator_lane_marking(cls, lane_marking):
-        """Creates a pylot LaneMarking from a simulator lane marking.
+        """Creates a STUNT LaneMarking from a simulator lane marking.
 
         Args:
             lane_marking: An instance of a simulator lane marking.
 
         Returns:
-            :py:class:`.LaneMarking`: A pylot lane-marking.
+            :py:class:`.LaneMarking`: A STUNT lane-marking.
         """
         return cls(lane_marking.color, lane_marking.type, lane_marking.lane_change)
 

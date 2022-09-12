@@ -8,6 +8,11 @@ import cv2
 from stunt import types
 
 
+DEFAULT_SAMPLING_FREQUENCY = 30
+DEFAULT_CARLA_HOST = "localhost"
+DEFAULT_CARLA_PORT = 2000
+
+
 class CarlaSrcState(object):
     def __init__(self, configuration):
 

@@ -1,5 +1,5 @@
 id: PerfectLocalization
-uri: file:///home/ato/Workspace/romeo/nodes/operators/perfect-localization/localization.py
+uri: file:///home/ato/Workspace/STUNT/nodes/operators/perfect-localization/localization.py
 configuration:
   gravity: [0.0, 0.0,-9.81]
   kalman:

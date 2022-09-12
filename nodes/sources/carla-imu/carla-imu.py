@@ -8,10 +8,8 @@ import math
 import json
 import carla
 
-
-DEFAULT_SAMPLING_FREQUENCY = 30
-DEFAULT_CARLA_HOST = "localhost"
-DEFAULT_CARLA_PORT = 2000
+from stunt.types import IMUMeasurement
+from stunt import DEFAULT_SAMPLING_FREQUENCY, DEFAULT_CARLA_HOST, DEFAULT_CARLA_PORT
 
 
 class CarlaIMUSrcState:
@@ -43,9 +41,7 @@ class CarlaIMUSrcState:
                     self.player = vehicle
                     break
 
-        self.accelerometer = (0.0, 0.0, 0.0)
-        self.gyroscope = (0.0, 0.0, 0.0)
-        self.compass = 0.0
+        self.data = IMUMeasurement()
 
         bp = self.carla_world.get_blueprint_library().find("sensor.other.imu")
         self.sensor = self.carla_world.spawn_actor(
@@ -55,18 +51,7 @@ class CarlaIMUSrcState:
         self.sensor.listen(self.on_sensor_update)
 
     def on_sensor_update(self, data):
-        limits = (-99.9, 99.9)
-        self.accelerometer = (
-            max(limits[0], min(limits[1], data.accelerometer.x)),
-            max(limits[0], min(limits[1], data.accelerometer.y)),
-            max(limits[0], min(limits[1], data.accelerometer.z)),
-        )
-        self.gyroscope = (
-            max(limits[0], min(limits[1], math.degrees(data.gyroscope.x))),
-            max(limits[0], min(limits[1], math.degrees(data.gyroscope.y))),
-            max(limits[0], min(limits[1], math.degrees(data.gyroscope.z))),
-        )
-        self.compass = math.degrees(data.compass)
+        self.data = IMUMeasurement.from_simulator(data)
 
 
 class CarlaIMUSrc(Source):
@@ -77,13 +62,7 @@ class CarlaIMUSrc(Source):
     async def create_data(self):
         await asyncio.sleep(self.state.period)
 
-        d = {
-            "accelerometer": self.state.accelerometer,
-            "gyroscope": self.state.gyroscope,
-            "compass": self.state.compass,
-        }
-
-        await self.output.send(json.dumps(d).encode("utf-8"))
+        await self.output.send(self.state.data.serialize())
         return None
 
     def setup(

@@ -7,9 +7,8 @@ import asyncio
 import json
 import carla
 
-DEFAULT_SAMPLING_FREQUENCY = 30
-DEFAULT_CARLA_HOST = "localhost"
-DEFAULT_CARLA_PORT = 2000
+from stunt.types import VehicleControl
+from stunt import DEFAULT_SAMPLING_FREQUENCY, DEFAULT_CARLA_HOST, DEFAULT_CARLA_PORT
 
 
 class CarlaControlSrcState:
@@ -52,22 +51,9 @@ class CarlaControlSrc(Source):
 
     async def create_data(self):
         await asyncio.sleep(self.state.period)
-        control = self.state.player.get_control()
-        await self.output.send(self.control_to_bytes(control))
+        control = VehicleControl.from_simulator(self.state.player.get_control())
+        await self.output.send(control.serialize())
         return None
-
-    def control_to_bytes(self, vc: carla.VehicleControl) -> bytes:
-        d = {
-            "throttle": vc.throttle,
-            "steer": vc.steer,
-            "brake": vc.brake,
-            "hand_brake": vc.hand_brake,
-            "reverse": vc.reverse,
-            "manual_gear_shift": vc.manual_gear_shift,
-            "gear": vc.gear,
-        }
-
-        return json.dumps(d).encode("utf-8")
 
     def setup(
         self, configuration: Dict[str, Any], outputs: Dict[str, DataSender]

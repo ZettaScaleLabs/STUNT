@@ -4,10 +4,10 @@ configuration:
 operators: []
 sources:
   - id : CarlaCamera
-    descriptor : /home/ato/Workspace/romeo/nodes/sources/carla-camera/carla-camera.yml
+    descriptor : /home/ato/Workspace/STUNT/nodes/sources/carla-camera/carla-camera.yml
 sinks:
   - id : PyPrint
-    descriptor : /home/ato/Workspace/romeo/nodes/sinks/generic-sink-py/generic-sink.yml
+    descriptor : /home/ato/Workspace/STUNT/nodes/sinks/generic-sink-py/generic-sink.yml
 
 links:
 - from:
