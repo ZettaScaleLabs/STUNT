@@ -76,14 +76,10 @@ class GroundTruthObstacles(Source):
         obstacles = []
 
         for obstacle in data:
-            obstacle_dict = Obstacle.from_simulator(obstacle).to_dict()
+            obstacle_dict = Obstacle.from_simulator_actor(obstacle).to_dict()
             obstacles.append(obstacle_dict)
 
-        d = {
-            "obstacles": obstacles,
-        }
-
-        return json.dumps(d).encode("utf-8")
+        return json.dumps(obstacles).encode("utf-8")
 
     def setup(
         self, configuration: Dict[str, Any], outputs: Dict[str, DataSender]
