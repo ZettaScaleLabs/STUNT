@@ -25,3 +25,5 @@ from stunt.types.ego_info import EgoInfo
 from stunt.types.waypoints import Waypoints
 from stunt.types.planner import BehaviorPlannerState
 from stunt.types.trajectory import Trajectory
+
+from stunt.types.time_to_decision import TimeToDecision

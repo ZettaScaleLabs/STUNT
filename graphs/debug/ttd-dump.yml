@@ -1,0 +1,35 @@
+flow: ControlDataDump
+configuration:
+  host: '192.168.122.197'
+operators:
+  - id: PerfectLocalization
+    descriptor:  /home/ato/Workspace/STUNT/nodes/operators/perfect-localization/localization.yml
+  - id: TTD
+    descriptor:  /home/ato/Workspace/STUNT/nodes/operators/time-to-decision/time-to-decision.yml
+sources:
+  - id : CarlaLocalization
+    descriptor : /home/ato/Workspace/STUNT/nodes/sources/ground-truth/carla-localization/carla-localization.yml
+
+sinks:
+  - id : PyPrint
+    descriptor : /home/ato/Workspace/STUNT/nodes/sinks/generic-sink-py/generic-sink.yml
+
+links:
+- from:
+    node : CarlaLocalization
+    output : Pose
+  to:
+    node : PerfectLocalization
+    input : Pose
+- from:
+    node : PerfectLocalization
+    output : Pose
+  to:
+    node : TTD
+    input : Pose
+- from:
+    node : TTD
+    output : TTD
+  to:
+    node : PyPrint
+    input : Data

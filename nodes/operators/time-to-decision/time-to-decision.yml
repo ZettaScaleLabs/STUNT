@@ -1,0 +1,13 @@
+id: TimeToDecision
+uri: file:///home/ato/Workspace/STUNT/nodes/operators/time-to-decision/time-to-decision.py
+configuration:
+  base_deadline_speed_ms: 10
+  base_deadline_ms: 400
+  deadline_decrease_ms: 10
+inputs :
+  - id: Pose
+    type: Pose
+outputs :
+  - id: TTD
+    type: TTD
+tags: []
