@@ -2,7 +2,7 @@ import json
 import math
 import numpy as np
 
-from stunt.types import Location, Rotation, Vector3D
+from stunt.types import Location, Rotation, Vector3D, Vector2D
 
 from carla import (
     Location as CarlaLocation,

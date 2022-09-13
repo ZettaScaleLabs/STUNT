@@ -17,6 +17,9 @@ from carla import (
 from stunt.types import (
     Transform,
     Vector3D,
+    Vector2D,
+    Location,
+    Rotation,
     BoundingBox2D,
     BoundingBox3D,
     get_bounding_box_in_camera_view,
@@ -641,291 +644,177 @@ class ObstacleTrajectory(object):
         return cls.from_dict(deserialized)
 
 
-class TrafficLightColor(Enum):
-    """Enum to represent the states of a traffic light."""
-
-    RED = 1
-    YELLOW = 2
-    GREEN = 3
-    OFF = 4
-
-    def get_label(self):
-        """Gets the label of a traffic light color.
-
-        Returns:
-            :obj:`str`: The label string.
-        """
-        if self.value == 1:
-            return "red traffic light"
-        elif self.value == 2:
-            return "yellow traffic light"
-        elif self.value == 3:
-            return "green traffic light"
-        else:
-            return "off traffic light"
-
-    def get_color(self):
-        if self.value == 1:
-            return [255, 0, 0]
-        elif self.value == 2:
-            return [255, 165, 0]
-        elif self.value == 3:
-            return [0, 255, 0]
-        else:
-            return [0, 0, 0]
-
-    def serialize(self):
-        return self.value
-
-    @classmethod
-    def deserialize(cls, serialized):
-        return cls(serialized)
-
-
-class TrafficLight(Obstacle):
-    """Class used to store info about traffic lights.
+class ObstaclePrediction(object):
+    """Class storing info about an obstacle prediction.
 
     Args:
-        confidence (:obj:`float`): The confidence of the detection.
-        state (:py:class:`.TrafficLightColor`): The state of the traffic light.
-        id (:obj:`int`, optional): The identifier of the traffic light.
-        transform (:py:class:`~Transform`, optional): Transform of
-            the traffic light.
-        trigger_volume_extent (:py:class:`Vector3D`, optional): The
-            extent of the trigger volume of the light.
-        bounding_box (:py:class:`.BoundingBox2D`, optional): The bounding box
-            of the traffic light in camera view.
-
-    Attributes:
-        confidence (:obj:`float`): The confidence of the detection.
-        state (:py:class:`.TrafficLightColor`): The state of the traffic light.
-        id (:obj:`int`): The identifier of the traffic light.
-        transform (:py:class:`~Transform`): Transform of the
-            traffic light.
-        trigger_volume_extent (:py:class:`Vector3D`): The extent
-            of the trigger volume of the light.
-        bounding_box (:py:class:`.BoundingBox2D`, optional): The bounding box
-            of the traffic light in camera view.
+        obstacle_trajectory (:py:class:`~STUNT.perception.tracking.obstacle_trajectory.ObstacleTrajectory`):  # noqa: E501
+            Trajectory of the obstacle.
+        transform (:py:class:`~STUNT.utils.Transform`): The current transform
+            of the obstacle.
+        probability (:obj: `float`): The probability of the prediction.
+        predicted_trajectory (list(:py:class:`~STUNT.utils.Transform`)): The
+            predicted future trajectory.
     """
 
     def __init__(
         self,
-        confidence: float,
-        state: TrafficLightColor,
-        id: int = -1,
-        transform: Transform = None,
-        trigger_volume_extent: Vector3D = None,
-        bounding_box: BoundingBox2D = None,
-        timestamp=None,
+        obstacle_trajectory: ObstacleTrajectory,
+        transform: Transform,
+        probability: float,
+        predicted_trajectory,
     ):
-        super(TrafficLight, self).__init__(
-            bounding_box, confidence, state.get_label(), id, transform
-        )
-        self.timestamp = timestamp
-        self.state = state
-        self.trigger_volume_extent = trigger_volume_extent
+        # Trajectory in ego frame of coordinates.
+        self.obstacle_trajectory = obstacle_trajectory
+        # The transform is in world coordinates.
+        self.transform = transform
+        self.probability = probability
+        # Predicted trajectory in ego frame of coordinates.
+        self.predicted_trajectory = predicted_trajectory
 
-    @classmethod
-    def from_simulator_actor(cls, traffic_light):
-        """Creates a TrafficLight from a simulator traffic light actor.
-
-        Args:
-            traffic_light: A simulator traffic light actor.
-
-        Returns:
-            :py:class:`.TrafficLight`: A traffic light.
-        """
-        from carla import TrafficLight, TrafficLightState
-
-        if not isinstance(traffic_light, TrafficLight):
-            raise ValueError("The traffic light must be a TrafficLight")
-        # Retrieve the Transform of the TrafficLight.
-        transform = Transform.from_simulator_transform(traffic_light.get_transform())
-        # Retrieve the Trigger Volume of the TrafficLight.
-        trigger_volume_extent = Vector3D(
-            traffic_light.trigger_volume.extent.x,
-            traffic_light.trigger_volume.extent.y,
-            traffic_light.trigger_volume.extent.z,
-        )
-        traffic_light_state = traffic_light.get_state()
-        state = TrafficLightColor.OFF
-        if traffic_light_state == TrafficLightState.Red:
-            state = TrafficLightColor.RED
-        elif traffic_light_state == TrafficLightState.Yellow:
-            state = TrafficLightColor.YELLOW
-        elif traffic_light_state == TrafficLightState.Green:
-            state = TrafficLightColor.GREEN
-        return cls(1.0, state, traffic_light.id, transform, trigger_volume_extent)
-
-    def draw_on_bird_eye_frame(self, frame):
-        # Intrinsic and extrinsic matrix of the top down camera.
-        extrinsic_matrix = frame.camera_setup.get_extrinsic_matrix()
-        intrinsic_matrix = frame.camera_setup.get_intrinsic_matrix()
-        point = self.transform.location.to_camera_view(
-            extrinsic_matrix, intrinsic_matrix
-        )
-        frame.draw_point(point, self.state.get_color(), r=10)
-        frame.draw_text(point, self.state.get_label(), self.state.get_color())
-
-    def is_traffic_light_visible(
-        self,
-        camera_transform: Transform,
-        town_name: str = None,
-        distance_threshold: int = 70,
-    ):
-        """Checks if the traffic light is visible from the camera transform.
-
-        Args:
-            transform (:py:class:`~Transform`): Transform of the
-                camera in the world frame of reference.
-            distance_threshold (:obj:`int`): Maximum distance to the camera
-                (in m).
-
-        Returns:
-            bool: True if the traffic light is visible from the camera
-            transform.
-        """
-        # We dot product the forward vectors (i.e., orientation).
-        # Note: we have to rotate the traffic light forward vector
-        # so that it's pointing out from the traffic light in the
-        # opposite direction in which the ligth is beamed.
-        prod = np.dot(
-            [
-                self.transform.forward_vector.y,
-                -self.transform.forward_vector.x,
-                self.transform.forward_vector.z,
-            ],
-            [
-                camera_transform.forward_vector.x,
-                camera_transform.forward_vector.y,
-                camera_transform.forward_vector.z,
-            ],
-        )
-        if (
-            self.transform.location.distance(camera_transform.location)
-            > distance_threshold
-        ):
-            return prod > 0.4
-
-        if town_name is None:
-            return prod > -0.80
+    def draw_trajectory_on_frame(self, frame):
+        """Draws the past and predicted trajectory on a bird's eye frame."""
+        if self.is_person():
+            color = [0, 0, 255]
+        elif self.is_vehicle():
+            color = [0, 255, 0]
         else:
-            if town_name == "Town01" or town_name == "Town02":
-                return prod > 0.3
-        return prod > -0.80
+            color = [255, 0, 0]
+        self.obstacle_trajectory.obstacle.draw_trajectory_on_frame(
+            self.predicted_trajectory, frame, color
+        )
+        self.obstacle_trajectory.draw_trajectory_on_frame(frame, True)
 
-    def get_all_detected_traffic_light_boxes(
-        self, town_name: str, depth_frame, segmented_image
-    ):
-        """Returns traffic lights for all boxes of a simulator traffic light.
+    def to_world_coordinates(self, ego_transform: Transform):
+        """Transforms the trajectory and prediction into world coordinates."""
+        self.obstacle_trajectory.to_world_coordinates(ego_transform)
+        cur_trajectory = []
+        for future_transform in self.predicted_trajectory:
+            cur_trajectory.append(ego_transform * future_transform)
+        self.predicted_trajectory = cur_trajectory
 
-        Note:
-            All the traffic lights returned will have the same id and
-            transform.
+    @property
+    def id(self):
+        return self.obstacle_trajectory.obstacle.id
 
-        Args:
-            town_name (:obj:`str`): Name of the town in which the traffic light
-                is.
-            depth_frame (:py:class:`~STUNTt.perception.depth_frame.DepthFrame`):
-                 Depth frame.
-            segmented_image: A segmented image np array used to refine the
-                 bounding boxes.
+    @property
+    def label(self):
+        return self.obstacle_trajectory.obstacle.label
 
-        Returns:
-            list(:py:class:`~STUNTt.perception.detection.traffic_light.TrafficLight`):
-            Detected traffic lights, one for each traffic light box.
-        """
-        traffic_lights = []
-        bboxes = self._get_bboxes(town_name)
-        # Convert the returned bounding boxes to 2D and check if the
-        # light is occluded. If not, add it to the traffic lights list.
-        for bbox in bboxes:
-            bounding_box = [
-                loc.to_camera_view(
-                    depth_frame.camera_setup.get_extrinsic_matrix(),
-                    depth_frame.camera_setup.get_intrinsic_matrix(),
-                )
-                for loc in bbox
-            ]
-            bbox_2d = get_bounding_box_in_camera_view(
-                bounding_box,
-                depth_frame.camera_setup.width,
-                depth_frame.camera_setup.height,
-            )
-            if not bbox_2d:
-                continue
+    def is_animal(self):
+        return self.obstacle_trajectory.obstacle.is_animal()
 
-            # Crop the segmented and depth image to the given bounding box.
-            cropped_image = segmented_image[
-                bbox_2d.y_min : bbox_2d.y_max, bbox_2d.x_min : bbox_2d.x_max
-            ]
-            cropped_depth = depth_frame.frame[
-                bbox_2d.y_min : bbox_2d.y_max, bbox_2d.x_min : bbox_2d.x_max
-            ]
+    def is_person(self):
+        return self.obstacle_trajectory.obstacle.is_person()
 
-            if cropped_image.size > 0:
-                masked_image = np.zeros_like(cropped_image)
-                masked_image[
-                    np.where(np.logical_or(cropped_image == 12, cropped_image == 18))
-                ] = 1
-                if np.sum(masked_image) >= 0.20 * masked_image.size:
-                    masked_depth = cropped_depth[np.where(masked_image == 1)]
-                    mean_depth = np.mean(masked_depth) * 1000
-                    if abs(mean_depth - bounding_box[0].z) <= 2 and mean_depth < 150:
-                        traffic_lights.append(
-                            TrafficLight(
-                                1.0,
-                                self.state,
-                                self.id,
-                                self.transform,
-                                self.trigger_volume_extent,
-                                bbox_2d,
-                            )
-                        )
-        return traffic_lights
+    def is_speed_limit(self):
+        return self.obstacle_trajectory.obstacle.is_speed_limit()
+
+    def is_stop_sign(self):
+        return self.obstacle_trajectory.obstacle.is_stop_sign()
+
+    def is_traffic_light(self):
+        return self.obstacle_trajectory.obstacle.is_traffic_light()
+
+    def is_vehicle(self):
+        return self.obstacle_trajectory.obstacle.is_vehicle()
 
     def __repr__(self):
         return self.__str__()
 
     def __str__(self):
         return (
-            "TrafficLight(confidence: {}, state: {}, id: {}, "
-            "transform: {}, trigger_volume_extent: {}, bbox: {})".format(
-                self.confidence,
-                self.state,
-                self.id,
-                self.transform,
-                self.trigger_volume_extent,
-                self.bounding_box,
+            "Prediction for obstacle {}, probability {}, "
+            "predicted trajectory {}".format(
+                self.obstacle_trajectory.obstacle,
+                self.probability,
+                self.predicted_trajectory,
             )
         )
 
-    def _relative_to_traffic_light(self, points):
-        """Transforms the bounding box specified in the points relative to the
-        light.
+    def to_dict(self):
+        predicted_trajectory = []
+        for t in self.predicted_trajectory:
+            predicted_trajectory.append(t.to_dict())
+        return {
+            "obstacle_trajectory": self.obstacle_trajectory.to_dict(),
+            "transform": self.transform.to_dict(),
+            "probability": self.probability,
+            "predicted_trajectory": predicted_trajectory,
+        }
 
-        Args:
-            points: An array of length 4 representing the 4 points of the
-                rectangle.
-        """
+    @classmethod
+    def from_dict(cls, dictionary):
+        obstacle_trajectory = ObstacleTrajectory.from_dict(
+            dictionary["obstacle_trajectory"]
+        )
+        transform = Transform.from_dict(dictionary["transform"])
+        predicted_trajectory = []
 
-        def rotate(yaw, location):
-            """Rotate a given 3D vector around the Z-axis."""
-            rotation_matrix = np.identity(3)
-            rotation_matrix[0, 0] = np.cos(yaw)
-            rotation_matrix[0, 1] = -np.sin(yaw)
-            rotation_matrix[1, 0] = np.sin(yaw)
-            rotation_matrix[1, 1] = np.cos(yaw)
-            location_vector = np.array([[location.x], [location.y], [location.z]])
-            transformed = np.dot(rotation_matrix, location_vector)
-            return STUNTt.utils.Location(
-                x=transformed[0, 0], y=transformed[1, 0], z=transformed[2, 0]
+        for t in dictionary["predicted_trajectory"]:
+            predicted_trajectory.append(Transform.from_dict(t))
+
+        return cls(
+            obstacle_trajectory,
+            transform,
+            dictionary["probability"],
+            predicted_trajectory,
+        )
+
+    def serialize(self):
+        return json.dumps(self.to_dict()).encode("utf-8")
+
+    @classmethod
+    def deserialize(cls, serialized):
+        deserialized = json.loads(serialized.decode("utf-8"))
+        return cls.from_dict(deserialized)
+
+
+def get_nearby_obstacles_info(obstacle_trajectories, radius, filter_fn=None):
+    """Gets a lost of obstacle that are within the radius.
+
+    Using the list of obstacle trajectories in the message (which are
+    in the ego-vehicle's frame of reference), return a list of obstacles
+    that are within a specified radius of the ego-vehicle, as well as
+    a list of their transforms, sorted by increasing distance.
+
+    Args:
+        radius: Filter obstacle trajectories outside the radius.
+        filter_fn: Function to filter obstacle trajectories.
+    """
+    if filter_fn:
+        filtered_trajectories = list(filter(filter_fn, obstacle_trajectories))
+    else:
+        filtered_trajectories = obstacle_trajectories
+    distances = [
+        v.trajectory[-1].get_angle_and_magnitude(Location())[1]
+        for v in filtered_trajectories
+    ]
+    sorted_trajectories = [
+        v
+        for v, d in sorted(
+            zip(filtered_trajectories, distances), key=lambda pair: pair[1]
+        )
+        if d <= radius
+    ]
+
+    if len(sorted_trajectories) == 0:
+        return sorted_trajectories, []
+
+    nearby_obstacles_ego_locations = np.stack(
+        [t.trajectory[-1] for t in sorted_trajectories]
+    )
+    nearby_obstacles_ego_transforms = []
+
+    # Add appropriate rotations to nearby_obstacles_ego_transforms, which
+    # we estimate using the direction determined by the last two distinct
+    # locations
+    for i in range(len(sorted_trajectories)):
+        cur_obstacle_angle = sorted_trajectories[i].estimate_obstacle_orientation()
+        nearby_obstacles_ego_transforms.append(
+            Transform(
+                location=nearby_obstacles_ego_locations[i].location,
+                rotation=Rotation(yaw=cur_obstacle_angle),
             )
-
-        transformed_points = [
-            rotate(np.radians(self.transform.rotation.yaw), point) for point in points
-        ]
-        base_relative_points = [
-            self.transform.location + point for point in transformed_points
-        ]
-        return base_relative_points
+        )
+    return sorted_trajectories, nearby_obstacles_ego_transforms

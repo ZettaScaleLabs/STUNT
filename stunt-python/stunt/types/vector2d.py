@@ -1,5 +1,6 @@
 import json
 import numpy as np
+import math
 from carla import Vector2D as CarlaVector2D
 
 

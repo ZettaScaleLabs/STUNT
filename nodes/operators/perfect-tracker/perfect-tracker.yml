@@ -1,4 +1,4 @@
-id: TimeToDecision
+id: PerfectTracker
 uri: file:///home/ato/Workspace/STUNT/nodes/operators/perfect-tracker/perfect-tracker.py
 configuration:
   tracking_num_steps: 10

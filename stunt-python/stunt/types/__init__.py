@@ -25,7 +25,13 @@ from stunt.types.gnss import GnssMeasurement
 from stunt.types.imu import IMUMeasurement
 from stunt.types.lidar import LidarMeasurement
 from stunt.types.frame import Image
-from stunt.types.obstacles import SimulatorObstacle, Obstacle, ObstacleTrajectory
+from stunt.types.obstacles import (
+    SimulatorObstacle,
+    Obstacle,
+    ObstacleTrajectory,
+    ObstaclePrediction,
+    get_nearby_obstacles_info,
+)
 
 from stunt.types.ego_info import EgoInfo
 from stunt.types.waypoints import Waypoints
