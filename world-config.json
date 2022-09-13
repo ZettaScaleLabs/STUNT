@@ -1,0 +1,9 @@
+{
+    "host":"192.168.122.197",
+    "port":2000,
+    "traffic_manager_port":8000,
+    "map":"Town01",
+    "ego_spawn_point_index":-1,
+    "num_people":10,
+    "num_vehicles":10
+}
