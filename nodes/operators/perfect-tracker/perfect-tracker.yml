@@ -1,0 +1,15 @@
+id: TimeToDecision
+uri: file:///home/ato/Workspace/STUNT/nodes/operators/perfect-tracker/perfect-tracker.py
+configuration:
+  tracking_num_steps: 10
+  prediction_ego_agent: False
+  dynamic_obstacle_distance_threshold_m: 30.0
+inputs :
+  - id: Obstacles
+    type: Obstacles
+  - id: Pose
+    type: Pose
+outputs :
+  - id: ObstacleTrajectories
+    type: ObstacleTrajectories
+tags: []
