@@ -19,6 +19,29 @@ class Waypoints(object):
             self.target_speeds = target_speeds
         self.road_options = road_options
 
+    def to_dict(self):
+        return {
+            "waypoints": self.waypoints,
+            "target_speeds": self.target_speeds,
+            "road_options": self.road_options,
+        }
+
+    @classmethod
+    def from_dict(cls, dictionary):
+        return cls(
+            dictionary["waypoints"],
+            dictionary["target_speeds"],
+            dictionary["road_options"],
+        )
+
+    def serialize(self):
+        return json.dumps(self.to_dict()).encode("utf-8")
+
+    @classmethod
+    def deserialize(cls, serialized):
+        deserialized = json.loads(serialized.decode("utf-8"))
+        return cls.from_dict(deserialized)
+
     @classmethod
     def read_from_csv_file(cls, csv_file_name: str, target_speed):
         """Reads waypoints from a csv file."""
@@ -85,7 +108,7 @@ class Waypoints(object):
         and then removes all waypoints that are before the closest waypoint.
 
         Args:
-            location (:py:class:`pylot.utils.Location`): The location
+            location (:py:class:`STUNT.utils.Location`): The location
                 of the ego-vehicle.
         """
         min_index = self.closest_waypoint(location)

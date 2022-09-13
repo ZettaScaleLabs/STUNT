@@ -10,5 +10,5 @@ setup(
     keywords=("autonomous vehicles driving python CARLA simulation"),
     packages=find_packages(),
     license="Apache 2.0",
-    install_requires=["carla", "numpy", "opencv-python"],
+    install_requires=[],
 )

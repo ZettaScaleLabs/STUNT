@@ -3,28 +3,30 @@ from zenoh_flow import DataReceiver, DataSender
 from typing import Dict, Any, Callable
 import time
 import asyncio
-import enum
 
+
+import enum
+import json
 from collections import deque
 import carla
 import numpy as np
 
 
-from stunt.types import Pose, EgoInfo, Transform, Rotation, Location, Waypoints
+from stunt.types import (
+    Pose,
+    EgoInfo,
+    Transform,
+    Rotation,
+    Location,
+    Waypoints,
+    RoadOption,
+    Trajectory,
+    BehaviorPlannerState,
+)
+from stunt.map import HDMap
+
 from stunt import DEFAULT_CARLA_HOST, DEFAULT_CARLA_PORT
-
-
-class BehaviorPlannerState(enum.Enum):
-    """States in which the FSM behavior planner can be in."""
-
-    FOLLOW_WAYPOINTS = 0
-    READY = 1
-    KEEP_LANE = 2
-    PREPARE_LANE_CHANGE_LEFT = 3
-    LANGE_CHANGE_LEFT = 4
-    PREPARE_LANE_CHANGE_RIGHT = 5
-    LANE_CHANGE_RIGHT = 6
-    OVERTAKE = 7
+from stunt.types.planner import cost_overtake
 
 
 DEFAULT_LOCATION_GOAL = (0.0, 0.0, 0.0)
@@ -32,8 +34,8 @@ DEFAULT_INITIAL_STATE = BehaviorPlannerState.FOLLOW_WAYPOINTS
 DEFAULT_MIN_MOVING_SPEED = 0.7
 
 
-class State(object):
-    def __init__(self, configuration):
+class BehaviourPlanning(Operator):
+    def __init__(self, configuration, pose_input, output):
         configuration = configuration if configuration is not None else {}
 
         self.carla_port = int(configuration.get("port", DEFAULT_CARLA_PORT))
@@ -48,21 +50,17 @@ class State(object):
         self.carla_world = self.carla_client.get_world()
 
         # Getting carla map
-        self.map = self.carla_world.get_map().to_opendrive()
+        self.map = HDMap(self.carla_world.get_map())
 
         self.state = DEFAULT_INITIAL_STATE
-        self.cost_functions = []
-        self.function_weights = []
+        self.cost_functions = [cost_overtake]
+        self.function_weights = [1]
 
         self.ego_info = EgoInfo()
 
         # initialize the route with the given goal
         self.route = Waypoints(deque([Transform(self.goal_location, Rotation())]))
 
-
-class BehaviourPlanning(Operator):
-    def __init__(self, state, pose_input, output):
-        self.state = state
         self.pose_input = pose_input
         self.output = output
 
@@ -72,14 +70,43 @@ class BehaviourPlanning(Operator):
         data_msg = await self.pose_input.recv()
         pose = Pose.deserialize(data_msg.data)
 
+        ego_transform = pose.transform
+        forward_speed = pose.forward_speed
+
         # update ego information
-        self.state.ego_info.update(pose)
+        self.ego_info.update(pose)
 
         # check if we the car can change its behaviour
         new_state = self.best_state_transition()
 
-        await self.output.send(json.dumps({"state": new_state}).encode("utf-8"))
+        if self.state != new_state and new_state == BehaviorPlannerState.OVERTAKE:
+            self.route.remove_waypoint_if_close(ego_transform.location, 10)
+        else:
+            if not self.map.is_intersection(ego_transform.location):
+                self.route.remove_waypoint_if_close(ego_transform.location, 10)
+            else:
+                self.route.remove_waypoint_if_close(ego_transform.location, 3)
 
+        new_goal_location = self.get_goal_location(ego_transform)
+
+        if new_goal_location != self.goal_location:
+            self.goal_location = new_goal_location
+            waypoints = self.map.compute_waypoints(
+                ego_transform.location, self.goal_location
+            )
+            road_options = deque(
+                [RoadOption.LANE_FOLLOW for _ in range(len(waypoints))]
+            )
+            waypoints = Waypoints(waypoints, road_options=road_options)
+
+            trajectory = Trajectory(waypoints, new_state)
+
+            await self.output.send(trajectory.serialize())
+        elif new_state != self.state:
+            trajectory = Trajectory(None, new_state)
+            await self.output.send(trajectory.serialize())
+
+        self.state = new_state
         return None
 
     def setup(
@@ -88,13 +115,11 @@ class BehaviourPlanning(Operator):
         inputs: Dict[str, DataReceiver],
         outputs: Dict[str, DataSender],
     ) -> Callable[[], Any]:
-        state = State(configuration)
 
         pose_input = inputs.get("Pose", None)
+        output = outputs.get("Trajectory", None)
 
-        output = outputs.get("Pose", None)
-
-        l = BehaviourPlanning(state, pose_input, output)
+        l = BehaviourPlanning(configuration, pose_input, output)
         return l.run
 
     def finalize(self) -> None:
@@ -163,7 +188,7 @@ class BehaviourPlanning(Operator):
             state_cost = 0
             # Compute the cost of the trajectory.
             for i in range(len(self.cost_functions)):
-                cost_func = self.cost_functions[i](self.state, state, ego_info)
+                cost_func = self.cost_functions[i](self.state, state, self.ego_info)
                 state_cost += self.function_weights[i] * cost_func
             # Check if it's the best trajectory.
             if state_cost < min_state_cost:
