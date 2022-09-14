@@ -82,7 +82,6 @@ class WaypointPlanner(Operator):
             # TODO: check why the prediction msg is empty
             if isinstance(prediction_msg[0], Obstacle):
                 # Transform the obstacle into a prediction.
-                self._logger.debug("Planner received obstacles instead of predictions.")
                 predictions = []
                 for obstacle in prediction_msg.obstacles:
                     obstacle_trajectory = ObstacleTrajectory(obstacle, [])
@@ -167,7 +166,10 @@ class WaypointPlanner(Operator):
 
                 self.state = self.trajectory.state
 
-                if self.trajectory.waypoints is not None and len(self.trajectory.waypoints.waypoints) > 0:
+                if (
+                    self.trajectory.waypoints is not None
+                    and len(self.trajectory.waypoints.waypoints) > 0
+                ):
                     self.world.update_waypoints(
                         self.trajectory.waypoints.waypoints[-1].location,
                         self.trajectory.waypoints,

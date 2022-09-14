@@ -22,7 +22,6 @@ class HDMap(object):
 
     def __init__(self, simulator_map, log_file=None):
         # TODO: get logger here
-        self.logger = None
         self._map = simulator_map
         # Setup global planner.
         self._grp = GlobalRoutePlanner(

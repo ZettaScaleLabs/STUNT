@@ -16,7 +16,7 @@ class VehicleControl(object):
         self.throttle = throttle
         self.steer = steer
         self.brake = brake
-        self.hand_brake = brake
+        self.hand_brake = hand_brake
         self.reverse = reverse
         self.manual_gear_shift = manual_gear_shift
         self.gear = gear

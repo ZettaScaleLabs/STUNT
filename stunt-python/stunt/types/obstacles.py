@@ -1318,9 +1318,7 @@ def compute_person_speed_factor(
     p_vector = person_location_2d - ego_location_2d
     p_dist = person_location_2d.l2_distance(ego_location_2d)
     p_angle = p_vector.get_angle(wp_vector)
-    logger.debug(
-        "Person vector {}; dist {}; angle {}".format(p_vector, p_dist, p_angle)
-    )
+
     # Maximum braking is applied if the person is in the emergency
     # hit zone. Otherwise, gradual braking is applied if the person
     # is in the hit zone.
@@ -1353,9 +1351,7 @@ def compute_vehicle_speed_factor(
     v_vector = vehicle_location_2d - ego_location_2d
     v_dist = vehicle_location_2d.l2_distance(ego_location_2d)
     v_angle = v_vector.get_angle(wp_vector)
-    logger.debug(
-        "Vehicle vector {}; dist {}; angle {}".format(v_vector, v_dist, v_angle)
-    )
+
     min_angle = (
         -0.5 * configuration["vehicle_max_angle"] / configuration["coast_factor"]
     )

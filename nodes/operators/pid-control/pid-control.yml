@@ -1,0 +1,23 @@
+id: PIDController
+uri: file:///home/ato/Workspace/STUNT/nodes/operators/pid-control/pid-control.py
+configuration:
+  # PID parameters
+  P: 1.0
+  I: 0.05
+  D: 0.0
+  # Steering control parameters
+  throttle_max: 1.0 # Maximum throttle [0, 1]
+  steer_gain: 1.0 # Gain on computed steering angle
+  brake_max: 1.0 # Maximum brake [0, 1]
+  #
+  min_pid_steer_waypoint_distance: 5 # Waypoint used for steering must be at least this many meters away (global)
+  min_pid_speed_waypoint_distance: 5 # Waypoint used for target speed must be at least this many meters away (global)
+inputs :
+  - id: Pose
+    type: Pose
+  - id: Waypoints
+    type: Waypoints
+outputs :
+  - id: Control
+    type: CtrlData
+tags: []
