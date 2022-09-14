@@ -356,9 +356,7 @@ class Obstacle(object):
                 [start_location, end_location]
             )
         else:
-            obstacle_radius_loc = STUNTt.utils.Location(
-                obstacle_radius, obstacle_radius
-            )
+            obstacle_radius_loc = Location(obstacle_radius, obstacle_radius)
             start_location = obstacle_transform.location - obstacle_radius_loc
             end_location = obstacle_transform.location + obstacle_radius_loc
         return [
@@ -770,6 +768,499 @@ class ObstaclePrediction(object):
         return cls.from_dict(deserialized)
 
 
+class TrafficLightColor(Enum):
+    """Enum to represent the states of a traffic light."""
+
+    RED = 1
+    YELLOW = 2
+    GREEN = 3
+    OFF = 4
+
+    def get_label(self):
+        """Gets the label of a traffic light color.
+
+        Returns:
+            :obj:`str`: The label string.
+        """
+        if self.value == 1:
+            return "red traffic light"
+        elif self.value == 2:
+            return "yellow traffic light"
+        elif self.value == 3:
+            return "green traffic light"
+        else:
+            return "off traffic light"
+
+    def get_color(self):
+        if self.value == 1:
+            return [255, 0, 0]
+        elif self.value == 2:
+            return [255, 165, 0]
+        elif self.value == 3:
+            return [0, 255, 0]
+        else:
+            return [0, 0, 0]
+
+    def serialize(self):
+        return self.value
+
+    @classmethod
+    def deserialize(cls, serialized):
+        if serialized == 1:
+            return cls.RED
+        elif serialized == 2:
+            return cls.YELLOW
+        elif serialized == 3:
+            return cls.GREEN
+        elif serialized == 4:
+            return cls.OFF
+        else:
+            return cls.RED
+
+
+class TrafficLight(Obstacle):
+    """Class used to store info about traffic lights.
+
+    Args:
+        confidence (:obj:`float`): The confidence of the detection.
+        state (:py:class:`.TrafficLightColor`): The state of the traffic light.
+        id (:obj:`int`, optional): The identifier of the traffic light.
+        transform (:py:class:`~Transform`, optional): Transform of
+            the traffic light.
+        trigger_volume_extent (:py:class:`Vector3D`, optional): The
+            extent of the trigger volume of the light.
+        bounding_box (:py:class:`.BoundingBox2D`, optional): The bounding box
+            of the traffic light in camera view.
+
+    Attributes:
+        confidence (:obj:`float`): The confidence of the detection.
+        state (:py:class:`.TrafficLightColor`): The state of the traffic light.
+        id (:obj:`int`): The identifier of the traffic light.
+        transform (:py:class:`~Transform`): Transform of the
+            traffic light.
+        trigger_volume_extent (:py:class:`Vector3D`): The extent
+            of the trigger volume of the light.
+        bounding_box (:py:class:`.BoundingBox2D`, optional): The bounding box
+            of the traffic light in camera view.
+    """
+
+    def __init__(
+        self,
+        confidence: float,
+        state: TrafficLightColor,
+        id: int = -1,
+        transform: Transform = None,
+        trigger_volume_extent: Vector3D = None,
+        bounding_box: BoundingBox2D = None,
+        timestamp=None,
+    ):
+        super(TrafficLight, self).__init__(
+            bounding_box, confidence, state.get_label(), id, transform
+        )
+        self.timestamp = timestamp
+        self.state = state
+        self.trigger_volume_extent = trigger_volume_extent
+
+    @classmethod
+    def from_simulator_actor(cls, traffic_light):
+        """Creates a TrafficLight from a simulator traffic light actor.
+
+        Args:
+            traffic_light: A simulator traffic light actor.
+
+        Returns:
+            :py:class:`.TrafficLight`: A traffic light.
+        """
+
+        if not isinstance(traffic_light, CarlaTrafficLight):
+            raise ValueError("The traffic light must be a TrafficLight")
+        # Retrieve the Transform of the TrafficLight.
+        transform = Transform.from_simulator_transform(traffic_light.get_transform())
+        # Retrieve the Trigger Volume of the TrafficLight.
+        trigger_volume_extent = Vector3D(
+            traffic_light.trigger_volume.extent.x,
+            traffic_light.trigger_volume.extent.y,
+            traffic_light.trigger_volume.extent.z,
+        )
+        traffic_light_state = traffic_light.get_state()
+        state = TrafficLightColor.OFF
+        if traffic_light_state == CarlaTrafficLightState.Red:
+            state = TrafficLightColor.RED
+        elif traffic_light_state == CarlaTrafficLightState.Yellow:
+            state = TrafficLightColor.YELLOW
+        elif traffic_light_state == CarlaTrafficLightState.Green:
+            state = TrafficLightColor.GREEN
+
+        return cls(1.0, state, traffic_light.id, transform, trigger_volume_extent)
+
+    def draw_on_bird_eye_frame(self, frame):
+        # Intrinsic and extrinsic matrix of the top down camera.
+        extrinsic_matrix = frame.camera_setup.get_extrinsic_matrix()
+        intrinsic_matrix = frame.camera_setup.get_intrinsic_matrix()
+        point = self.transform.location.to_camera_view(
+            extrinsic_matrix, intrinsic_matrix
+        )
+        frame.draw_point(point, self.state.get_color(), r=10)
+        frame.draw_text(point, self.state.get_label(), self.state.get_color())
+
+    def is_traffic_light_visible(
+        self,
+        camera_transform: Transform,
+        town_name: str = None,
+        distance_threshold: int = 70,
+    ):
+        """Checks if the traffic light is visible from the camera transform.
+
+        Args:
+            transform (:py:class:`~Transform`): Transform of the
+                camera in the world frame of reference.
+            distance_threshold (:obj:`int`): Maximum distance to the camera
+                (in m).
+
+        Returns:
+            bool: True if the traffic light is visible from the camera
+            transform.
+        """
+        # We dot product the forward vectors (i.e., orientation).
+        # Note: we have to rotate the traffic light forward vector
+        # so that it's pointing out from the traffic light in the
+        # opposite direction in which the ligth is beamed.
+        prod = np.dot(
+            [
+                self.transform.forward_vector.y,
+                -self.transform.forward_vector.x,
+                self.transform.forward_vector.z,
+            ],
+            [
+                camera_transform.forward_vector.x,
+                camera_transform.forward_vector.y,
+                camera_transform.forward_vector.z,
+            ],
+        )
+        if (
+            self.transform.location.distance(camera_transform.location)
+            > distance_threshold
+        ):
+            return prod > 0.4
+
+        if town_name is None:
+            return prod > -0.80
+        else:
+            if town_name == "Town01" or town_name == "Town02":
+                return prod > 0.3
+        return prod > -0.80
+
+    def get_all_detected_traffic_light_boxes(
+        self, town_name: str, depth_frame, segmented_image
+    ):
+        """Returns traffic lights for all boxes of a simulator traffic light.
+
+        Note:
+            All the traffic lights returned will have the same id and
+            transform.
+
+        Args:
+            town_name (:obj:`str`): Name of the town in which the traffic light
+                is.
+            depth_frame (:py:class:`~STUNTt.perception.depth_frame.DepthFrame`):
+                 Depth frame.
+            segmented_image: A segmented image np array used to refine the
+                 bounding boxes.
+
+        Returns:
+            list(:py:class:`~STUNTt.perception.detection.traffic_light.TrafficLight`):
+            Detected traffic lights, one for each traffic light box.
+        """
+        traffic_lights = []
+        bboxes = self._get_bboxes(town_name)
+        # Convert the returned bounding boxes to 2D and check if the
+        # light is occluded. If not, add it to the traffic lights list.
+        for bbox in bboxes:
+            bounding_box = [
+                loc.to_camera_view(
+                    depth_frame.camera_setup.get_extrinsic_matrix(),
+                    depth_frame.camera_setup.get_intrinsic_matrix(),
+                )
+                for loc in bbox
+            ]
+            bbox_2d = get_bounding_box_in_camera_view(
+                bounding_box,
+                depth_frame.camera_setup.width,
+                depth_frame.camera_setup.height,
+            )
+            if not bbox_2d:
+                continue
+
+            # Crop the segmented and depth image to the given bounding box.
+            cropped_image = segmented_image[
+                bbox_2d.y_min : bbox_2d.y_max, bbox_2d.x_min : bbox_2d.x_max
+            ]
+            cropped_depth = depth_frame.frame[
+                bbox_2d.y_min : bbox_2d.y_max, bbox_2d.x_min : bbox_2d.x_max
+            ]
+
+            if cropped_image.size > 0:
+                masked_image = np.zeros_like(cropped_image)
+                masked_image[
+                    np.where(np.logical_or(cropped_image == 12, cropped_image == 18))
+                ] = 1
+                if np.sum(masked_image) >= 0.20 * masked_image.size:
+                    masked_depth = cropped_depth[np.where(masked_image == 1)]
+                    mean_depth = np.mean(masked_depth) * 1000
+                    if abs(mean_depth - bounding_box[0].z) <= 2 and mean_depth < 150:
+                        traffic_lights.append(
+                            TrafficLight(
+                                1.0,
+                                self.state,
+                                self.id,
+                                self.transform,
+                                self.trigger_volume_extent,
+                                bbox_2d,
+                            )
+                        )
+        return traffic_lights
+
+    def __repr__(self):
+        return self.__str__()
+
+    def __str__(self):
+        return (
+            "TrafficLight(confidence: {}, state: {}, id: {}, "
+            "transform: {}, trigger_volume_extent: {}, bbox: {})".format(
+                self.confidence,
+                self.state,
+                self.id,
+                self.transform,
+                self.trigger_volume_extent,
+                self.bounding_box,
+            )
+        )
+
+    def _relative_to_traffic_light(self, points):
+        """Transforms the bounding box specified in the points relative to the
+        light.
+
+        Args:
+            points: An array of length 4 representing the 4 points of the
+                rectangle.
+        """
+
+        def rotate(yaw, location):
+            """Rotate a given 3D vector around the Z-axis."""
+            rotation_matrix = np.identity(3)
+            rotation_matrix[0, 0] = np.cos(yaw)
+            rotation_matrix[0, 1] = -np.sin(yaw)
+            rotation_matrix[1, 0] = np.sin(yaw)
+            rotation_matrix[1, 1] = np.cos(yaw)
+            location_vector = np.array([[location.x], [location.y], [location.z]])
+            transformed = np.dot(rotation_matrix, location_vector)
+            return Location(
+                x=transformed[0, 0], y=transformed[1, 0], z=transformed[2, 0]
+            )
+
+        transformed_points = [
+            rotate(np.radians(self.transform.rotation.yaw), point) for point in points
+        ]
+        base_relative_points = [
+            self.transform.location + point for point in transformed_points
+        ]
+        return base_relative_points
+
+    def _get_bboxes(self, town_name: str):
+        if town_name == "Town01" or town_name == "Town02":
+            return self._get_bboxes_for_town1_or_2()
+        elif town_name == "Town03":
+            return self._get_bboxes_for_town3()
+        elif town_name == "Town04":
+            return self._get_bboxes_for_town4()
+        elif town_name == "Town05":
+            return self._get_bboxes_for_town5()
+        else:
+            raise ValueError("Could not find a town named {}".format(town_name))
+
+    def _get_bboxes_for_town1_or_2(self):
+        points = [
+            # Back Plane
+            Location(x=-0.5, y=-0.1, z=2),
+            Location(x=+0.1, y=-0.1, z=2),
+            Location(x=+0.1, y=-0.1, z=3),
+            Location(x=-0.5, y=-0.1, z=3),
+            # Front Plane
+            Location(x=-0.5, y=0.5, z=2),
+            Location(x=+0.1, y=0.5, z=2),
+            Location(x=+0.1, y=0.5, z=3),
+            Location(x=-0.5, y=0.5, z=3),
+        ]
+        return [self._relative_to_traffic_light(points)]
+
+    def _get_bboxes_for_town3(self):
+        bboxes = []
+        if self.trigger_volume_extent.x > 2 or self.id in [
+            66,
+            67,
+            68,
+            71,
+            72,
+            73,
+            75,
+            81,
+        ]:
+            points = [
+                # Back Plane
+                Location(x=-5.2, y=-0.2, z=5.5),
+                Location(x=-4.8, y=-0.2, z=5.5),
+                Location(x=-4.8, y=-0.2, z=6.5),
+                Location(x=-5.2, y=-0.2, z=6.5),
+                # Front Plane
+                Location(x=-5.2, y=0.4, z=5.5),
+                Location(x=-4.8, y=0.4, z=5.5),
+                Location(x=-4.8, y=0.4, z=6.5),
+                Location(x=-5.2, y=0.4, z=6.5),
+            ]
+            bboxes.append(self._relative_to_traffic_light(points))
+            right_points = [point + Location(x=-3.0) for point in points]
+            bboxes.append(self._relative_to_traffic_light(right_points))
+            if self.id not in [51, 52, 53]:
+                left_points = [point + Location(x=-6.5) for point in points]
+                bboxes.append(self._relative_to_traffic_light(left_points))
+        else:
+            points = [
+                # Back Plane
+                Location(x=-0.5, y=-0.1, z=2),
+                Location(x=+0.1, y=-0.1, z=2),
+                Location(x=+0.1, y=-0.1, z=3),
+                Location(x=-0.5, y=-0.1, z=3),
+                # Front Plane
+                Location(x=-0.5, y=0.5, z=2),
+                Location(x=+0.1, y=0.5, z=2),
+                Location(x=+0.1, y=0.5, z=3),
+                Location(x=-0.5, y=0.5, z=3),
+            ]
+            bboxes.append(self._relative_to_traffic_light(points))
+
+        return bboxes
+
+    def _get_bboxes_for_town4(self):
+        bboxes = []
+        points = [
+            # Back Plane
+            Location(x=-5.2, y=-0.2, z=5.5),
+            Location(x=-4.8, y=-0.2, z=5.5),
+            Location(x=-4.8, y=-0.2, z=6.5),
+            Location(x=-5.2, y=-0.2, z=6.5),
+            # Front Plane
+            Location(x=-5.2, y=0.4, z=5.5),
+            Location(x=-4.8, y=0.4, z=5.5),
+            Location(x=-4.8, y=0.4, z=6.5),
+            Location(x=-5.2, y=0.4, z=6.5),
+        ]
+        bboxes.append(self._relative_to_traffic_light(points))
+        if self.trigger_volume_extent.x > 5:
+            # This is a traffic light with 4 signs, we need to come up with
+            # more bounding boxes.
+            middle_points = [  # Light in the middle of the pole.
+                # Back Plane
+                Location(x=-0.5, y=-0.1, z=2.5),
+                Location(x=+0.1, y=-0.1, z=2.5),
+                Location(x=+0.1, y=-0.1, z=3.5),
+                Location(x=-0.5, y=-0.1, z=3.5),
+                # Front Plane
+                Location(x=-0.5, y=0.5, z=2.5),
+                Location(x=+0.1, y=0.5, z=2.5),
+                Location(x=+0.1, y=0.5, z=3.5),
+                Location(x=-0.5, y=0.5, z=3.5),
+            ]
+            right_points = [point + Location(x=-3.0) for point in points]
+            left_points = [point + Location(x=-5.5) for point in points]
+            bboxes.append(self._relative_to_traffic_light(middle_points))
+            bboxes.append(self._relative_to_traffic_light(right_points))
+            bboxes.append(self._relative_to_traffic_light(left_points))
+        return bboxes
+
+    def _get_bboxes_for_town5(self):
+        bboxes = []
+        points = [
+            # Back Plane
+            Location(x=-5.2, y=-0.2, z=5.5),
+            Location(x=-4.8, y=-0.2, z=5.5),
+            Location(x=-4.8, y=-0.2, z=6.5),
+            Location(x=-5.2, y=-0.2, z=6.5),
+            # Front Plane
+            Location(x=-5.2, y=0.4, z=5.5),
+            Location(x=-4.8, y=0.4, z=5.5),
+            Location(x=-4.8, y=0.4, z=6.5),
+            Location(x=-5.2, y=0.4, z=6.5),
+        ]
+        # Town05 randomizes the identifiers for the traffic light at each
+        # reload of the world. We cannot depend on static identifiers for
+        # figuring out which lights only have a single traffic light.
+        bboxes.append(self._relative_to_traffic_light(points))
+        # There's a traffic light with extent.x < 2, which only has one box.
+        if self.trigger_volume_extent.x >= 2:
+            # This is a traffids light with 4 signs, we need to come up
+            # with more bounding boxes.
+            middle_points = [  # Light in the middle of the pole.
+                # Back Plane
+                Location(x=-0.4, y=-0.1, z=2.55),
+                Location(x=+0.2, y=-0.1, z=2.55),
+                Location(x=+0.2, y=-0.1, z=3.55),
+                Location(x=-0.4, y=-0.1, z=3.55),
+                # Front Plane
+                Location(x=-0.4, y=0.5, z=2.55),
+                Location(x=+0.2, y=0.5, z=2.55),
+                Location(x=+0.2, y=0.5, z=3.55),
+                Location(x=-0.5, y=0.5, z=3.55),
+            ]
+            right_points = [point + Location(x=-3.0) for point in points]
+            left_points = [point + Location(x=-5.5) for point in points]
+            bboxes.append(self._relative_to_traffic_light(middle_points))
+            bboxes.append(self._relative_to_traffic_light(right_points))
+            bboxes.append(self._relative_to_traffic_light(left_points))
+        return bboxes
+
+    def to_dict(self):
+
+        return {
+            "confidence": self.confidence,
+            "state": self.state.serialize(),
+            "id": self.id,
+            "transform": self.transform.to_dict(),
+            "trigger_volume_extent": self.trigger_volume_extent.to_dict(),
+            "bounding_box": self.bounding_box.to_dict()
+            if self.bounding_box is not None
+            else None,
+            "timestamp": self.timestamp,
+        }
+
+    @classmethod
+    def from_dict(cls, dictionary):
+        transform = Transform.from_dict(dictionary["transform"])
+        trigger_volume_extent = Vector3D.from_dict(dictionary["trigger_volume_extent"])
+        bounding_box = (
+            BoundingBox2D.from_dict(dictionary["bounding_box"])
+            if dictionary["bounding_box"] is not None
+            else None
+        )
+
+        return cls(
+            dictionary["confidence"],
+            TrafficLightColor.deserialize(dictionary["state"]),
+            dictionary["id"],
+            transform,
+            trigger_volume_extent,
+            bounding_box,
+            dictionary["timestamp"],
+        )
+
+    def serialize(self):
+        return json.dumps(self.to_dict()).encode("utf-8")
+
+    @classmethod
+    def deserialize(cls, serialized):
+        deserialized = json.loads(serialized.decode("utf-8"))
+        return cls.from_dict(deserialized)
+
+
 def get_nearby_obstacles_info(obstacle_trajectories, radius, filter_fn=None):
     """Gets a lost of obstacle that are within the radius.
 
@@ -818,3 +1309,91 @@ def get_nearby_obstacles_info(obstacle_trajectories, radius, filter_fn=None):
             )
         )
     return sorted_trajectories, nearby_obstacles_ego_transforms
+
+
+def compute_person_speed_factor(
+    ego_location_2d, person_location_2d, wp_vector, configuration
+) -> float:
+    speed_factor_p = 1
+    p_vector = person_location_2d - ego_location_2d
+    p_dist = person_location_2d.l2_distance(ego_location_2d)
+    p_angle = p_vector.get_angle(wp_vector)
+    logger.debug(
+        "Person vector {}; dist {}; angle {}".format(p_vector, p_dist, p_angle)
+    )
+    # Maximum braking is applied if the person is in the emergency
+    # hit zone. Otherwise, gradual braking is applied if the person
+    # is in the hit zone.
+    if (
+        math.fabs(p_angle) < configuration["person_angle_hit_zone"]
+        and p_dist < configuration["person_distance_hit_zone"]
+    ):
+        # Person is in the hit zone.
+        speed_factor_p = min(
+            speed_factor_p,
+            p_dist
+            / (
+                configuration["coast_factor"]
+                * configuration["person_distance_hit_zone"]
+            ),
+        )
+    if (
+        math.fabs(p_angle) < configuration["person_angle_emergency_zone"]
+        and p_dist < configuration["person_distance_emergency_zone"]
+    ):
+        # Person is in emergency hit zone.
+        speed_factor_p = 0
+    return speed_factor_p
+
+
+def compute_vehicle_speed_factor(
+    ego_location_2d, vehicle_location_2d, wp_vector, configuration
+) -> float:
+    speed_factor_v = 1
+    v_vector = vehicle_location_2d - ego_location_2d
+    v_dist = vehicle_location_2d.l2_distance(ego_location_2d)
+    v_angle = v_vector.get_angle(wp_vector)
+    logger.debug(
+        "Vehicle vector {}; dist {}; angle {}".format(v_vector, v_dist, v_angle)
+    )
+    min_angle = (
+        -0.5 * configuration["vehicle_max_angle"] / configuration["coast_factor"]
+    )
+    if (
+        min_angle < v_angle < configuration["vehicle_max_angle"]
+        and v_dist < configuration["vehicle_max_distance"]
+    ):
+        # The vehicle is within the angle limit, and nearby.
+        speed_factor_v = min(
+            speed_factor_v,
+            v_dist
+            / (configuration["coast_factor"] * configuration["vehicle_max_distance"]),
+        )
+
+    if (
+        min_angle
+        < v_angle
+        < configuration["vehicle_max_angle"] / configuration["coast_factor"]
+        and v_dist
+        < configuration["vehicle_max_distance"] * configuration["coast_factor"]
+    ):
+        # The vehicle is a bit far away, but it's on ego vehicle's path.
+        speed_factor_v = min(
+            speed_factor_v,
+            v_dist
+            / (configuration["coast_factor"] * configuration["vehicle_max_distance"]),
+        )
+
+    min_nearby_angle = (
+        -0.5 * configuration["vehicle_max_angle"] * configuration["coast_factor"]
+    )
+    if (
+        min_nearby_angle
+        < v_angle
+        < configuration["vehicle_max_angle"] * configuration["coast_factor"]
+        and v_dist
+        < configuration["vehicle_max_distance"] / configuration["coast_factor"]
+    ):
+        # The vehicle is very close; the angle can be higher.
+        speed_factor_v = 0
+    return speed_factor_v

@@ -1,0 +1,46 @@
+id: WaypointPlanner
+uri: file:///home/ato/Workspace/STUNT/nodes/operators/waypoint-planner/waypoint-planner.py
+configuration:
+  # Agent stopping configs.
+  stop_for_traffic_lights: True # True to enable traffic light stopping
+  stop_for_people: True # True to enable person stopping
+  stop_for_vehicles: True # True to enable vehicle stopping
+  stop_at_uncontrolled_junctions: True # True to enable stopping at uncontroller junctions
+  coast_factor: 1.75 # Factor to control coasting
+  # Agent stopping parameters.
+  traffic_light_min_distance: 5 # Min distance for a traffic light to be considered for stopping [m]
+  traffic_light_max_distance: 20 # Max distance for a traffic light to be considered for stopping [m]
+  traffic_light_max_angle: 0.6 # Angle threshold for a traffic light to be considered for stopping [rad]
+  vehicle_max_distance: 18 # Max distance for a vehicle to be considered for stopping [m]
+  vehicle_max_angle: 0.4 # Angle threshold for a vehicle to be considered for stopping [rad]
+  person_distance_hit_zone: 35 # Distance threhsold for a person to be in the hit zone [m]
+  person_angle_hit_zone: 0.15 # Angle threshold for a person to be in the hit zone [rad]
+  person_distance_emergency_zone: 15 # Distance threshold for a person to be in the emergency zone [m]
+  person_angle_emergency_zone: 0.5 # Angle threshold for a person to be in the emergency zone [rad]
+  #planning configuration
+  target_speed: 6.0 # Target speed in m/s , could be controlled by the speed limit
+  obstacle_radius: 1.75 # Default obstacle radius [m]
+  num_waypoints_ahead: 20 # Number of ahead waypoints to plan for
+  num_waypoints_behind: 10 # Number of waypoints behind to account for
+  obstacle_filtering_distance: 1.0 # distance at which to sample obstacles [m]
+  # other used config in the World representation
+  tracking_num_steps: 10
+  static_obstacle_distance_threshold: 70.0 # Max distance to consider static obstacles (e.g., traffic lights) [m]
+  dynamic_obstacle_distance_threshold: 30.0
+  min_pid_steer_waypoint_distance: 5 # Waypoint used for steering must be at least this many meters away (global)
+
+inputs :
+  - id: Pose
+    type: Pose
+  - id: TTD
+    type: TTD
+  - id: Trajectory
+    type: Waypoints
+  - id: ObstaclePredictions
+    type: ObstaclePredictions
+  - id: TrafficLights
+    type: TrafficLights
+outputs :
+  - id: Waypoints
+    type: Waypoints
+tags: []

@@ -16,7 +16,11 @@ class Trajectory:
     @classmethod
     def from_dict(cls, dictionary):
 
-        waypoints = Waypoints.from_dict(dictionary["waypoints"])
+        waypoints = (
+            Waypoints.from_dict(dictionary["waypoints"])
+            if dictionary["waypoints"] is not None
+            else Waypoints([])
+        )
         state = BehaviorPlannerState.deserialize(dictionary["state"])
 
         return cls(waypoints, state)

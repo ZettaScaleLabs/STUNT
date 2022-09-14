@@ -30,7 +30,11 @@ from stunt.types.obstacles import (
     Obstacle,
     ObstacleTrajectory,
     ObstaclePrediction,
+    TrafficLight,
+    TrafficLightColor,
     get_nearby_obstacles_info,
+    compute_person_speed_factor,
+    compute_vehicle_speed_factor,
 )
 
 from stunt.types.ego_info import EgoInfo
@@ -39,3 +43,4 @@ from stunt.types.planner import BehaviorPlannerState
 from stunt.types.trajectory import Trajectory
 
 from stunt.types.time_to_decision import TimeToDecision
+from stunt.types.world import World

@@ -26,6 +26,8 @@ class PerfectTracker(Operator):
     ):
         configuration = configuration if configuration is not None else {}
 
+        self.pending = []
+
         self.prediction_ego_agent = configuration.get(
             "prediction_ego_agent", DEFAULT_PREDICTION_EGO_AGENT
         )
@@ -55,21 +57,29 @@ class PerfectTracker(Operator):
         data_msg = await self.pose_input.recv()
         return ("Pose", data_msg)
 
+    def create_task_list(self):
+        task_list = [] + self.pending
+
+        if not any(t.get_name() == "Pose" for t in task_list):
+            task_list.append(asyncio.create_task(self.wait_pose(), name="Pose"))
+
+        if not any(t.get_name() == "Obstacles" for t in task_list):
+            task_list.append(
+                asyncio.create_task(self.wait_obstacles(), name="Obstacles")
+            )
+        return task_list
+
     async def run(self):
 
         task_wait_obstacles = asyncio.create_task(self.wait_obstacles())
         task_wait_pose = asyncio.create_task(self.wait_pose())
 
         (done, pending) = await asyncio.wait(
-            [
-                task_wait_obstacles,
-                task_wait_pose,
-            ],
+            self.create_task_list(),
             return_when=asyncio.FIRST_COMPLETED,
         )
 
-        for t in pending:
-            t.cancel()
+        self.pending = list(pending)
 
         (who, data_msg) = done.pop().result()
 

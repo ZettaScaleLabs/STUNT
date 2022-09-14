@@ -1,0 +1,18 @@
+flow: ControlTrafficLightsDump
+configuration:
+  host: '192.168.122.197'
+operators: []
+sources:
+  - id : CarlaTrafficLights
+    descriptor : /home/ato/Workspace/STUNT/nodes/sources/ground-truth/carla-trafficlights/carla-trafficlights.yml
+sinks:
+  - id : PyPrint
+    descriptor : /home/ato/Workspace/STUNT/nodes/sinks/generic-sink-py/generic-sink.yml
+
+links:
+- from:
+    node : CarlaTrafficLights
+    output : TrafficLights
+  to:
+    node : PyPrint
+    input : Data

@@ -1,6 +1,8 @@
 import csv
 import numpy as np
+import itertools
 from collections import deque
+import json
 
 from stunt.types import Transform, Location, Rotation, RoadOption
 
@@ -20,18 +22,40 @@ class Waypoints(object):
         self.road_options = road_options
 
     def to_dict(self):
+
+        waypoints = []
+        for t in list(self.waypoints):
+            waypoints.append(t.to_dict())
+
+        road_options = []
+        for ro in list(self.road_options):
+            road_options.append(ro.serialize())
+
         return {
-            "waypoints": self.waypoints,
-            "target_speeds": self.target_speeds,
-            "road_options": self.road_options,
+            "waypoints": waypoints,
+            "target_speeds": list(self.target_speeds),
+            "road_options": road_options,
         }
 
     @classmethod
     def from_dict(cls, dictionary):
+
+        waypoints = []
+        for t in dictionary.get("waypoints", []):
+            waypoints.append(Transform.from_dict(t))
+
+        target_speeds = dictionary.get("target_speeds")
+        if target_speeds is not None:
+            target_speeds = deque(target_speeds)
+
+        road_options = []
+        for ro in dictionary.get("road_options", []):
+            road_options.append(RoadOption.deserialize(ro))
+
         return cls(
-            dictionary["waypoints"],
-            dictionary["target_speeds"],
-            dictionary["road_options"],
+            deque(waypoints),
+            target_speeds,
+            deque(road_options),
         )
 
     def serialize(self):

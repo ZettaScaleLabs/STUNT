@@ -4,7 +4,7 @@ configuration:
   host: '192.168.122.197'
   port: 2000
   frequency: 30
-  type: 'traffic.traffic_light*'
+  type: 'vehicle.*'
 outputs :
   - id: Obstacles
     type: Obstacles
