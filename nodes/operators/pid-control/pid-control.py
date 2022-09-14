@@ -40,6 +40,7 @@ class PIDController(Operator):
         self.p = configuration.get("P", DEFAULT_P_PARAMETER)
         self.i = configuration.get("I", DEFAULT_I_PARAMETER)
         self.d = configuration.get("D", DEFAULT_D_PARAMETER)
+        self.dt = configuration.get("DT", PID_DT_PARAMETER)
 
         self.throttle_max = configuration.get("throttle_max", DEFAULT_THROTTLE_MAX)
         self.steer_gain = configuration.get("steer_gain", DEFAULT_STEER_GAIN)
@@ -53,7 +54,7 @@ class PIDController(Operator):
         )
 
         self.last_time = time.time()
-        self.dt = PID_DT_PARAMETER
+
         self.error_buffer = deque(maxlen=10)
 
         self.waypoints_input = waypoints_input
@@ -77,7 +78,10 @@ class PIDController(Operator):
         error = (target_speed - current_speed) * 3.6
         self.error_buffer.append(error)
 
-        dt = self.dt
+        time_now = time.time()
+        dt = time_now - self.last_time
+        self.last_time = time_now
+
         if len(self.error_buffer) >= 2:
             de = (self.error_buffer[-1] - self.error_buffer[-2]) / dt
             ie = sum(self.error_buffer) * dt
@@ -185,7 +189,8 @@ class PIDController(Operator):
 
                     steer = self.radians_to_steer(angle_steer)
 
-                    ctrl_data = VehicleControl(throttle, brake, steer)
+                    ctrl_data = VehicleControl(throttle, steer, brake)
+
                     await self.output.send(ctrl_data.serialize())
 
                 except Exception:

@@ -5,6 +5,7 @@ configuration:
   P: 1.0
   I: 0.05
   D: 0.0
+  DT: 0.3
   # Steering control parameters
   throttle_max: 1.0 # Maximum throttle [0, 1]
   steer_gain: 1.0 # Gain on computed steering angle

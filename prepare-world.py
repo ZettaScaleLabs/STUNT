@@ -3,6 +3,7 @@ import carla
 import argparse
 import random
 
+
 def spawn_people(client, world, num_people: int):
     """Spawns people at random locations inside the world.
 
@@ -103,6 +104,11 @@ def spawn_vehicles(client, world, traffic_manager_port: int, num_vehicles: int):
     # Get the spawn points and ensure that the number of vehicles
     # requested are less than the number of spawn points.
     spawn_points = world.get_map().get_spawn_points()
+
+    print((f"Available {len(spawn_points)} spawn points:"))
+    for sp in spawn_points:
+        print(f"# {sp}")
+
     if num_vehicles >= len(spawn_points):
         print(
             "Requested {} vehicles but only found {} spawn points".format(

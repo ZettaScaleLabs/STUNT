@@ -7,7 +7,7 @@ operators:
 
   - id: BehaviourPlanning
     configuration:
-      goal: [3.0, 4.0, 0.0]
+      goal: [299.399994, 133.240036, 0.0]
     descriptor:  /home/ato/Workspace/STUNT/nodes/operators/behaviour-planning/behaviour-planning.yml
 
   - id: TTD
@@ -23,6 +23,8 @@ operators:
     descriptor: /home/ato/Workspace/STUNT/nodes/operators/waypoint-planner/waypoint-planner.yml
 
   - id: PIDController
+    configuration:
+      DT: 0.03
     descriptor: /home/ato/Workspace/STUNT/nodes/operators/pid-control/pid-control.yml
 
 
