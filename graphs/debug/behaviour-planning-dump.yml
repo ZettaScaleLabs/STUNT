@@ -5,6 +5,8 @@ operators:
   - id: PerfectLocalization
     descriptor:  /home/ato/Workspace/STUNT/nodes/operators/perfect-localization/localization.yml
   - id: BehaviourPlanning
+    configuration:
+      goal: [116.0, 129.0, 0.0]
     descriptor:  /home/ato/Workspace/STUNT/nodes/operators/behaviour-planning/behaviour-planning.yml
 sources:
   - id : CarlaLocalization

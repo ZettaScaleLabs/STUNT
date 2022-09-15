@@ -8,6 +8,7 @@ import json
 import numpy as np
 import math
 
+import carla
 from collections import deque
 
 from stunt.types import (
@@ -23,6 +24,9 @@ from stunt.types import (
     TrafficLight,
     World,
 )
+from stunt.map import HDMap
+
+from stunt import DEFAULT_CARLA_HOST, DEFAULT_CARLA_PORT
 
 
 DEFAULT_STOP_FOR_TRAFFIC_LIGHTS = True
@@ -47,6 +51,9 @@ class WaypointPlanner(Operator):
     ):
         configuration = configuration if configuration is not None else {}
 
+        self.carla_port = int(configuration.get("port", DEFAULT_CARLA_PORT))
+        self.carla_host = configuration.get("host", DEFAULT_CARLA_HOST)
+
         self.pending = []
 
         self.traffic_lights_input = traffic_lights_input
@@ -66,6 +73,10 @@ class WaypointPlanner(Operator):
 
         self.target_speed = DEFAULT_TARGET_SPEED
         self.state = BehaviorPlannerState.FOLLOW_WAYPOINTS
+
+        self.carla_client = carla.Client(self.carla_host, self.carla_port)
+        self.carla_world = self.carla_client.get_world()
+        self.map = HDMap(self.carla_world.get_map())
 
     def get_predictions(self, prediction_msg, ego_transform):
         """Extracts obstacle predictions out of the message.
@@ -162,6 +173,9 @@ class WaypointPlanner(Operator):
             if who == "TTD":
                 self.ttd = TimeToDecision.deserialize(data_msg.data)
             elif who == "Trajectory":
+                # getting the trajectory from the behaviour planner
+                # it generates the kind of GPS waypoints towards the
+                # destination
                 self.trajectory = Trajectory.deserialize(data_msg.data)
 
                 self.state = self.trajectory.state
@@ -170,10 +184,12 @@ class WaypointPlanner(Operator):
                     self.trajectory.waypoints is not None
                     and len(self.trajectory.waypoints.waypoints) > 0
                 ):
+
                     self.world.update_waypoints(
                         self.trajectory.waypoints.waypoints[-1].location,
                         self.trajectory.waypoints,
                     )
+
             elif who == "ObstaclePredictions":
                 predictions_list = json.loads(data_msg.data.decode("utf-8"))
                 self.obstacle_trajectories = []
@@ -198,7 +214,7 @@ class WaypointPlanner(Operator):
                     pose,
                     predictions,
                     self.traffic_lights,
-                    None,
+                    self.map,
                     None,
                 )
 
@@ -213,6 +229,9 @@ class WaypointPlanner(Operator):
                 target_speed = speed_factor * self.target_speed
 
                 output_wps = self.world.follow_waypoints(target_speed)
+
+                # remove waypoints that are too close (we already reach them)
+                output_wps.remove_waypoint_if_close(pose.transform.location)
 
                 await self.output.send(output_wps.serialize())
 

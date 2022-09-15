@@ -7,7 +7,7 @@ operators:
 
   - id: BehaviourPlanning
     configuration:
-      goal: [3.0, 4.0, 0.0]
+      goal: [116.0, 129.0, 0.0]
     descriptor:  /home/ato/Workspace/STUNT/nodes/operators/behaviour-planning/behaviour-planning.yml
 
   - id: TTD

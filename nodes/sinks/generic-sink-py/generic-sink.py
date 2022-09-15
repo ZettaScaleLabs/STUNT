@@ -21,5 +21,6 @@ async def run(in_stream):
     print(f">>> Received {data}")
     return None
 
+
 def register():
     return GenericSink

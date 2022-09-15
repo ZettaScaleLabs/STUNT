@@ -21,6 +21,14 @@ class Waypoints(object):
             self.target_speeds = target_speeds
         self.road_options = road_options
 
+    def __repr__(self):
+        return self.__str__()
+
+    def __str__(self):
+        return "Waypoints(waypoints: {}, target_speeds: {}, road_options: {})".format(
+            self.waypoints, self.target_speeds, self.road_options
+        )
+
     def to_dict(self):
 
         waypoints = []

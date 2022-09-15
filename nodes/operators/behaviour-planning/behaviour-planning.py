@@ -59,7 +59,12 @@ class BehaviourPlanning(Operator):
         self.ego_info = EgoInfo()
 
         # initialize the route with the given goal
-        self.route = Waypoints(deque([Transform(self.goal_location, Rotation())]))
+        self.route = Waypoints(
+            deque([Transform(self.goal_location, Rotation())]),
+            road_options=deque([RoadOption.LANE_FOLLOW]),
+        )
+
+        self.is_first = True
 
         self.pose_input = pose_input
         self.output = output
@@ -73,13 +78,27 @@ class BehaviourPlanning(Operator):
         ego_transform = pose.transform
         forward_speed = pose.forward_speed
 
+        # When we get the position for the first time we compute the waypoints
+        if self.is_first == True:
+            waypoints = self.map.compute_waypoints(
+                ego_transform.location, self.goal_location
+            )
+            road_options = deque(
+                [RoadOption.LANE_FOLLOW for _ in range(len(waypoints))]
+            )
+            self.route = Waypoints(waypoints, road_options=road_options)
+            self.is_first = False
+            self.goal_location = False
+            return None
+
         # update ego information
         self.ego_info.update(pose)
 
+        old_state = self.state
         # check if we the car can change its behaviour
-        new_state = self.best_state_transition()
+        self.state = self.best_state_transition()
 
-        if self.state != new_state and new_state == BehaviorPlannerState.OVERTAKE:
+        if self.state != old_state and self.state == BehaviorPlannerState.OVERTAKE:
             self.route.remove_waypoint_if_close(ego_transform.location, 10)
         else:
             if not self.map.is_intersection(ego_transform.location):
@@ -99,14 +118,19 @@ class BehaviourPlanning(Operator):
             )
             waypoints = Waypoints(waypoints, road_options=road_options)
 
-            trajectory = Trajectory(waypoints, new_state)
+            if waypoints.is_empty():
+                # No more waypoints stop the car
+                waypoints = Waypoints(
+                    deque([ego_transform]), deque([0]), deque(RoadOption.LANE_FOLLOW)
+                )
+
+            trajectory = Trajectory(waypoints, self.state)
 
             await self.output.send(trajectory.serialize())
-        elif new_state != self.state:
-            trajectory = Trajectory(None, new_state)
+        elif old_state != self.state:
+            trajectory = Trajectory(self.route, self.state)
             await self.output.send(trajectory.serialize())
 
-        self.state = new_state
         return None
 
     def setup(
@@ -200,9 +224,9 @@ class BehaviourPlanning(Operator):
         if len(self.route.waypoints) > 1:
             dist = ego_transform.location.distance(self.route.waypoints[0].location)
             if dist < 5:
-                new_goal_location = self.route.waypoints[1].location
+                new_goal_location = self.route.waypoints[2].location
             else:
-                new_goal_location = self.route.waypoints[0].location
+                new_goal_location = self.route.waypoints[1].location
         elif len(self.route.waypoints) == 1:
             new_goal_location = self.route.waypoints[0].location
         else:
