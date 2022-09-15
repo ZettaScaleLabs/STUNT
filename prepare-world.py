@@ -188,6 +188,7 @@ def main(config):
 
     carla_client = carla.Client(carla_host, carla_port)
     carla_world = carla_client.load_world(town_map)
+    tm = carla_client.get_trafficmanager(traffic_manager_port)
 
     # spawing things
     ego_vehicle, vehicle_ids, people_ids = spawn_actors(
@@ -198,6 +199,9 @@ def main(config):
         num_people,
         num_vehicles,
     )
+    vehicles = carla_world.get_actors(vehicle_ids)
+    for v in vehicles:
+        v.set_autopilot(True, tm.get_port())
 
     print(f"Ego vehicle {ego_vehicle}")
 
