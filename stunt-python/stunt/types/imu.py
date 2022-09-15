@@ -61,7 +61,7 @@ class IMUMeasurement(object):
     def from_dict(cls, dictionary):
 
         accelerometer = Vector3D.from_dict(dictionary["accelerometer"])
-        gyroscope = Vector3Dfrom_dict(dictionary["gyroscope"])
+        gyroscope = Vector3D.from_dict(dictionary["gyroscope"])
 
         return cls(
             accelerometer,

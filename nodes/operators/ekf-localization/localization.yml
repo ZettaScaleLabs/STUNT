@@ -3,7 +3,7 @@ uri: file:///home/ato/Workspace/STUNT/nodes/operators/ekf-localization/localizat
 configuration:
   host: '192.168.122.197'
   port: 2000
-  gravity: [0.0, 0.0,-9.81]
+  gravity: [0.0, 0.0, -9.81]
   kalman:
     imu_f: 0.5
     imu_w: 0.5

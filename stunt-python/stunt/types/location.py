@@ -5,6 +5,8 @@ from carla import Location as CarlaLocation
 
 from stunt.types import Vector3D, Vector2D
 
+import math
+
 
 class Location(Vector3D):
     """Stores a 3D location, and provides useful helper methods.
