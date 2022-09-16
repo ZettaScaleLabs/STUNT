@@ -100,13 +100,16 @@ class EKF:
             corrected_rotation_estimate,
         )
 
-    def run(self, imu, gnss):
+    def compute_pose(self, imu, gnss):
         imu = IMUMeasurement.from_dict(imu)
         gnss_data = GnssMeasurement.from_dict(gnss)
 
         # initializing the delta_t
         current_ts = max(gnss_data.timestamp, imu.timestamp)
         delta_t = (current_ts - self.last_timestamp) / 1000
+
+        print(f"DeltaT {delta_t}")
+
 
         # retreiving last estimations
         last_rotation_estimate = Quaternion.from_rotation(
@@ -247,7 +250,7 @@ if __name__ == "__main__":
         gnss = gnss_readings[i]
         imu = imu_readings[i]
 
-        ekf.run(imu, gnss)
+        ekf.compute_pose(imu, gnss)
         print("#############################################")
         print(f"[{i}] EKF last pose: {ekf.last_pose_estimate}")
         print("#############################################")

@@ -39,20 +39,16 @@ class EKF:
         self.imu_w = imu_w
         self.gnss = gnss
 
-        print(
-            f"EKF parameters = {self.gravity} ; {self.imu_f} ; {self.imu_w} ;  {self.gnss}"
-        )
-
         self.__Q = np.identity(6)
-        self.__Q[0:3, 0:3] = self.__Q[0:3, 0:3] * DEFAULT_IMU_F
-        self.__Q[3:6, 3:6] = self.__Q[3:6, 3:6] * DEFAULT_IMU_W
+        self.__Q[0:3, 0:3] = self.__Q[0:3, 0:3] * self.imu_f
+        self.__Q[3:6, 3:6] = self.__Q[3:6, 3:6] * self.imu_w
 
         self.__F = np.identity(9)
 
         self.__L = np.zeros([9, 6])
         self.__L[3:9, :] = np.identity(6)
 
-        self.__R_GNSS = np.identity(3) * DEFAULT_GNSS
+        self.__R_GNSS = np.identity(3) * self.gnss
 
         self._last_covariance = np.zeros((9, 9))
 
@@ -125,6 +121,10 @@ class EKF:
         # initializing the delta_t
         current_ts = max(gnss_data.timestamp, imu.timestamp)
         delta_t = (current_ts - self.last_timestamp) / 1000
+
+        if delta_t < 0 or delta_t > 10:
+            self.last_timestamp = current_ts
+            return None
 
         # retreiving last estimations
         last_rotation_estimate = Quaternion.from_rotation(
@@ -243,6 +243,7 @@ class Localization(Operator):
             for vehicle in possible_vehicles:
                 if vehicle.attributes["role_name"] == "hero":
                     found = True
+                    snapshot = self.carla_world.get_snapshot()
                     vec_transform = Transform.from_simulator_transform(
                         vehicle.get_transform()
                     )
@@ -260,7 +261,7 @@ class Localization(Operator):
                         vec_transform,
                         forward_speed,
                         velocity_vector,
-                        time.time() * S_TO_MS,
+                        snapshot.timestamp.elapsed_seconds * S_TO_MS,
                     )
                     self.ekf.init_pose(initial_pose)
 
