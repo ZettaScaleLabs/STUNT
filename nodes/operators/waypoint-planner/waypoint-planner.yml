@@ -9,7 +9,7 @@ configuration:
   coast_factor: 1.75 # Factor to control coasting
   # Agent stopping parameters.
   traffic_light_min_distance: 1 # Min distance for a traffic light to be considered for stopping [m]
-  traffic_light_max_distance: 25 # Max distance for a traffic light to be considered for stopping [m]
+  traffic_light_max_distance: 10 # Max distance for a traffic light to be considered for stopping [m]
   traffic_light_max_angle: 0.6 # Angle threshold for a traffic light to be considered for stopping [rad]
   vehicle_max_distance: 18 # Max distance for a vehicle to be considered for stopping [m]
   vehicle_max_angle: 0.4 # Angle threshold for a vehicle to be considered for stopping [rad]

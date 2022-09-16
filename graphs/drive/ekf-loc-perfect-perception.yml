@@ -25,7 +25,10 @@ operators:
 
   - id: PIDController
     configuration:
-      DT: 0.03
+      # PID parameters
+      P: 0.90
+      I: 0.07
+      D: 0.0
     descriptor: /home/ato/Workspace/STUNT/nodes/operators/pid-control/pid-control.yml
 
 
@@ -41,17 +44,17 @@ sources:
 
   - id : CarlaGNSS
     configuration:
-      frequency: 5
+      frequency: 20
     descriptor : /home/ato/Workspace/STUNT/nodes/sources/carla-gnss/carla-gnss.yml
 
   - id : CarlaIMU
     configuration:
-      frequency: 30
+      frequency: 20
     descriptor : /home/ato/Workspace/STUNT/nodes/sources/carla-imu/carla-imu.yml
 
 sinks:
-  - id : PyPrint
-    descriptor : /home/ato/Workspace/STUNT/nodes/sinks/generic-sink-py/generic-sink.yml
+  # - id : PyPrint
+  #   descriptor : /home/ato/Workspace/STUNT/nodes/sinks/generic-sink-py/generic-sink.yml
 
   - id : Car
     descriptor : /home/ato/Workspace/STUNT/nodes/sinks/carla-control/carla-control.yml
@@ -169,12 +172,12 @@ links:
     input : Pose
 
 # sinks
-- from:
-    node : PIDController
-    output : Control
-  to:
-    node : PyPrint
-    input : Data
+# - from:
+#     node : PIDController
+#     output : Control
+#   to:
+#     node : PyPrint
+#     input : Data
 
 - from:
     node : PIDController

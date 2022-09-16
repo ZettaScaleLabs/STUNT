@@ -33,7 +33,7 @@ S_TO_MS = 1000
 class EKF:
     def __init__(self, imu_f, imu_w, gnss, gravity):
 
-        self.gravity = DEFAULT_GRAVITY_VECTOR
+        self.gravity = gravity
 
         self.imu_f = imu_f
         self.imu_w = imu_w
@@ -310,10 +310,8 @@ class Localization(Operator):
                     return None
 
                 imu = IMUMeasurement.deserialize(data_msg.data)
-
                 # compute the new pose
                 self.ekf.compute_pose(imu, self.gnss_data)
-
                 await self.output.send(self.ekf.last_pose_estimate.serialize())
 
         return None
