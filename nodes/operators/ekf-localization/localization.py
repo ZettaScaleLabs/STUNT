@@ -30,95 +30,38 @@ DEFAULT_GNSS = 0.1
 S_TO_MS = 1000
 
 
-class Localization(Operator):
-    def __init__(self, configuration, gnss_input, imu_input, output):
+class EKF:
+    def __init__(self, imu_f, imu_w, gnss, gravity):
 
-        self.pending = []
+        self.gravity = DEFAULT_GRAVITY_VECTOR
 
-        self.gravity = np.array(configuration.get("gravity", DEFAULT_GRAVITY_VECTOR))
-        self.imu_f = configuration.get("kalman", DEFAULT_IMU_F).get(
-            "imu_f", DEFAULT_IMU_F
+        self.imu_f = imu_f
+        self.imu_w = imu_w
+        self.gnss = gnss
+
+        print(
+            f"EKF parameters = {self.gravity} ; {self.imu_f} ; {self.imu_w} ;  {self.gnss}"
         )
-        self.imu_w = configuration.get("kalman", DEFAULT_IMU_F).get(
-            "imu_w", DEFAULT_IMU_W
-        )
-        self.gnss = configuration.get("kalman", DEFAULT_GNSS).get("gnss", DEFAULT_GNSS)
-
-        self.pose = None
-
-        self.gnss_delta_t = 0.0
-        self.imu_delta_t = 0.0
-        self.gnss_last_ts = 0.0
-        self.imu_last_ts = 0.0
-
-        self.last_pose_estimate = None
-        self.last_timestamp = None
-        self.current_pose = None
-        self.gnss_data = None
-        self.gnss_timestamp = None
-
-        # Kalmap filter parameters and configuration
 
         self.__Q = np.identity(6)
-        self.__Q[0:3, 0:3] = self.__Q[0:3, 0:3] * self.imu_f
-        self.__Q[3:6, 3:6] = self.__Q[3:6, 3:6] * self.imu_w
+        self.__Q[0:3, 0:3] = self.__Q[0:3, 0:3] * DEFAULT_IMU_F
+        self.__Q[3:6, 3:6] = self.__Q[3:6, 3:6] * DEFAULT_IMU_W
 
         self.__F = np.identity(9)
 
         self.__L = np.zeros([9, 6])
         self.__L[3:9, :] = np.identity(6)
 
-        self.__R_GNSS = np.identity(3) * self.gnss
+        self.__R_GNSS = np.identity(3) * DEFAULT_GNSS
 
         self._last_covariance = np.zeros((9, 9))
 
-        self.gnss_input = gnss_input
-        self.imu_input = imu_input
-        self.output = output
+        self.last_pose_estimate = Pose()
+        self.last_timestamp = time.time() * S_TO_MS
 
-        # Should get the pose from the simulator at setup
-        if configuration is not None and configuration.get("port") is not None:
-            self.carla_port = int(configuration["port"])
-
-        if configuration is not None and configuration.get("host") is not None:
-            self.carla_host = configuration["host"]
-
-        # Connecting to CARLA
-        self.carla_client = carla.Client(self.carla_host, self.carla_port)
-        self.carla_world = self.carla_client.get_world()
-
-        found = False
-        # Waiting EGO vehicle
-        while found is False:
-            time.sleep(1)
-            possible_vehicles = self.carla_world.get_actors().filter("vehicle.*")
-            for vehicle in possible_vehicles:
-                if vehicle.attributes["role_name"] == "hero":
-                    found = True
-                    vec_transform = Transform.from_simulator_transform(
-                        vehicle.get_transform()
-                    )
-                    velocity_vector = Vector3D.from_simulator_vector(
-                        vehicle.get_velocity()
-                    )
-
-                    forward_speed = np.linalg.norm(
-                        np.array(
-                            [velocity_vector.x, velocity_vector.y, velocity_vector.z]
-                        )
-                    )
-
-                    self.last_pose_estimate = Pose(
-                        vec_transform,
-                        forward_speed,
-                        velocity_vector,
-                        time.time() * S_TO_MS,
-                    )
-                    self.last_timestamp = self.last_pose_estimate.localization_time
-
-        # drop any connection to the simulator
-        self.carla_world = None
-        self.carla_client = None
+    def init_pose(self, initial_pose):
+        self.last_pose_estimate = initial_pose
+        self.last_timestamp = self.last_pose_estimate.localization_time
 
     def skew_symmetric(self, v):
         """Skew symmetric form of a 3x1 vector."""
@@ -134,6 +77,9 @@ class Localization(Operator):
         gnss_reading,
         delta_t,
     ):
+
+        # Kalman filter configuration
+
         # Construct H_k = [I, 0, 0] (shape=(3, 9))
         H_k = np.zeros((3, 9))
         H_k[:, :3] = np.identity(3)
@@ -174,6 +120,154 @@ class Localization(Operator):
             corrected_rotation_estimate,
         )
 
+    def compute_pose(self, imu, gnss_data):
+
+        # initializing the delta_t
+        current_ts = max(gnss_data.timestamp, imu.timestamp)
+        delta_t = (current_ts - self.last_timestamp) / 1000
+
+        # retreiving last estimations
+        last_rotation_estimate = Quaternion.from_rotation(
+            self.last_pose_estimate.transform.rotation
+        )
+        last_location_estimate = (
+            self.last_pose_estimate.transform.location.as_numpy_array()
+        )
+        last_velocity_estimate = (
+            self.last_pose_estimate.velocity_vector.as_numpy_array()
+        )
+
+        # Transform the IMU accelerometer data from the body frame to the
+        # world frame, and retrieve location and velocity estimates.
+        accelerometer_data = (
+            last_rotation_estimate.matrix.dot(imu.accelerometer.as_numpy_array())
+            + self.gravity
+        )
+
+        # Estimate the location.
+        location_estimate = (
+            last_location_estimate
+            + (delta_t * last_velocity_estimate)
+            + (((delta_t**2) / 2.0) * accelerometer_data)
+        )
+        # Estimate the velocity.
+        velocity_estimate = last_velocity_estimate + (delta_t * accelerometer_data)
+
+        # Estimate rotation
+        rotation_estimate = last_rotation_estimate * Quaternion.from_angular_velocity(
+            imu.gyroscope, delta_t
+        )
+
+        # Fuse the GNSS values using an EKF to fix drifts and noise in
+        # the estimates.
+
+        # Linearize the motion model and compute Jacobians.
+
+        self.__F[0:3, 3:6] = np.identity(3) * delta_t
+
+        self.__F[3:6, 6:9] = (
+            last_rotation_estimate.matrix.dot(
+                -self.skew_symmetric(accelerometer_data.reshape((3, 1)))
+            )
+            * delta_t
+        )
+
+        # Fix estimates using GNSS
+        gnss_reading = Location.from_gps(
+            gnss_data.latitude,
+            gnss_data.longitude,
+            gnss_data.altitude,
+        ).as_numpy_array()
+
+        (
+            location_estimate,
+            velocity_estimate,
+            rotation_estimate,
+        ) = self.update_from_gnss(
+            location_estimate,
+            velocity_estimate,
+            rotation_estimate,
+            gnss_reading,
+            delta_t,
+        )
+
+        # Store the pose and send it downstream
+        self.last_pose_estimate = Pose(
+            transform=Transform(
+                location=Location(*location_estimate),
+                rotation=rotation_estimate.as_Rotation(),
+            ),
+            forward_speed=Vector3D(*velocity_estimate).magnitude(),
+            velocity_vector=Vector3D(*velocity_estimate),
+            localization_time=current_ts,
+        )
+        self.last_timestamp = current_ts
+
+
+class Localization(Operator):
+    def __init__(self, configuration, gnss_input, imu_input, output):
+
+        configuration = {} if configuration is None else configuration
+
+        self.gnss_input = gnss_input
+        self.imu_input = imu_input
+        self.output = output
+
+        self.pending = []
+
+        gravity = np.array(configuration.get("gravity", DEFAULT_GRAVITY_VECTOR))
+        imu_f = configuration.get("kalman", DEFAULT_IMU_F).get("imu_f", DEFAULT_IMU_F)
+        imu_w = configuration.get("kalman", DEFAULT_IMU_F).get("imu_w", DEFAULT_IMU_W)
+        gnss = configuration.get("kalman", DEFAULT_GNSS).get("gnss", DEFAULT_GNSS)
+
+        self.ekf = EKF(imu_f, imu_w, gnss, gravity)
+
+        self.gnss_data = None
+
+        # Should get the pose from the simulator at setup
+        if configuration is not None and configuration.get("port") is not None:
+            self.carla_port = int(configuration["port"])
+
+        if configuration is not None and configuration.get("host") is not None:
+            self.carla_host = configuration["host"]
+
+        # Connecting to CARLA
+        self.carla_client = carla.Client(self.carla_host, self.carla_port)
+        self.carla_world = self.carla_client.get_world()
+
+        found = False
+        # Waiting EGO vehicle
+        while found is False:
+            time.sleep(1)
+            possible_vehicles = self.carla_world.get_actors().filter("vehicle.*")
+            for vehicle in possible_vehicles:
+                if vehicle.attributes["role_name"] == "hero":
+                    found = True
+                    vec_transform = Transform.from_simulator_transform(
+                        vehicle.get_transform()
+                    )
+                    velocity_vector = Vector3D.from_simulator_vector(
+                        vehicle.get_velocity()
+                    )
+
+                    forward_speed = np.linalg.norm(
+                        np.array(
+                            [velocity_vector.x, velocity_vector.y, velocity_vector.z]
+                        )
+                    )
+
+                    initial_pose = Pose(
+                        vec_transform,
+                        forward_speed,
+                        velocity_vector,
+                        time.time() * S_TO_MS,
+                    )
+                    self.ekf.init_pose(initial_pose)
+
+        # drop any connection to the simulator
+        self.carla_world = None
+        self.carla_client = None
+
     async def wait_gnss(self):
         data_msg = await self.gnss_input.recv()
         return ("GNSS", data_msg)
@@ -207,7 +301,6 @@ class Localization(Operator):
             # We compute on IMU
             if who == "GNSS":
                 self.gnss_data = GnssMeasurement.deserialize(data_msg.data)
-                self.gnss_timestamp = self.gnss_data.timestamp
 
             elif who == "IMU":
 
@@ -217,92 +310,10 @@ class Localization(Operator):
 
                 imu = IMUMeasurement.deserialize(data_msg.data)
 
-                # initializing the delta_t
-                current_ts = max(self.gnss_timestamp, imu.timestamp)
-                delta_t = (current_ts - self.last_timestamp) / 1000
+                # compute the new pose
+                self.ekf.compute_pose(imu, self.gnss_data)
 
-                # retreiving last estimations
-                last_rotation_estimate = Quaternion.from_rotation(
-                    self.last_pose_estimate.transform.rotation
-                )
-                last_location_estimate = (
-                    self.last_pose_estimate.transform.location.as_numpy_array()
-                )
-                last_velocity_estimate = (
-                    self.last_pose_estimate.velocity_vector.as_numpy_array()
-                )
-
-                # Transform the IMU accelerometer data from the body frame to the
-                # world frame, and retrieve location and velocity estimates.
-                accelerometer_data = (
-                    last_rotation_estimate.matrix.dot(
-                        imu.accelerometer.as_numpy_array()
-                    )
-                    + self.gravity
-                )
-
-                # Estimate the location.
-                location_estimate = (
-                    last_location_estimate
-                    + (delta_t * last_velocity_estimate)
-                    + (((delta_t**2) / 2.0) * accelerometer_data)
-                )
-                # Estimate the velocity.
-                velocity_estimate = last_velocity_estimate + (
-                    delta_t * accelerometer_data
-                )
-
-                # Estimate rotation
-                rotation_estimate = (
-                    last_rotation_estimate
-                    * Quaternion.from_angular_velocity(imu.gyroscope, delta_t)
-                )
-
-                # Fuse the GNSS values using an EKF to fix drifts and noise in
-                # the estimates.
-
-                # Linearize the motion model and compute Jacobians.
-
-                self.__F[0:3, 3:6] = np.identity(3) * delta_t
-
-                self.__F[3:6, 6:9] = (
-                    last_rotation_estimate.matrix.dot(
-                        -self.skew_symmetric(accelerometer_data.reshape((3, 1)))
-                    )
-                    * delta_t
-                )
-
-                # Fix estimates using GNSS
-                gnss_reading = Location.from_gps(
-                    self.gnss_data.latitude,
-                    self.gnss_data.longitude,
-                    self.gnss_data.altitude,
-                ).as_numpy_array()
-
-                (
-                    location_estimate,
-                    velocity_estimate,
-                    rotation_estimate,
-                ) = self.update_from_gnss(
-                    location_estimate,
-                    velocity_estimate,
-                    rotation_estimate,
-                    gnss_reading,
-                    delta_t,
-                )
-
-                # Store the pose and send it downstream
-                self.last_pose_estimate = Pose(
-                    transform=Transform(
-                        location=Location(*location_estimate),
-                        rotation=rotation_estimate.as_Rotation(),
-                    ),
-                    forward_speed=Vector3D(*velocity_estimate).magnitude(),
-                    velocity_vector=Vector3D(*velocity_estimate),
-                    localization_time=current_ts,
-                )
-                self.last_timestamp = current_ts
-                await self.output.send(self.last_pose_estimate.serialize())
+                await self.output.send(self.ekf.last_pose_estimate.serialize())
 
         return None
 

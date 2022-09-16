@@ -43,8 +43,8 @@ class Pose(object):
         return self.__str__()
 
     def __str__(self):
-        return "Pose(transform: {}, forward speed: {}, velocity vector: {})".format(
-            self.transform, self.forward_speed, self.velocity_vector
+        return "Pose(transform: {}, forward speed: {}, velocity vector: {}, ts: {})".format(
+            self.transform, self.forward_speed, self.velocity_vector, self.localization_time
         )
 
     def to_dict(self):

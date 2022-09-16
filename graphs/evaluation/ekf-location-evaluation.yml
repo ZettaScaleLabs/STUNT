@@ -12,16 +12,18 @@ operators:
 sources:
 
   - id : CarlaLocalization
+    configuration:
+      frequency: 1
     descriptor : /home/ato/Workspace/STUNT/nodes/sources/ground-truth/carla-localization/carla-localization.yml
 
   - id : CarlaGNSS
     configuration:
-      frequency: 5
+      frequency: 1
     descriptor : /home/ato/Workspace/STUNT/nodes/sources/carla-gnss/carla-gnss.yml
 
   - id : CarlaIMU
     configuration:
-      frequency: 30
+      frequency: 1
     descriptor : /home/ato/Workspace/STUNT/nodes/sources/carla-imu/carla-imu.yml
 
 sinks:
