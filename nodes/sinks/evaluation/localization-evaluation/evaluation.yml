@@ -1,0 +1,10 @@
+id: LocalizationEvaluation
+uri: file:///home/ato/Workspace/STUNT/nodes/sinks/evaluation/localization-evaluation/evaluation.py
+configuration:
+  out_file: /home/ato/Workspace/STUNT/eval-location.csv
+inputs:
+  - id: Perfect
+    type: Pose
+  - id: Localization
+    type: Pose
+tags: []

@@ -1,0 +1,68 @@
+flow: ControlDataDump
+configuration:
+  host: '192.168.122.35'
+  port: 2000
+operators:
+  - id: Localization
+    descriptor:  /home/ato/Workspace/STUNT/nodes/operators/ekf-localization/localization.yml
+
+  - id: PerfectLocalization
+    descriptor:  /home/ato/Workspace/STUNT/nodes/operators/perfect-localization/localization.yml
+
+sources:
+
+  - id : CarlaLocalization
+    descriptor : /home/ato/Workspace/STUNT/nodes/sources/ground-truth/carla-localization/carla-localization.yml
+
+  - id : CarlaGNSS
+    configuration:
+      frequency: 5
+    descriptor : /home/ato/Workspace/STUNT/nodes/sources/carla-gnss/carla-gnss.yml
+
+  - id : CarlaIMU
+    configuration:
+      frequency: 30
+    descriptor : /home/ato/Workspace/STUNT/nodes/sources/carla-imu/carla-imu.yml
+
+sinks:
+  - id : Evaluation
+    descriptor : /home/ato/Workspace/STUNT/nodes/sinks/evaluation/localization-evaluation/evaluation.yml
+
+links:
+#sources
+- from:
+    node : CarlaGNSS
+    output : GNSS
+  to:
+    node : Localization
+    input : GNSS
+
+
+- from:
+    node : CarlaIMU
+    output : IMU
+  to:
+    node : Localization
+    input : IMU
+
+- from:
+    node : CarlaLocalization
+    output : Pose
+  to:
+    node : PerfectLocalization
+    input : Pose
+
+# sinks
+- from:
+    node : PerfectLocalization
+    output : Pose
+  to:
+    node : Evaluation
+    input : Perfect
+
+- from:
+    node : Localization
+    output : Pose
+  to:
+    node : Evaluation
+    input : Localization

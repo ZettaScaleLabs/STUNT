@@ -1,6 +1,6 @@
 flow: ControlTrafficLightsDump
 configuration:
-  host: '192.168.122.197'
+  host: '192.168.122.35'
 operators: []
 sources:
   - id : CarlaTrafficLights

@@ -1,6 +1,6 @@
 flow: ControlDataDump
 configuration:
-  host: '192.168.122.197'
+  host: '192.168.122.35'
 operators:
   - id : T2C
     descriptor : /home/ato/Workspace/STUNT/nodes/operators/twist-to-control/twist-to-control.yml

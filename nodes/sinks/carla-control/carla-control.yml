@@ -1,7 +1,7 @@
 id: CarlaControl
 uri: file:///home/ato/Workspace/STUNT/nodes/sinks/carla-control/carla-control.py
 configuration:
-  host: '192.168.122.197'
+  host: '192.168.122.35'
   port: 2000
 inputs:
   - id: Data

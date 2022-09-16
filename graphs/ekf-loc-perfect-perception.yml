@@ -1,6 +1,6 @@
 flow: ControlDataDump
 configuration:
-  host: '192.168.122.197'
+  host: '192.168.122.35'
   port: 2000
 operators:
   - id: Localization
@@ -41,12 +41,12 @@ sources:
 
   - id : CarlaGNSS
     configuration:
-      frequency: 10
+      frequency: 5
     descriptor : /home/ato/Workspace/STUNT/nodes/sources/carla-gnss/carla-gnss.yml
 
   - id : CarlaIMU
     configuration:
-      frequency: 10
+      frequency: 30
     descriptor : /home/ato/Workspace/STUNT/nodes/sources/carla-imu/carla-imu.yml
 
 sinks:

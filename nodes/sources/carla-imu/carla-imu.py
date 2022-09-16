@@ -12,21 +12,43 @@ from stunt.types import IMUMeasurement
 from stunt import DEFAULT_SAMPLING_FREQUENCY, DEFAULT_CARLA_HOST, DEFAULT_CARLA_PORT
 
 
+DEFAULT_NOISE_ACC_X_STDDEV = 0.0
+DEFAULT_NOISE_ACC_Y_STDDEV = 0.0
+DEFAULT_NOISE_ACC_Z_STDDEV = 0.0
+DEFAULT_NOISE_GYRO_X_STDDEV = 0.0
+DEFAULT_NOISE_GYRO_Y_STDDEV = 0.0
+DEFAULT_NOISE_GYRO_Z_STDDEV = 0.0
+
+
 class CarlaIMUSrcState:
     def __init__(self, configuration):
 
-        self.carla_port = DEFAULT_CARLA_PORT
-        self.carla_host = DEFAULT_CARLA_HOST
-        self.period = 1 / DEFAULT_SAMPLING_FREQUENCY
+        configuration = {} if configuration is None else configuration
 
-        if configuration is not None and configuration.get("port") is not None:
-            self.carla_port = int(configuration["port"])
+        self.carla_port = int(configuration.get("port", DEFAULT_CARLA_PORT))
+        self.carla_host = configuration.get("host", DEFAULT_CARLA_HOST)
+        self.period = 1 / int(
+            configuration.get("frequency", DEFAULT_SAMPLING_FREQUENCY)
+        )
 
-        if configuration is not None and configuration.get("host") is not None:
-            self.carla_host = configuration["host"]
-
-        if configuration is not None and configuration.get("frequency") is not None:
-            self.period = 1 / configuration["frequency"]
+        self.noise_accel_stddev_x = configuration.get(
+            "noise_accel_stddev_x", DEFAULT_NOISE_ACC_X_STDDEV
+        )
+        self.noise_accel_stddev_y = configuration.get(
+            "noise_accel_stddev_y", DEFAULT_NOISE_ACC_Y_STDDEV
+        )
+        self.noise_accel_stddev_z = configuration.get(
+            "noise_accel_stddev_z", DEFAULT_NOISE_ACC_Z_STDDEV
+        )
+        self.noise_gyro_stddev_x = configuration.get(
+            "noise_gyro_stddev_x", DEFAULT_NOISE_GYRO_X_STDDEV
+        )
+        self.noise_gyro_stddev_y = configuration.get(
+            "noise_gyro_stddev_y", DEFAULT_NOISE_GYRO_Y_STDDEV
+        )
+        self.noise_gyro_stddev_z = configuration.get(
+            "noise_gyro_stddev_z", DEFAULT_NOISE_GYRO_Z_STDDEV
+        )
 
         self.carla_client = carla.Client(self.carla_host, self.carla_port)
         self.carla_world = self.carla_client.get_world()
@@ -44,6 +66,16 @@ class CarlaIMUSrcState:
         self.data = IMUMeasurement()
 
         bp = self.carla_world.get_blueprint_library().find("sensor.other.imu")
+
+        bp.set_attribute("sensor_tick", str(self.period))
+
+        bp.set_attribute("noise_accel_stddev_x", str(self.noise_accel_stddev_x))
+        bp.set_attribute("noise_accel_stddev_y", str(self.noise_accel_stddev_y))
+        bp.set_attribute("noise_accel_stddev_z", str(self.noise_accel_stddev_z))
+        bp.set_attribute("noise_gyro_stddev_x", str(self.noise_gyro_stddev_x))
+        bp.set_attribute("noise_gyro_stddev_y", str(self.noise_gyro_stddev_y))
+        bp.set_attribute("noise_gyro_stddev_z", str(self.noise_gyro_stddev_z))
+
         self.sensor = self.carla_world.spawn_actor(
             bp, carla.Transform(), attach_to=self.player
         )

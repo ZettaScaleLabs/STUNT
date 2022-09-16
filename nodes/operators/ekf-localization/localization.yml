@@ -1,7 +1,7 @@
 id: EKFLocalization
 uri: file:///home/ato/Workspace/STUNT/nodes/operators/ekf-localization/localization.py
 configuration:
-  host: '192.168.122.197'
+  host: '192.168.122.35'
   port: 2000
   gravity: [0.0, 0.0, -9.81]
   kalman:

@@ -9,16 +9,18 @@ class IMUMeasurement(object):
         accelerometer=Vector3D(),
         compass=0.0,
         gyroscope=Vector3D(),
+        timestamp=0,
     ):
         self.accelerometer = accelerometer
         self.compass = compass
         self.gyroscope = gyroscope
+        self.timestamp = timestamp
 
     def __repr__(self):
         return self.__str__()
 
     def __str__(self):
-        return f"IMUMeasurement(accelerometer={self.accelerometer}, compass={self.compass}, gyroscope={self.gyroscope})"
+        return f"IMUMeasurement(accelerometer={self.accelerometer}, compass={self.compass}, gyroscope={self.gyroscope}, ts={self.timestamp})"
 
     @classmethod
     def from_simulator(cls, data):
@@ -37,11 +39,7 @@ class IMUMeasurement(object):
         accelerometer = Vector3D.from_simulator_vector(data.accelerometer)
         gyroscope = Vector3D.from_simulator_vector(data.gyroscope)
 
-        return cls(
-            accelerometer,
-            data.compass,
-            gyroscope,
-        )
+        return cls(accelerometer, data.compass, gyroscope, data.timestamp * 1000)
 
     def to_simulator(self):
         return CarlaIMUMeasurement(
@@ -55,6 +53,7 @@ class IMUMeasurement(object):
             "accelerometer": self.accelerometer.to_dict(),
             "compass": self.compass,
             "gyroscope": self.gyroscope.to_dict(),
+            "timestamp": self.timestamp,
         }
 
     @classmethod
@@ -64,9 +63,7 @@ class IMUMeasurement(object):
         gyroscope = Vector3D.from_dict(dictionary["gyroscope"])
 
         return cls(
-            accelerometer,
-            dictionary["compass"],
-            gyroscope,
+            accelerometer, dictionary["compass"], gyroscope, dictionary["timestamp"]
         )
 
     def serialize(self):

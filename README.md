@@ -9,7 +9,7 @@ for communication between the components
 
 ---
 
-STUNT mixes python components, getting information for the CARLA simulator, with
+STUNT mixes python components, getting information for the CARLA (v0.9.13) simulator, with
 rust-based components doing the hard calculations.
 
 

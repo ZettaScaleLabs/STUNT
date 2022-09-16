@@ -5,7 +5,7 @@ from carla import LaneType, Map as CarlaMap
 from stunt.map import Lane
 
 from agents.navigation.global_route_planner import GlobalRoutePlanner
-from agents.navigation.global_route_planner_dao import GlobalRoutePlannerDAO
+
 
 
 class HDMap(object):
@@ -24,10 +24,7 @@ class HDMap(object):
         # TODO: get logger here
         self._map = simulator_map
         # Setup global planner.
-        self._grp = GlobalRoutePlanner(
-            GlobalRoutePlannerDAO(self._map, 1.0)  # Distance between waypoints
-        )
-        self._grp.setup()
+        self._grp = GlobalRoutePlanner(self._map, 1.0)  # Distance between waypoints
 
     @classmethod
     def from_opendrive(cls, opendrive):

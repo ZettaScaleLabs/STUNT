@@ -2,7 +2,7 @@ import json
 import carla
 import argparse
 import random
-
+import time
 
 def spawn_people(client, world, num_people: int):
     """Spawns people at random locations inside the world.
@@ -204,6 +204,9 @@ def main(config):
         v.set_autopilot(True, tm.get_port())
 
     print(f"Ego vehicle {ego_vehicle}")
+
+    while True:
+        time.sleep(5000)
 
 
 if __name__ == "__main__":

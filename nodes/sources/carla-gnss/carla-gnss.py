@@ -11,6 +11,14 @@ from stunt.types import GnssMeasurement
 from stunt import DEFAULT_SAMPLING_FREQUENCY, DEFAULT_CARLA_HOST, DEFAULT_CARLA_PORT
 
 
+DEFAULT_NOISE_ALT_STDDEV = 0.0
+DEFAULT_NOISE_LAT_STDDEV = 0.0
+DEFAULT_NOISE_LON_STDDEV = 0.0
+DEFAULT_NOISE_ALT_BIAS = 0.0
+DEFAULT_NOISE_LAT_BIAS = 0.0
+DEFAULT_NOISE_LON_BIAS = 0.0
+
+
 class CarlaGNSSSrcState:
     def __init__(self, configuration):
 
@@ -18,14 +26,30 @@ class CarlaGNSSSrcState:
         self.carla_host = DEFAULT_CARLA_HOST
         self.period = 1 / DEFAULT_SAMPLING_FREQUENCY
 
-        if configuration is not None and configuration.get("port") is not None:
-            self.carla_port = int(configuration["port"])
+        configuration = {} if configuration is None else configuration
 
-        if configuration is not None and configuration.get("host") is not None:
-            self.carla_host = configuration["host"]
+        self.carla_port = int(configuration.get("port", DEFAULT_CARLA_PORT))
+        self.carla_host = configuration.get("host", DEFAULT_CARLA_HOST)
+        self.period = 1 / configuration.get("frequency", DEFAULT_SAMPLING_FREQUENCY)
 
-        if configuration is not None and configuration.get("frequency") is not None:
-            self.period = 1 / configuration["frequency"]
+        self.noise_alt_stddev = configuration.get(
+            "noise_alt_stddev", DEFAULT_NOISE_ALT_STDDEV
+        )
+        self.noise_lat_stddev = configuration.get(
+            "noise_lat_stddev", DEFAULT_NOISE_LAT_STDDEV
+        )
+        self.noise_lon_stddev = configuration.get(
+            "noise_lon_stddev", DEFAULT_NOISE_LON_STDDEV
+        )
+        self.noise_alt_bias = configuration.get(
+            "noise_alt_bias", DEFAULT_NOISE_ALT_BIAS
+        )
+        self.noise_lat_bias = configuration.get(
+            "noise_lat_bias", DEFAULT_NOISE_LAT_BIAS
+        )
+        self.noise_lon_bias = configuration.get(
+            "noise_lon_bias", DEFAULT_NOISE_LON_BIAS
+        )
 
         self.carla_client = carla.Client(self.carla_host, self.carla_port)
         self.carla_world = self.carla_client.get_world()
@@ -42,6 +66,16 @@ class CarlaGNSSSrcState:
         self.data = GnssMeasurement()
 
         bp = self.carla_world.get_blueprint_library().find("sensor.other.gnss")
+
+        bp.set_attribute("noise_alt_stddev", str(self.noise_alt_stddev))
+        bp.set_attribute("noise_lat_stddev", str(self.noise_lat_stddev))
+        bp.set_attribute("noise_lon_stddev", str(self.noise_lon_stddev))
+        bp.set_attribute("noise_alt_bias", str(self.noise_alt_bias))
+        bp.set_attribute("noise_lat_bias", str(self.noise_lat_bias))
+        bp.set_attribute("noise_lon_bias", str(self.noise_lon_bias))
+
+        bp.set_attribute("sensor_tick", str(self.period))
+
         self.sensor = self.carla_world.spawn_actor(
             bp, carla.Transform(), attach_to=self.player
         )

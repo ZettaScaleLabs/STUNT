@@ -1,9 +1,16 @@
 id: CarlaIMUSrc
 uri: file:///home/ato/Workspace/STUNT/nodes/sources/carla-imu/carla-imu.py
 configuration:
-  host: '192.168.122.197'
+  host: '192.168.122.35'
   port: 2000
   frequency: 100
+  noise_accel_stddev_x: 0.0 #Standard deviation parameter in the noise model for acceleration (X axis).
+  noise_accel_stddev_y: 0.0 #Standard deviation parameter in the noise model for acceleration (Y axis).
+  noise_accel_stddev_z: 0.0 #Standard deviation parameter in the noise model for acceleration (Z axis).
+  noise_gyro_stddev_x: 0.0 #Mean parameter in the noise model for the gyroscope (X axis).
+  noise_gyro_stddev_y: 0.0 #Mean parameter in the noise model for the gyroscope (Y axis).
+  noise_gyro_stddev_z: 0.0 #Mean parameter in the noise model for the gyroscope (Z axis).
+
 outputs :
   - id: IMU
     type: IMUData

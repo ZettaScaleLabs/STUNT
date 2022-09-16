@@ -8,16 +8,18 @@ class GnssMeasurement(object):
         altitude=0.0,
         latitude=0.0,
         longitude=0.0,
+        timestamp=0.0,
     ):
         self.altitude = altitude
         self.latitude = latitude
         self.longitude = longitude
+        self.timestamp = timestamp
 
     def __repr__(self):
         return self.__str__()
 
     def __str__(self):
-        return f"GnssMeasurement(altitude={self.altitude}, latitude={self.latitude}, longitude={self.longitude})"
+        return f"GnssMeasurement(altitude={self.altitude}, latitude={self.latitude}, longitude={self.longitude}, ts={self.timestamp})"
 
     @classmethod
     def from_simulator(cls, gnss):
@@ -36,6 +38,7 @@ class GnssMeasurement(object):
             gnss.altitude,
             gnss.latitude,
             gnss.longitude,
+            gnss.timestamp,
         )
 
     def to_simulator(self):
@@ -50,6 +53,7 @@ class GnssMeasurement(object):
             "altitude": self.altitude,
             "latitude": self.latitude,
             "longitude": self.longitude,
+            "timestamp": self.timestamp,
         }
 
     @classmethod
@@ -58,6 +62,7 @@ class GnssMeasurement(object):
             dictionary["altitude"],
             dictionary["latitude"],
             dictionary["longitude"],
+            dictionary["timestamp"],
         )
 
     def serialize(self):

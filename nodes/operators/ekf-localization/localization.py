@@ -17,6 +17,8 @@ from stunt.types import (
     Vector3D,
     Pose,
     Quaternion,
+    Location,
+    Rotation,
 )
 
 from stunt import DEFAULT_CARLA_HOST, DEFAULT_CARLA_PORT
@@ -205,7 +207,7 @@ class Localization(Operator):
             # We compute on IMU
             if who == "GNSS":
                 self.gnss_data = GnssMeasurement.deserialize(data_msg.data)
-                self.gnss_timestamp = time.time() * S_TO_MS
+                self.gnss_timestamp = self.gnss_data.timestamp
 
             elif who == "IMU":
 
@@ -216,7 +218,7 @@ class Localization(Operator):
                 imu = IMUMeasurement.deserialize(data_msg.data)
 
                 # initializing the delta_t
-                current_ts = max(self.gnss_timestamp, time.time() * S_TO_MS)
+                current_ts = max(self.gnss_timestamp, imu.timestamp)
                 delta_t = (current_ts - self.last_timestamp) / 1000
 
                 # retreiving last estimations

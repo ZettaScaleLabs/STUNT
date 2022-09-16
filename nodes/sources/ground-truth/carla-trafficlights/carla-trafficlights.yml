@@ -1,7 +1,7 @@
 id: CarlaTrafficLights
 uri: file:///home/ato/Workspace/STUNT/nodes/sources/ground-truth/carla-trafficlights/carla-trafficlights.py
 configuration:
-  host: '192.168.122.197'
+  host: '192.168.122.35'
   port: 2000
   frequency: 1
 outputs :

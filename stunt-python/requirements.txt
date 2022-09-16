@@ -1,5 +1,5 @@
 wheel
 numpy
 opencv-python
-carla
+carla==0.9.13
 shapely
