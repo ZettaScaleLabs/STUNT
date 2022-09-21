@@ -1224,8 +1224,12 @@ class TrafficLight(Obstacle):
             "confidence": self.confidence,
             "state": self.state.serialize(),
             "id": self.id,
-            "transform": self.transform.to_dict(),
-            "trigger_volume_extent": self.trigger_volume_extent.to_dict(),
+            "transform": self.transform.to_dict()
+            if self.transform is not None
+            else None,
+            "trigger_volume_extent": self.trigger_volume_extent.to_dict()
+            if self.trigger_volume_extent is not None
+            else None,
             "bounding_box": self.bounding_box.to_dict()
             if self.bounding_box is not None
             else None,
@@ -1234,8 +1238,16 @@ class TrafficLight(Obstacle):
 
     @classmethod
     def from_dict(cls, dictionary):
-        transform = Transform.from_dict(dictionary["transform"])
-        trigger_volume_extent = Vector3D.from_dict(dictionary["trigger_volume_extent"])
+        transform = (
+            Transform.from_dict(dictionary["transform"])
+            if dictionary["transform"] is not None
+            else None
+        )
+        trigger_volume_extent = (
+            Vector3D.from_dict(dictionary["trigger_volume_extent"])
+            if dictionary["trigger_volume_extent"] is not None
+            else None
+        )
         bounding_box = (
             BoundingBox2D.from_dict(dictionary["bounding_box"])
             if dictionary["bounding_box"] is not None

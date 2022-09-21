@@ -58,7 +58,6 @@ class CtrlCar(Sink):
         return cself.run
 
     async def run(self):
-        print("Waiting for the data.")
         data_msg = await self.in_stream.recv()
         ctrl = VehicleControl.deserialize(data_msg.data)
         carla_ctrl = CarlaVehicleControl()
@@ -66,9 +65,7 @@ class CtrlCar(Sink):
         carla_ctrl.throttle = ctrl.throttle
         carla_ctrl.steer = ctrl.steer
         carla_ctrl.brake = ctrl.brake
-        print(f"Appying control {carla_ctrl}")
         self.state.player.apply_control(carla_ctrl)
-        print("Ctrl Applied")
 
         return None
 

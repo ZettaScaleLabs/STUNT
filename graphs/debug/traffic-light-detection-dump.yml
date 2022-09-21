@@ -1,0 +1,51 @@
+flow: ControlDataDump
+configuration:
+  host: '192.168.122.35'
+operators:
+  - id: TrafficLightDetection
+    configuration:
+      traffic_light_det_model_path: /home/ato/Workspace/models/traffic_light_detection/faster-rcnn
+    descriptor: /home/ato/Workspace/STUNT/nodes/operators/traffic-lights-detector/traffic-lights-detector.yml
+
+  - id: TTD
+    descriptor:  /home/ato/Workspace/STUNT/nodes/operators/time-to-decision/time-to-decision.yml
+
+sources:
+  - id : CarlaCamera
+    descriptor : /home/ato/Workspace/STUNT/nodes/sources/carla-camera/carla-camera.yml
+
+  - id : CarlaLocalization
+    descriptor : /home/ato/Workspace/STUNT/nodes/sources/ground-truth/carla-localization/carla-localization.yml
+
+sinks:
+  - id : PyPrint
+    descriptor : /home/ato/Workspace/STUNT/nodes/sinks/generic-sink-py/generic-sink.yml
+
+links:
+- from:
+    node : CarlaCamera
+    output : Image
+  to:
+    node : TrafficLightDetection
+    input : Image
+
+- from:
+    node : CarlaLocalization
+    output : Pose
+  to:
+    node : TTD
+    input : Pose
+
+- from:
+    node : TTD
+    output : TTD
+  to:
+    node : TrafficLightDetection
+    input : TTD
+
+- from:
+    node : TrafficLightDetection
+    output : TrafficLights
+  to:
+    node : PyPrint
+    input : Data

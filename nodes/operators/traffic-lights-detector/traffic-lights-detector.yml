@@ -1,0 +1,18 @@
+id: TrafficLightsDetection
+uri: file:///home/ato/Workspace/STUNT/nodes/operators/traffic-lights-detector/traffic-lights-detector.py
+configuration:
+  traffic_light_det_model_path: dependencies/models/traffic_light_detection/faster-rcnn/ # Path to the traffic light model protobuf
+  traffic_light_det_min_score_threshold: 0.7 # Min score threshold for bounding box
+  traffic_light_det_gpu_memory_fraction: 0.3 # GPU memory fraction allocated to each traffic light detector
+  traffic_light_det_gpu_index: 0 # The index of the GPU to deploy the model on
+
+inputs :
+  - id: Image
+    type: Image
+  - id: TTD
+    type: TTD
+outputs :
+  - id: TrafficLights
+    type: Obstacles
+tags:
+  - tensorflow
