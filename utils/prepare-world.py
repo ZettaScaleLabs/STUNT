@@ -4,6 +4,7 @@ import argparse
 import random
 import time
 
+
 def spawn_people(client, world, num_people: int):
     """Spawns people at random locations inside the world.
 
@@ -68,7 +69,7 @@ def spawn_ego_vehicle(
     traffic_manager_port: int,
     spawn_point_index: int,
     auto_pilot: bool,
-    blueprint: str = "vehicle.lincoln.mkz2017",
+    blueprint: str = "vehicle.audi.etron",
 ):
     # vehicle.lincoln.mkz2017 for versions prior to 9.12
     v_blueprint = world.get_blueprint_library().filter(blueprint)[0]
