@@ -494,9 +494,13 @@ class Obstacle(object):
             "confidence": self.confidence,
             "label": self.label,
             "id": self.id,
-            "transform": self.transform.to_dict(),
+            "transform": self.transform.to_dict()
+            if self.transform is not None
+            else None,
             "detailed_label": self.detailed_label,
             "bounding_box_2D": self.bounding_box_2D.to_dict()
+            if self.bounding_box_2D is not None
+            else None
             if self.bounding_box_2D is not None
             else None,
             "timestamp": self.timestamp,
@@ -506,7 +510,11 @@ class Obstacle(object):
     def from_dict(cls, dictionary):
 
         bounding_box = BoundingBox3D.from_dict(dictionary["bounding_box"])
-        transform = Transform.from_dict(dictionary["transform"])
+        transform = (
+            Transform.from_dict(dictionary["transform"])
+            if dictionary["transform"] is not None
+            else None
+        )
         bounding_box_2D = (
             BoundingBox2D.from_dict(dictionary["bounding_box_2D"])
             if dictionary["bounding_box_2D"] is not None

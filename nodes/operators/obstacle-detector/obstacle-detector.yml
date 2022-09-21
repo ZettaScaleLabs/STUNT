@@ -1,0 +1,23 @@
+id: TrafficLightsDetection
+uri: file:///home/ato/Workspace/STUNT/nodes/operators/obstacle-detector/obstacle-detector.py
+configuration:
+  obstacle_detection_model_path: dependencies/models/obstacle_detection/faster-rcnn/ # list of model paths
+  obstacle_detection_model_name: 'faster-rcnn' # list of model names
+  obstacle_detection_gpu_memory_fraction: 0.3 # GPU memory fraction allocated to each obstacle detector operator
+  obstacle_detection_gpu_index: 0 # The index of the GPU to deploy the model on
+  obstacle_detection_min_score_threshold: 0.5 # Min score threshold for bounding box
+  path_coco_labels: 'models/STUNT.names' # Path to the COCO labels
+  dynamic_obstacle_distance_threshold: 30.0 # Max distance to consider dynamic obstacles [m]
+  static_obstacle_distance_threshold: 70.0 # Max distance to consider static obstacles (e.g., traffic lights) [m]
+
+
+inputs :
+  - id: Image
+    type: Image
+  - id: TTD
+    type: TTD
+outputs :
+  - id: Obstacles
+    type: Obstacles
+tags:
+  - tensorflow
