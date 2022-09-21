@@ -11,7 +11,7 @@ import carla
 from stunt.types import IMUMeasurement
 from stunt import DEFAULT_SAMPLING_FREQUENCY, DEFAULT_CARLA_HOST, DEFAULT_CARLA_PORT
 
-
+DEFAULT_IMU_NAME = "stunt-imu"
 DEFAULT_NOISE_ACC_X_STDDEV = 0.0
 DEFAULT_NOISE_ACC_Y_STDDEV = 0.0
 DEFAULT_NOISE_ACC_Z_STDDEV = 0.0
@@ -30,6 +30,7 @@ class CarlaIMUSrcState:
         self.period = 1 / int(
             configuration.get("frequency", DEFAULT_SAMPLING_FREQUENCY)
         )
+        self.name = configuration.get("name", DEFAULT_IMU_NAME)
 
         self.noise_accel_stddev_x = configuration.get(
             "noise_accel_stddev_x", DEFAULT_NOISE_ACC_X_STDDEV
@@ -54,6 +55,10 @@ class CarlaIMUSrcState:
         self.carla_world = self.carla_client.get_world()
 
         self.player = None
+        self.sensor = None
+
+        self.data = IMUMeasurement()
+
         while self.player is None:
             time.sleep(1)
             possible_vehicles = self.carla_world.get_actors().filter("vehicle.*")
@@ -61,24 +66,34 @@ class CarlaIMUSrcState:
                 if vehicle.attributes["role_name"] == "hero":
                     print("Ego vehicle found")
                     self.player = vehicle
+                    # check if there is a IMU we can use
+                    possible_imus = self.carla_world.get_actors().filter(
+                        "sensor.other.imu"
+                    )
+                    for imu in possible_imus:
+                        if (
+                            imu.parent.id == self.player.id
+                            and imu.attributes["role_name"] == self.name
+                        ):
+                            self.sensor = imu
+                            break
                     break
 
-        self.data = IMUMeasurement()
+        if self.sensor is None:
+            bp = self.carla_world.get_blueprint_library().find("sensor.other.imu")
 
-        bp = self.carla_world.get_blueprint_library().find("sensor.other.imu")
+            bp.set_attribute("role_name", self.name)
+            bp.set_attribute("sensor_tick", str(self.period))
+            bp.set_attribute("noise_accel_stddev_x", str(self.noise_accel_stddev_x))
+            bp.set_attribute("noise_accel_stddev_y", str(self.noise_accel_stddev_y))
+            bp.set_attribute("noise_accel_stddev_z", str(self.noise_accel_stddev_z))
+            bp.set_attribute("noise_gyro_stddev_x", str(self.noise_gyro_stddev_x))
+            bp.set_attribute("noise_gyro_stddev_y", str(self.noise_gyro_stddev_y))
+            bp.set_attribute("noise_gyro_stddev_z", str(self.noise_gyro_stddev_z))
 
-        bp.set_attribute("sensor_tick", str(self.period))
-
-        bp.set_attribute("noise_accel_stddev_x", str(self.noise_accel_stddev_x))
-        bp.set_attribute("noise_accel_stddev_y", str(self.noise_accel_stddev_y))
-        bp.set_attribute("noise_accel_stddev_z", str(self.noise_accel_stddev_z))
-        bp.set_attribute("noise_gyro_stddev_x", str(self.noise_gyro_stddev_x))
-        bp.set_attribute("noise_gyro_stddev_y", str(self.noise_gyro_stddev_y))
-        bp.set_attribute("noise_gyro_stddev_z", str(self.noise_gyro_stddev_z))
-
-        self.sensor = self.carla_world.spawn_actor(
-            bp, carla.Transform(), attach_to=self.player
-        )
+            self.sensor = self.carla_world.spawn_actor(
+                bp, carla.Transform(), attach_to=self.player
+            )
 
         self.sensor.listen(self.on_sensor_update)
 

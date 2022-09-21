@@ -12,6 +12,12 @@ operators:
 
 sources:
   - id : CarlaCamera
+    configuration:
+      name: tl-camera
+      frequency: 20
+      fov: 45
+      location: [0.0, 0.0, 2.0]
+
     descriptor : /home/ato/Workspace/STUNT/nodes/sources/carla-camera/carla-camera.yml
 
   - id : CarlaLocalization

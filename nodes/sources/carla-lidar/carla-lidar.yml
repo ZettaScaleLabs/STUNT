@@ -4,6 +4,7 @@ configuration:
   host: '192.168.122.35'
   port: 2000
   frequency: 10
+  name: stunt-lidar
 outputs :
   - id: LIDAR
     type: LidarData

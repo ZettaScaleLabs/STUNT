@@ -4,6 +4,7 @@ configuration:
   host: '192.168.122.35'
   port: 2000
   frequency: 100
+  name: stunt-imu
   noise_accel_stddev_x: 0.0 #Standard deviation parameter in the noise model for acceleration (X axis).
   noise_accel_stddev_y: 0.0 #Standard deviation parameter in the noise model for acceleration (Y axis).
   noise_accel_stddev_z: 0.0 #Standard deviation parameter in the noise model for acceleration (Z axis).

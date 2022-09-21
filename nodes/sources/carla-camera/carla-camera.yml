@@ -1,4 +1,4 @@
-id: CarlaLidarSrc
+id: CarlaCamera
 uri: file:///home/ato/Workspace/STUNT/nodes/sources/carla-camera/carla-camera.py
 configuration:
   host: '192.168.122.35'
@@ -10,6 +10,7 @@ configuration:
   width: 1920
   height: 1080
   fov: 90
+  name: stunt-camera
 outputs :
   - id: Image
     type: Image
