@@ -1,0 +1,11 @@
+id: ZenohCamera
+uri: file:///home/ato/Workspace/STUNT/nodes/sources/zenoh-camera/zenoh-camera.py
+configuration:
+  locator: 'tcp/192.168.122.35:7887'
+  mode: client
+  key_expression: /stunt/camera
+  frequency: 30
+outputs :
+  - id: Image
+    type: Image
+tags: []

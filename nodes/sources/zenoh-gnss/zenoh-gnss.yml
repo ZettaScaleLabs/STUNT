@@ -1,0 +1,11 @@
+id: ZenohGNSS
+uri: file:///home/ato/Workspace/STUNT/nodes/sources/zenoh-gnss/zenoh-gnss.py
+configuration:
+  locator: 'tcp/192.168.122.35:7887'
+  mode: client
+  key_expression: /stunt/gnss
+  frequency: 30
+outputs :
+  - id: GNSS
+    type: Coordinates
+tags: []
