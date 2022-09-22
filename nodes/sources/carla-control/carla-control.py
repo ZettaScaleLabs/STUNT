@@ -4,63 +4,32 @@ from typing import Any, Dict, Callable
 import time
 import asyncio
 
-import json
-import carla
-
 from stunt.types import VehicleControl
-from stunt import DEFAULT_SAMPLING_FREQUENCY, DEFAULT_CARLA_HOST, DEFAULT_CARLA_PORT
+from stunt.simulator.sensors import ControlSensor
+from stunt import DEFAULT_SAMPLING_FREQUENCY
 
 
-class CarlaControlSrcState:
-    def __init__(self, configuration):
+class CarlaControl(Source):
+    def __init__(self, configuration, output):
 
-        self.carla_port = DEFAULT_CARLA_PORT
-        self.carla_host = DEFAULT_CARLA_HOST
-        self.period = 1 / DEFAULT_SAMPLING_FREQUENCY
-
-        if configuration is not None and configuration.get("port") is not None:
-            self.carla_port = int(configuration["port"])
-
-        if configuration is not None and configuration.get("host") is not None:
-            self.carla_host = configuration["host"]
-
-        if configuration is not None and configuration.get("frequency") is not None:
-            self.period = 1 / configuration["frequency"]
-
-        self.carla_client = carla.Client(self.carla_host, self.carla_port)
-        self.carla_world = self.carla_client.get_world()
-
-        self.player = None
-        while self.player is None:
-            time.sleep(1)
-            possible_vehicles = self.carla_world.get_actors().filter("vehicle.*")
-            for vehicle in possible_vehicles:
-                if vehicle.attributes["role_name"] == "hero":
-                    print("Ego vehicle found")
-                    self.player = vehicle
-                    break
-
-    def on_world_tick(self, timestamp):
-        None
-
-
-class CarlaControlSrc(Source):
-    def __init__(self, state, output):
-        self.state = state
+        configuration = {} if configuration is None else configuration
+        self.period = 1 / configuration.get("frequency", DEFAULT_SAMPLING_FREQUENCY)
+        self.sensor = ControlSensor(configuration)
         self.output = output
 
     async def create_data(self):
-        await asyncio.sleep(self.state.period)
-        control = VehicleControl.from_simulator(self.state.player.get_control())
+        await asyncio.sleep(self.period)
+
+        control = VehicleControl.from_simulator(self.sensor.read_data())
+
         await self.output.send(control.serialize())
         return None
 
     def setup(
         self, configuration: Dict[str, Any], outputs: Dict[str, DataSender]
     ) -> Callable[[], Any]:
-        state = CarlaControlSrcState(configuration)
         output = outputs.get("Control", None)
-        c = CarlaControlSrc(state, output)
+        c = CarlaControl(configuration, output)
         return c.create_data
 
     def finalize(self) -> None:
@@ -68,4 +37,4 @@ class CarlaControlSrc(Source):
 
 
 def register():
-    return CarlaControlSrc
+    return CarlaControl

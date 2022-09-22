@@ -4,6 +4,8 @@ configuration:
 operators: []
 sources:
   - id : CarlaCamera
+    configuration:
+      location: [1.3, 0.0, 1.8]
     descriptor : /home/ato/Workspace/STUNT/nodes/sources/carla-camera/carla-camera.yml
 sinks:
   - id : PyPrint

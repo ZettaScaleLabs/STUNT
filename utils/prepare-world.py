@@ -5,6 +5,26 @@ import random
 import time
 
 
+from stunt.types import IMUMeasurement
+
+import zenoh
+from zenoh import Reliability, SubMode
+
+
+class ZenohSensor:
+    def __init__(self, session, ke, sensor, data_type):
+        self.session = session
+        self.ke = ke
+        self.sensor = sensor
+        self.data_type = data_type
+
+        self.sensor.listen(self.on_data)
+
+    def on_data(self, data):
+        stunt_data = self.data_type.from_simulator(data)
+        self.session.put(self.ke, stunt_data.serialize())
+
+
 def spawn_people(client, world, num_people: int):
     """Spawns people at random locations inside the world.
 
@@ -188,10 +208,16 @@ def main(config):
     weather = config["weather"]
     traffic_manager_port = config["traffic_manager_port"]
 
+    # setting the world
+
     carla_client = carla.Client(carla_host, carla_port)
     carla_world = carla_client.load_world(town_map)
     carla_world.set_weather(getattr(carla.WeatherParameters, weather))
+    world_settings = carla_world.get_settings()
+    world_settings.fixed_delta_seconds = 1 / int(config["fps"])
     tm = carla_client.get_trafficmanager(traffic_manager_port)
+
+    carla_world.apply_settings(world_settings)
 
     # spawing things
     ego_vehicle, vehicle_ids, people_ids = spawn_actors(
@@ -202,14 +228,66 @@ def main(config):
         num_people,
         num_vehicles,
     )
+
+    # setting autopilot for non-ego vehicles
     vehicles = carla_world.get_actors(vehicle_ids)
     for v in vehicles:
         v.set_autopilot(True, tm.get_port())
 
     print(f"Ego vehicle {ego_vehicle}")
 
-    while True:
-        time.sleep(5000)
+    if config["challenge_config"]["enabled"]:
+
+        new_config = config["challenge_config"]
+
+        print(
+            f"Configured as Challenge, setting the simulator to synchronous, adding sensors and Zenoh Publishers"
+        )
+
+        # setting world as synchronous (simulator slows down a lot with all sensors)
+        world_settings = carla_world.get_settings()
+        world_settings.synchronous_mode = True
+        carla_world.apply_settings(world_settings)
+
+        # configuring zenoh
+        zconf = zenoh.Config()
+
+        zconf.insert_json5(zenoh.config.MODE_KEY, json.dumps(new_config["mode"]))
+        zconf.insert_json5(zenoh.config.CONNECT_KEY, json.dumps(new_config["locators"]))
+
+        zsession = zenoh.open(zconf)
+
+        imu_sensor = imu_setup(carla_world, ego_vehicle, new_config["imu"])
+        camera_pub = ZenohSensor(
+            zsession, new_config["imu"]["ke"], imu_sensor, IMUMeasurement
+        )
+
+        counter = 0
+        while True:
+            time.sleep(1)
+            frame_id = carla_world.tick()
+            print(f"[{counter}] Ticking the world frame id {frame_id}")
+
+            counter += 1
+
+    else:
+        while True:
+            time.sleep(5000)
+
+
+def imu_setup(carla_world, ego_vehicle, config):
+    bp = carla_world.get_blueprint_library().find("sensor.other.imu")
+    bp.set_attribute("role_name", config["name"])
+    bp.set_attribute("sensor_tick", str(1 / config["frequency"]))
+    bp.set_attribute("noise_accel_stddev_x", str(config["noise_accel_stddev_x"]))
+    bp.set_attribute("noise_accel_stddev_y", str(config["noise_accel_stddev_y"]))
+    bp.set_attribute("noise_accel_stddev_z", str(config["noise_accel_stddev_z"]))
+    bp.set_attribute("noise_gyro_stddev_x", str(config["noise_gyro_stddev_x"]))
+    bp.set_attribute("noise_gyro_stddev_y", str(config["noise_gyro_stddev_y"]))
+    bp.set_attribute("noise_gyro_stddev_z", str(config["noise_gyro_stddev_z"]))
+
+    sensor = carla_world.spawn_actor(bp, carla.Transform(), attach_to=ego_vehicle)
+    return sensor
 
 
 if __name__ == "__main__":
