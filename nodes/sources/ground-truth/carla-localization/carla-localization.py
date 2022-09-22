@@ -4,90 +4,40 @@ from typing import Any, Dict, Callable, List
 import time
 import asyncio
 
-import json
-import carla
-import array
-import numpy as np
-
-from stunt.types import Transform, Vector3D, Pose
-from stunt import DEFAULT_SAMPLING_FREQUENCY, DEFAULT_CARLA_HOST, DEFAULT_CARLA_PORT
-
-S_TO_MS = 1000
-
-
-class GTLocalizationState:
-    def __init__(self, configuration):
-
-        self.carla_port = 2000
-        self.carla_host = "localhost"
-        self.carla_world = None
-        self.carla_client = None
-        self.player = None
-
-        self.period = 1 / int(
-            configuration.get("frequency", DEFAULT_SAMPLING_FREQUENCY)
-        )
-        self.pose = None
-
-        if configuration is not None and configuration.get("port") is not None:
-            self.carla_port = int(configuration["port"])
-
-        if configuration is not None and configuration.get("host") is not None:
-            self.carla_host = configuration["host"]
-
-        # Connecting to CARLA
-        self.carla_client = carla.Client(self.carla_host, self.carla_port)
-        self.carla_world = self.carla_client.get_world()
-
-        # Waiting EGO vehicle
-        while self.player is None:
-            time.sleep(1)
-            possible_vehicles = self.carla_world.get_actors().filter("vehicle.*")
-            for vehicle in possible_vehicles:
-                if vehicle.attributes["role_name"] == "hero":
-                    print("Ego vehicle found")
-                    self.player = vehicle
-                    break
-
-        self.carla_world.on_tick(self.on_world_tick)
-
-    def on_world_tick(self, snapshot):
-
-        vec_transform = Transform.from_simulator_transform(self.player.get_transform())
-        velocity_vector = Vector3D.from_simulator_vector(self.player.get_velocity())
-
-        forward_speed = np.linalg.norm(
-            np.array([velocity_vector.x, velocity_vector.y, velocity_vector.z])
-        )
-
-        self.pose = Pose(
-            vec_transform,
-            forward_speed,
-            velocity_vector,
-            snapshot.timestamp.elapsed_seconds * S_TO_MS,
-        )
+from stunt.simulator.ground_truth import Localization
+from stunt import DEFAULT_SAMPLING_FREQUENCY
 
 
 class GroundTruthLocalization(Source):
-    def __init__(self, state, output):
-        self.state = state
+    def __init__(self, configuration, output):
+
+        configuration = {} if configuration is None else configuration
+        self.period = 1 / int(
+            configuration.get("frequency", DEFAULT_SAMPLING_FREQUENCY)
+        )
+
+        self.sensor = Localization(configuration, self.on_sensor_update)
+
+        self.pose = None
         self.output = output
 
-    async def create_data(self):
-        await asyncio.sleep(self.state.period)
+    def on_sensor_update(self, data):
+        self.pose = data
 
-        if self.state.pose is not None:
-            await self.output.send(self.state.pose.serialize())
+    async def create_data(self):
+        await asyncio.sleep(self.period)
+
+        if self.pose is not None:
+            await self.output.send(self.pose.serialize())
 
         return None
 
     def setup(
         self, configuration: Dict[str, Any], outputs: Dict[str, DataSender]
     ) -> Callable[[], Any]:
-        state = GTLocalizationState(configuration)
         output = outputs.get("Pose", None)
 
-        aself = GroundTruthLocalization(state, output)
+        aself = GroundTruthLocalization(configuration, output)
         return aself.create_data
 
     def finalize(self) -> None:
