@@ -1,0 +1,11 @@
+id: ZenohIMU
+uri: file:///home/ato/Workspace/STUNT/nodes/sources/ground-truth/zenoh-location/zenoh-location.py
+configuration:
+  locator: 'tcp/192.168.122.35:7887'
+  mode: client
+  key_expression: /stunt/location
+  frequency: 30
+outputs :
+  - id: Pose
+    type: Pose
+tags: []

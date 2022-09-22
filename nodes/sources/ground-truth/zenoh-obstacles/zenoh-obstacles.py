@@ -5,16 +5,16 @@ import time
 import asyncio
 
 
-from stunt.types import LidarMeasurement
+from stunt.types import Obstacle
 import zenoh
 from zenoh import Reliability, SubMode
 
 DEFAULT_ZENOH_LOCATOR = "tcp/127.0.0.1:7447"
 DEFAULT_MODE = "peer"
-DEFAULT_KE = "/stunt/lidar"
+DEFAULT_KE = "/stunt/obstacles"
 
 
-class ZenohLidar(Source):
+class ZenohObstacles(Source):
     def __init__(self, configuration, output):
 
         self.period = 1 / int(
@@ -40,25 +40,32 @@ class ZenohLidar(Source):
         )
 
         self.output = output
-        self.lidar = None
+        self.obstacles = None
 
     async def create_data(self):
         await asyncio.sleep(self.state.period)
 
-        if self.lidar is not None:
-            await self.output.send(self.lidar.serialize())
-            self.lidar = None
+        if self.obstacles is not None:
+            obstacles = []
+            for obstacle in self.obstacles:
+                obstacles.append(obstacle.to_dict())
+
+            await self.output.send(json.dumps(obstacles).encode("utf-8"))
+            self.obstacles = None
 
         return None
 
     def on_sensor_update(self, sample):
-        self.lidar = LidarMeasurement.deserialize(sample.payload)
+        obs = json.loads(sample.payload.decode("utf-8"))
+        self.obstacles = []
+        for o in obs:
+            self.obstacles.append(Obstacle.from_dict(o))
 
     def setup(
         self, configuration: Dict[str, Any], outputs: Dict[str, DataSender]
     ) -> Callable[[], Any]:
-        output = outputs.get("LIDAR", None)
-        c = ZenohLidar(configuration, output)
+        output = outputs.get("Obstacles", None)
+        c = ZenohObstacles(configuration, output)
         return c.create_data
 
     def finalize(self) -> None:
@@ -68,4 +75,4 @@ class ZenohLidar(Source):
 
 
 def register():
-    return ZenohLidar
+    return ZenohObstacles

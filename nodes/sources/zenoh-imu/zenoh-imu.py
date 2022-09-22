@@ -52,7 +52,7 @@ class ZenohIMU(Source):
         return None
 
     def on_sensor_update(self, sample):
-        self.imu = IMUMeasurement.from_simulator(sample.payload)
+        self.imu = IMUMeasurement.deserialize(sample.payload)
 
     def setup(
         self, configuration: Dict[str, Any], outputs: Dict[str, DataSender]

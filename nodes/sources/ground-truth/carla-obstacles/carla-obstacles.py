@@ -13,7 +13,7 @@ import numpy as np
 from stunt.types import Obstacle
 from stunt import DEFAULT_SAMPLING_FREQUENCY, DEFAULT_CARLA_HOST, DEFAULT_CARLA_PORT
 
-DEFAULT_OBSTACLE_TYPE = "traffic.traffic_light*"
+DEFAULT_OBSTACLE_TYPES = ["vehicle.*"]
 
 
 class GTObstaclesState:
@@ -28,7 +28,7 @@ class GTObstaclesState:
         self.period = 1 / int(
             configuration.get("frequency", DEFAULT_SAMPLING_FREQUENCY)
         )
-        self.obstacle_type = configuration.get("type", DEFAULT_OBSTACLE_TYPE)
+        self.obstacle_types = configuration.get("types", DEFAULT_OBSTACLE_TYPES)
 
         self.obstacles = None
 
@@ -52,15 +52,21 @@ class GroundTruthObstacles(Source):
         await asyncio.sleep(self.state.period)
 
         # getting simulator obstacles and filtering them
-        sim_obstacles = self.state.carla_world.get_actors().filter(
-            self.state.obstacle_type
-        )
+        sim_obstacles = []
 
-        # removing ego vehicle from the detected obstacles, a car does not
-        # detect itself
-        sim_obstacles = list(
-            filter(lambda x: x.attributes["role_name"] != "hero", sim_obstacles)
-        )
+        for obstacle_type in self.obstacles_types:
+
+            current_obstacles = self.state.carla_world.get_actors().filter(
+                self.state.obstacle_type
+            )
+
+            # removing ego vehicle from the detected obstacles, a car does not
+            # detect itself
+            current_obstacles = list(
+                filter(lambda x: x.attributes["role_name"] != "hero", sim_obstacles)
+            )
+
+            sim_obstacles.extend(current_obstacles)
 
         obstacles = self.obstacles_to_bytes(sim_obstacles)
         await self.output.send(obstacles)

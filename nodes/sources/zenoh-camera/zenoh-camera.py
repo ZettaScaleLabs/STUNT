@@ -52,7 +52,7 @@ class ZenohCamera(Source):
         return None
 
     def on_sensor_update(self, sample):
-        self.frame = Image.from_simulator(sample.payload)
+        self.frame = Image.deserialize(sample.payload)
 
     def setup(
         self, configuration: Dict[str, Any], outputs: Dict[str, DataSender]

@@ -52,7 +52,7 @@ class ZenohGNSS(Source):
         return None
 
     def on_sensor_update(self, sample):
-        self.gnss = GnssMeasurement.from_simulator(sample.payload)
+        self.gnss = GnssMeasurement.deserialize(sample.payload)
 
     def setup(
         self, configuration: Dict[str, Any], outputs: Dict[str, DataSender]

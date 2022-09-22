@@ -4,7 +4,9 @@ configuration:
   host: '192.168.122.35'
   port: 2000
   frequency: 30
-  type: 'vehicle.*'
+  types:
+    - 'vehicle.*'
+    - 'walker.pedestrian.*'
 outputs :
   - id: Obstacles
     type: Obstacles
