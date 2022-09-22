@@ -1,0 +1,20 @@
+id: SortTracker
+uri: file:///home/ato/Workspace/STUNT/nodes/operators/sort-tracker/sort-tracker.py
+configuration:
+  min_matching_iou: 0.2 # IoU required between detection and track for matching to be considered
+  eval_min_matching_iou: 0.5 # IoU required for tracking evaluation
+  obstacle_track_max_age: 5 # Number of frames to track without a detection update
+  ignore_obstacles_with_short_history: 1 # Ignore obstacles with history smaller than specified value
+  track_every_nth_detection: 1 # Determines how often detections are used by tracker (1=every detection).
+  min_hits: 1
+inputs :
+  - id: Image
+    type: Image
+  - id: Obstacles
+    type: Obstacles
+  - id: TTD
+    type: TTD
+outputs :
+  - id: ObstacleTrajectories
+    type: ObstacleTrajectories
+tags: []

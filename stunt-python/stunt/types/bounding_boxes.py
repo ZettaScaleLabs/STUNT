@@ -294,7 +294,9 @@ class BoundingBox3D(object):
 
     def to_dict(self):
         return {
-            "transform": self.transform.to_dict(),
+            "transform": self.transform.to_dict()
+            if self.transform is not None
+            else None,
             "extent": self.extent.to_dict(),
             "corners": self.corners,
         }
@@ -302,7 +304,11 @@ class BoundingBox3D(object):
     @classmethod
     def from_dict(cls, dictionary):
 
-        transform = Transform.from_dict(dictionary["transform"])
+        transform = (
+            Transform.from_dict(dictionary["transform"])
+            if dictionary["transform"] is not None
+            else None
+        )
         extent = Vector3D.from_dict(dictionary["extent"])
 
         return cls(transform, extent, dictionary["corners"])

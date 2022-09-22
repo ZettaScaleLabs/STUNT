@@ -509,7 +509,11 @@ class Obstacle(object):
     @classmethod
     def from_dict(cls, dictionary):
 
-        bounding_box = BoundingBox3D.from_dict(dictionary["bounding_box"])
+        try:
+            bounding_box = BoundingBox3D.from_dict(dictionary["bounding_box"])
+        except:
+            bounding_box = BoundingBox2D.from_dict(dictionary["bounding_box"])
+
         transform = (
             Transform.from_dict(dictionary["transform"])
             if dictionary["transform"] is not None
