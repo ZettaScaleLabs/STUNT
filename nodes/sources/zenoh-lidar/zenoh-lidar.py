@@ -1,5 +1,6 @@
 from zenoh_flow.interfaces import Source
 from zenoh_flow import DataSender
+from zenoh_flow.types import Context
 from typing import Any, Dict, Callable
 import time
 import asyncio
@@ -15,7 +16,11 @@ DEFAULT_KE = "/stunt/lidar"
 
 
 class ZenohLidar(Source):
-    def __init__(self, configuration, output):
+    def __init__(self,
+        context,
+        configuration,
+        outputs
+    ):
 
         self.period = 1 / int(
             configuration.get("frequency", DEFAULT_SAMPLING_FREQUENCY)
@@ -39,10 +44,10 @@ class ZenohLidar(Source):
             mode=SubMode.Push,
         )
 
-        self.output = output
+        self.output = outputs.get("LIDAR", None)
         self.lidar = None
 
-    async def create_data(self):
+    async def iteration(self):
         await asyncio.sleep(self.state.period)
 
         if self.lidar is not None:
@@ -54,12 +59,6 @@ class ZenohLidar(Source):
     def on_sensor_update(self, sample):
         self.lidar = LidarMeasurement.deserialize(sample.payload)
 
-    def setup(
-        self, configuration: Dict[str, Any], outputs: Dict[str, DataSender]
-    ) -> Callable[[], Any]:
-        output = outputs.get("LIDAR", None)
-        c = ZenohLidar(configuration, output)
-        return c.create_data
 
     def finalize(self) -> None:
         self.sub.close()

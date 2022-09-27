@@ -1,5 +1,6 @@
 from zenoh_flow.interfaces import Source
 from zenoh_flow import DataSender
+from zenoh_flow.types import Context
 from typing import Any, Dict, Callable
 import time
 import asyncio
@@ -11,7 +12,7 @@ from stunt import DEFAULT_SAMPLING_FREQUENCY
 
 
 class CarlaCamera(Source):
-    def __init__(self, configuration, output):
+    def __init__(self, context, configuration, outputs):
         configuration = {} if configuration is None else configuration
 
         self.period = 1 / int(
@@ -20,26 +21,18 @@ class CarlaCamera(Source):
         self.sensor = CameraSensor(configuration, self.on_sensor_update)
 
         self.frame = None
-        self.output = output
+        self.output = outputs.get("Image", None)
 
     def on_sensor_update(self, data):
         self.frame = Image.from_simulator(data)
 
-    async def create_data(self):
+    async def iteration(self):
         await asyncio.sleep(self.period)
 
         if self.frame is not None:
             await self.output.send(self.frame.serialize())
 
         return None
-
-    def setup(
-        self, configuration: Dict[str, Any], outputs: Dict[str, DataSender]
-    ) -> Callable[[], Any]:
-
-        output = outputs.get("Image", None)
-        c = CarlaCamera(configuration, output)
-        return c.create_data
 
     def finalize(self) -> None:
         return None

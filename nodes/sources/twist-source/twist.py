@@ -1,5 +1,6 @@
 from zenoh_flow.interfaces import Source
 from zenoh_flow import DataSender
+from zenoh_flow.types import Context
 from typing import Any, Dict, Callable
 import time
 import asyncio
@@ -25,8 +26,9 @@ class Twist:
     angular: Vector3
 
 
-class State:
-    def __init__(self, configuration):
+class TwistSrc(Source):
+    def __init__(self, context, configuration, outputs):
+        self.output = outputs.get("Twist", None)
 
         self.period = 1 / int(configuration.get("frequency"))
         self.router = configuration.get("router")
@@ -49,13 +51,7 @@ class State:
     def on_sensor_update(self, data):
         self.twist = Twist.deserialize(data.payload)
 
-
-class TwistSrc(Source):
-    def __init__(self, state, output):
-        self.state = state
-        self.output = output
-
-    async def create_data(self):
+    async def iteration(self):
         await asyncio.sleep(self.state.period)
 
         if self.state.twist is not None:
@@ -76,14 +72,6 @@ class TwistSrc(Source):
             await self.output.send(json.dumps(d).encode(("utf-8")))
 
         return None
-
-    def setup(
-        self, configuration: Dict[str, Any], outputs: Dict[str, DataSender]
-    ) -> Callable[[], Any]:
-        state = State(configuration)
-        output = outputs.get("Twist", None)
-        c = TwistSrc(state, output)
-        return c.create_data
 
     def finalize(self) -> None:
         return None

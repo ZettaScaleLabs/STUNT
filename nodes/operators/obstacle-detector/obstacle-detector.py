@@ -1,5 +1,6 @@
 from zenoh_flow.interfaces import Operator
 from zenoh_flow import DataReceiver, DataSender
+from zenoh_flow.types import Context
 from typing import Dict, Any, Callable
 import time
 import asyncio
@@ -29,13 +30,13 @@ DEFAULT_STATIC_OBSTACLE_DISTANCE_THRESHOLD = 70.0
 
 
 class ObstacleDetection(Operator):
-    def __init__(self, configuration, image_input, ttd_input, output):
+    def __init__(self, context, configuration, inputs, outputs):
 
         configuration = {} if configuration is None else configuration
 
-        self.image_input = image_input
-        self.ttd_input = ttd_input
-        self.output = output
+        self.image_input = inputs.get("Image", None)
+        self.ttd_input = inputs.get("TTD", None)
+        self.output = outputs.get("Obstacles", None)
 
         self.pending = []
 
@@ -162,7 +163,7 @@ class ObstacleDetection(Operator):
             task_list.append(asyncio.create_task(self.wait_ttd(), name="TTD"))
         return task_list
 
-    async def run(self):
+    async def iteration(self):
 
         (done, pending) = await asyncio.wait(
             self.create_task_list(),
@@ -213,21 +214,6 @@ class ObstacleDetection(Operator):
                 await self.output.send(json.dumps(obstacles).encode("utf-8"))
 
         return None
-
-    def setup(
-        self,
-        configuration: Dict[str, Any],
-        inputs: Dict[str, DataReceiver],
-        outputs: Dict[str, DataSender],
-    ) -> Callable[[], Any]:
-
-        image_input = inputs.get("Image", None)
-        ttd_input = inputs.get("TTD", None)
-        output = outputs.get("Obstacles", None)
-
-        l = ObstacleDetection(configuration, image_input, ttd_input, output)
-
-        return l.run
 
     def finalize(self) -> None:
         return None

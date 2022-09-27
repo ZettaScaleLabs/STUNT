@@ -1,5 +1,6 @@
 from zenoh_flow.interfaces import Source
 from zenoh_flow import DataSender
+from zenoh_flow.types import Context
 from typing import Any, Dict, Callable
 import time
 import asyncio
@@ -15,7 +16,7 @@ DEFAULT_KE = "/stunt/camera"
 
 
 class ZenohCamera(Source):
-    def __init__(self, configuration, output):
+    def __init__(self, context, configuration, output):
 
         self.period = 1 / int(
             configuration.get("frequency", DEFAULT_SAMPLING_FREQUENCY)
@@ -39,27 +40,19 @@ class ZenohCamera(Source):
             mode=SubMode.Push,
         )
 
-        self.output = output
+        self.output = outputs.get("Image", None)
         self.frame = None
 
-    async def create_data(self):
+    async def iteration(self):
         await asyncio.sleep(self.state.period)
 
         if self.frame is not None:
             await self.output.send(self.frame.serialize())
             self.frame = None
-
         return None
 
     def on_sensor_update(self, sample):
         self.frame = Image.deserialize(sample.payload)
-
-    def setup(
-        self, configuration: Dict[str, Any], outputs: Dict[str, DataSender]
-    ) -> Callable[[], Any]:
-        output = outputs.get("Image", None)
-        c = ZenohCamera(configuration, output)
-        return c.create_data
 
     def finalize(self) -> None:
         self.sub.close()

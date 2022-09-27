@@ -1,5 +1,6 @@
 from zenoh_flow.interfaces import Sink
 from zenoh_flow import DataReceiver
+from zenoh_flow.types import Context
 from typing import Dict, Any, Callable
 import json
 
@@ -14,16 +15,7 @@ class EvaluationLocalization(Sink):
     def finalize(self):
         return None
 
-    def setup(
-        self, configuration: Dict[str, Any], inputs: Dict[str, DataReceiver]
-    ) -> Callable[[], Any]:
-        perfect_input = inputs.get("Perfect", None)
-        location_input = inputs.get("Localization", None)
-
-        e = EvaluationLocalization(configuration, perfect_input, location_input)
-        return e.run
-
-    def __init__(self, configuration, perfect_input, location_input):
+    def __init__(self, context, configuration, inputs):
 
         self.pending = []
 
@@ -33,36 +25,38 @@ class EvaluationLocalization(Sink):
             configuration.get("out_file", DEFAULT_OUTPUT_FILE), "w+"
         )
 
-        self.output_file.write((
-            "module,"
-            "perfect.transform.location.x,"
-            "perfect.transform.location.y,"
-            "perfect.transform.location.z,"
-            "perfect.transform.rotation.pitch,"
-            "perfect.transform.rotation.yaw,"
-            "perfect.transform.rotation.roll,"
-            "perfect.forward_speed,"
-            "perfect.velocity_vector.x,"
-            "perfect.velocity_vector.y,"
-            "perfect.velocity_vector.z,"
-            "perfect.localization_time,"
-            "pose.transform.location.x,"
-            "pose.transform.location.y,"
-            "pose.transform.location.z,"
-            "pose.transform.rotation.pitch,"
-            "pose.transform.rotation.yaw,"
-            "pose.transform.rotation.roll,"
-            "pose.forward_speed,"
-            "pose.velocity_vector.x,"
-            "pose.velocity_vector.y,"
-            "pose.velocity_vector.z,"
-            "pose.localization_time"
-            "\n"
-        ))
+        self.output_file.write(
+            (
+                "module,"
+                "perfect.transform.location.x,"
+                "perfect.transform.location.y,"
+                "perfect.transform.location.z,"
+                "perfect.transform.rotation.pitch,"
+                "perfect.transform.rotation.yaw,"
+                "perfect.transform.rotation.roll,"
+                "perfect.forward_speed,"
+                "perfect.velocity_vector.x,"
+                "perfect.velocity_vector.y,"
+                "perfect.velocity_vector.z,"
+                "perfect.localization_time,"
+                "pose.transform.location.x,"
+                "pose.transform.location.y,"
+                "pose.transform.location.z,"
+                "pose.transform.rotation.pitch,"
+                "pose.transform.rotation.yaw,"
+                "pose.transform.rotation.roll,"
+                "pose.forward_speed,"
+                "pose.velocity_vector.x,"
+                "pose.velocity_vector.y,"
+                "pose.velocity_vector.z,"
+                "pose.localization_time"
+                "\n"
+            )
+        )
         self.output_file.flush()
 
-        self.perfect_input = perfect_input
-        self.location_input = location_input
+        self.perfect_input = inputs.get("Perfect", None)
+        self.location_input = inputs.get("Localization", None)
 
         self.perfect = None
         self.location = None
@@ -87,7 +81,7 @@ class EvaluationLocalization(Sink):
             task_list.append(asyncio.create_task(self.wait_perfect(), name="Perfect"))
         return task_list
 
-    async def run(self):
+    async def iteration(self):
         (done, pending) = await asyncio.wait(
             self.create_task_list(),
             return_when=asyncio.ALL_COMPLETED,
@@ -133,7 +127,7 @@ class EvaluationLocalization(Sink):
                     f"{pose.velocity_vector.z},"
                     f"{pose.localization_time}"
                     "\n"
-                    )
+                )
                 self.output_file.write(line)
                 self.output_file.flush()
 

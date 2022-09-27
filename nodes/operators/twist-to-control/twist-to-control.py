@@ -1,5 +1,6 @@
 from zenoh_flow.interfaces import Operator
 from zenoh_flow import DataReceiver, DataSender
+from zenoh_flow.types import Context
 from typing import Dict, Any, Callable
 import time
 import asyncio
@@ -9,20 +10,15 @@ import json
 from stunt.types import Vector3D, VehicleControl
 
 
-class State(object):
-    def __init__(self, configuration):
+class T2C(Operator):
+    def __init__(self, context, configuration, inputs, outputs):
         configuration = configuration if configuration is not None else {}
 
         self.sensitivity = configuration.get("sensitivity", 1)
+        self.twist_input = inputs.get("Twist", None)
+        self.output = outputs.get("Control", None)
 
-
-class T2C(Operator):
-    def __init__(self, state, twist_input, output):
-        self.state = state
-        self.twist_input = twist_input
-        self.output = output
-
-    async def run(self):
+    async def iteration(self):
 
         # wait for one of the input to be available
         data_msg = await self.twist_input.recv()
@@ -45,19 +41,6 @@ class T2C(Operator):
         await self.output.send(ctrl.serialize())
 
         return None
-
-    def setup(
-        self,
-        configuration: Dict[str, Any],
-        inputs: Dict[str, DataReceiver],
-        outputs: Dict[str, DataSender],
-    ) -> Callable[[], Any]:
-        state = State(configuration)
-        twist_input = inputs.get("Twist", None)
-        output = outputs.get("Control", None)
-
-        l = T2C(state, twist_input, output)
-        return l.run
 
     def finalize(self) -> None:
         return None

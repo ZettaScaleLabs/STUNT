@@ -1,5 +1,6 @@
 from zenoh_flow.interfaces import Sink
 from zenoh_flow import DataReceiver
+from zenoh_flow.types import Context
 from typing import Dict, Any, Callable
 import json
 
@@ -10,8 +11,15 @@ from stunt.types import VehicleControl
 from stunt import DEFAULT_SAMPLING_FREQUENCY, DEFAULT_CARLA_HOST, DEFAULT_CARLA_PORT
 
 
-class State:
-    def __init__(self, configuration):
+class CtrlCar(Sink):
+    def __init__(
+        self,
+        context: Context,
+        configuration: Dict[str, Any],
+        inputs: Dict[str, DataReceiver],
+    ):
+
+        self.in_stream = inputs.get("Data", None)
 
         self.carla_port = DEFAULT_CARLA_PORT
         self.carla_host = DEFAULT_CARLA_HOST
@@ -38,26 +46,10 @@ class State:
                     self.player = vehicle
                     break
 
-
-class CtrlCar(Sink):
-    def __init__(self, state, in_stream):
-        self.state = state
-        self.in_stream = in_stream
-
     def finalize(self):
         return None
 
-    def setup(
-        self, configuration: Dict[str, Any], inputs: Dict[str, DataReceiver]
-    ) -> Callable[[], Any]:
-        state = State(configuration)
-
-        in_stream = inputs.get("Data", None)
-
-        cself = CtrlCar(state, in_stream)
-        return cself.run
-
-    async def run(self):
+    async def iteration(self):
         data_msg = await self.in_stream.recv()
         ctrl = VehicleControl.deserialize(data_msg.data)
         carla_ctrl = CarlaVehicleControl()
@@ -65,7 +57,7 @@ class CtrlCar(Sink):
         carla_ctrl.throttle = ctrl.throttle
         carla_ctrl.steer = ctrl.steer
         carla_ctrl.brake = ctrl.brake
-        self.state.player.apply_control(carla_ctrl)
+        self.player.apply_control(carla_ctrl)
 
         return None
 

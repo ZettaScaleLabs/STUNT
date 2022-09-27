@@ -27,10 +27,10 @@ DEFAULT_PREDICTION_TTD = 500
 class LinearPredictor(Operator):
     def __init__(
         self,
+        context,
         configuration,
-        obstacles_input,
-        ttd_input,
-        output,
+        inputs,
+        outputs,
     ):
         configuration = configuration if configuration is not None else {}
 
@@ -47,9 +47,9 @@ class LinearPredictor(Operator):
             "prediction_num_future_steps", DEFAULT_PREDICTION_FUTURE_NUM_STEPS
         )
 
-        self.obstacles_input = obstacles_input
-        self.ttd_input = ttd_input
-        self.output = output
+        self.obstacles_input = inputs.get("ObstacleTrajectories", None)
+        self.ttd_input = inputs.get("TTD", None)
+        self.output = outputs.get("ObstaclePredictions", None)
 
         self.ttd = TimeToDecision(500)
 
@@ -73,7 +73,7 @@ class LinearPredictor(Operator):
             )
         return task_list
 
-    async def run(self):
+    async def iteration(self):
 
         (done, pending) = await asyncio.wait(
             self.create_task_list(),
@@ -157,25 +157,6 @@ class LinearPredictor(Operator):
                 )
 
             return None
-
-    def setup(
-        self,
-        configuration: Dict[str, Any],
-        inputs: Dict[str, DataReceiver],
-        outputs: Dict[str, DataSender],
-    ) -> Callable[[], Any]:
-
-        ttd_input = inputs.get("TTD", None)
-        obstacles_input = inputs.get("ObstacleTrajectories", None)
-        output = outputs.get("ObstaclePredictions", None)
-
-        l = LinearPredictor(
-            configuration,
-            obstacles_input,
-            ttd_input,
-            output,
-        )
-        return l.run
 
     def finalize(self) -> None:
         return None

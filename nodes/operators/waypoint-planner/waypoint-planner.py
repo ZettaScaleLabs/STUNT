@@ -1,5 +1,6 @@
 from zenoh_flow.interfaces import Operator
 from zenoh_flow import DataReceiver, DataSender
+from zenoh_flow.types import Context
 from typing import Dict, Any, Callable
 import time
 import asyncio
@@ -41,13 +42,10 @@ DEFAULT_TARGET_SPEED = 6.0
 class WaypointPlanner(Operator):
     def __init__(
         self,
+        context,
         configuration,
-        trajectory_input,
-        pose_input,
-        traffic_lights_input,
-        obstacles_input,
-        ttd_input,
-        output,
+        inputs,
+        outputs,
     ):
         configuration = configuration if configuration is not None else {}
 
@@ -56,12 +54,12 @@ class WaypointPlanner(Operator):
 
         self.pending = []
 
-        self.traffic_lights_input = traffic_lights_input
-        self.trajectory_input = trajectory_input
-        self.pose_input = pose_input
-        self.obstacles_input = obstacles_input
-        self.ttd_input = ttd_input
-        self.output = output
+        self.traffic_lights_input = inputs.get("TrafficLights", None)
+        self.trajectory_input = inputs.get("Trajectory", None)
+        self.pose_input = inputs.get("Pose", None)
+        self.obstacles_input = inputs.get("ObstaclePredictions", None)
+        self.ttd_input = inputs.get("TTD", None)
+        self.output = outputs.get("Waypoints", None)
 
         self.start_time = 0
         self.world = World(configuration)
@@ -158,7 +156,7 @@ class WaypointPlanner(Operator):
             )
         return task_list
 
-    async def run(self):
+    async def iteration(self):
 
         (done, pending) = await asyncio.wait(
             self.create_task_list(),
@@ -236,31 +234,6 @@ class WaypointPlanner(Operator):
                 await self.output.send(output_wps.serialize())
 
         return None
-
-    def setup(
-        self,
-        configuration: Dict[str, Any],
-        inputs: Dict[str, DataReceiver],
-        outputs: Dict[str, DataSender],
-    ) -> Callable[[], Any]:
-
-        pose_input = inputs.get("Pose", None)
-        trajectory_input = inputs.get("Trajectory", None)
-        traffic_lights_input = inputs.get("TrafficLights", None)
-        obstacles_input = inputs.get("ObstaclePredictions", None)
-        ttd_input = inputs.get("TTD", None)
-        output = outputs.get("Waypoints", None)
-
-        l = WaypointPlanner(
-            configuration,
-            trajectory_input,
-            pose_input,
-            traffic_lights_input,
-            obstacles_input,
-            ttd_input,
-            output,
-        )
-        return l.run
 
     def finalize(self) -> None:
         return None

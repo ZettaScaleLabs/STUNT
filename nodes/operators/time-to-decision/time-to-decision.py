@@ -1,5 +1,6 @@
 from zenoh_flow.interfaces import Operator
 from zenoh_flow import DataReceiver, DataSender
+from zenoh_flow.types import Context
 from typing import Dict, Any, Callable
 import time
 import asyncio
@@ -16,7 +17,7 @@ DEFAULT_DECREASE_MS = 10
 
 
 class TTD(Operator):
-    def __init__(self, configuration, pose_input, output):
+    def __init__(self, context, configuration, inputs, outputs):
         configuration = configuration if configuration is not None else {}
 
         self.base_deadline_ms = int(
@@ -30,33 +31,23 @@ class TTD(Operator):
             "base_deadline_speed_ms", DEFAULT_BASE_DEADLINE_SPEED_MS
         )
 
-        self.pose_input = pose_input
-        self.output = output
+        self.pose_input = inputs.get("Pose", None)
+        self.output = outputs.get("TTD", None)
 
-    async def run(self):
+    async def iteration(self):
 
         # wait for location data
         data_msg = await self.pose_input.recv()
         pose = Pose.deserialize(data_msg.data)
 
-        deadline = self.base_deadline_ms - (pose.forward_speed - self.base_speed) * self.decrease_ms
+        deadline = (
+            self.base_deadline_ms
+            - (pose.forward_speed - self.base_speed) * self.decrease_ms
+        )
 
         await self.output.send(TimeToDecision(deadline).serialize())
 
         return None
-
-    def setup(
-        self,
-        configuration: Dict[str, Any],
-        inputs: Dict[str, DataReceiver],
-        outputs: Dict[str, DataSender],
-    ) -> Callable[[], Any]:
-
-        pose_input = inputs.get("Pose", None)
-        output = outputs.get("TTD", None)
-
-        l = TTD(configuration, pose_input, output)
-        return l.run
 
     def finalize(self) -> None:
         return None

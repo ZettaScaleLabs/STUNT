@@ -1,5 +1,6 @@
 from zenoh_flow.interfaces import Operator
 from zenoh_flow import DataReceiver, DataSender
+from zenoh_flow.types import Context
 from typing import Dict, Any, Callable
 import time
 import asyncio
@@ -30,20 +31,19 @@ DEFAULT_MIN_HITS = 1
 class SortTracker(Operator):
     def __init__(
         self,
+        context,
         configuration,
-        image_input,
-        obstacles_input,
-        ttd_input,
-        output,
+        inputs,
+        outputs,
     ):
         configuration = configuration if configuration is not None else {}
 
         self.pending = []
 
-        self.image_input = image_input
-        self.obstacles_input = obstacles_input
-        self.ttd_input = ttd_input
-        self.output = output
+        self.image_input = inputs.get("Image", None)
+        self.obstacles_input = inputs.get("Obstacles", None)
+        self.ttd_input = inputs.get("TTD", None)
+        self.output = outputs.get("ObstacleTrajectories", None)
 
         self.min_matching_iou = configuration.get(
             "min_matching_iou", DEFAULT_MIN_MATCHING_IOU
@@ -153,7 +153,7 @@ class SortTracker(Operator):
             )
         return task_list
 
-    async def run(self):
+    async def iteration(self):
 
         (done, pending) = await asyncio.wait(
             self.create_task_list(),
@@ -192,27 +192,6 @@ class SortTracker(Operator):
                 await self.output.send(json.dumps(result).encode("utf-8"))
 
         return None
-
-    def setup(
-        self,
-        configuration: Dict[str, Any],
-        inputs: Dict[str, DataReceiver],
-        outputs: Dict[str, DataSender],
-    ) -> Callable[[], Any]:
-
-        image_input = inputs.get("Image", None)
-        ttd_input = inputs.get("TTD", None)
-        obstacles_input = inputs.get("Obstacles", None)
-        output = outputs.get("ObstacleTrajectories", None)
-
-        l = SortTracker(
-            configuration,
-            image_input,
-            obstacles_input,
-            ttd_input,
-            output,
-        )
-        return l.run
 
     def finalize(self) -> None:
         return None

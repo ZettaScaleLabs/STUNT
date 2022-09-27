@@ -1,5 +1,6 @@
 from zenoh_flow.interfaces import Operator
 from zenoh_flow import DataReceiver, DataSender
+from zenoh_flow.types import Context
 from typing import Dict, Any, Callable
 
 
@@ -28,10 +29,10 @@ PID_DT_PARAMETER = 0.3
 class PIDController(Operator):
     def __init__(
         self,
+        context,
         configuration,
-        waypoints_input,
-        pose_input,
-        output,
+        inputs,
+        outputs,
     ):
         configuration = configuration if configuration is not None else {}
 
@@ -57,9 +58,9 @@ class PIDController(Operator):
 
         self.error_buffer = deque(maxlen=10)
 
-        self.waypoints_input = waypoints_input
-        self.pose_input = pose_input
-        self.output = output
+        self.waypoints_input = inputs.get("Waypoints", None)
+        self.pose_input = inputs.get("Pose", None)
+        self.output = outputs.get("Control", None)
 
         self.waypoints = Waypoints([])
 
@@ -155,7 +156,7 @@ class PIDController(Operator):
             )
         return task_list
 
-    async def run(self):
+    async def iteration(self):
 
         (done, pending) = await asyncio.wait(
             self.create_task_list(),
@@ -197,25 +198,6 @@ class PIDController(Operator):
                     await self.output.send(self.control.serialize())
 
             return None
-
-    def setup(
-        self,
-        configuration: Dict[str, Any],
-        inputs: Dict[str, DataReceiver],
-        outputs: Dict[str, DataSender],
-    ) -> Callable[[], Any]:
-
-        pose_input = inputs.get("Pose", None)
-        waypoints_input = inputs.get("Waypoints", None)
-        output = outputs.get("Control", None)
-
-        l = PIDController(
-            configuration,
-            waypoints_input,
-            pose_input,
-            output,
-        )
-        return l.run
 
     def finalize(self) -> None:
         return None

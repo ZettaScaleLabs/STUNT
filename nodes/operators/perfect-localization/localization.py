@@ -6,11 +6,11 @@ import asyncio
 
 
 class PerfectLocalization(Operator):
-    def __init__(self, pose_input, output):
-        self.input = pose_input
-        self.output = output
+    def __init__(self, context, configuration, inputs, outputs):
+        self.input = inputs.get("Pose", None)
+        self.output = outputs.get("Pose", None)
 
-    async def run(self):
+    async def iteration(self):
 
         # wait for one of the input to be available
         data = await self.input.recv()
@@ -20,19 +20,6 @@ class PerfectLocalization(Operator):
         await self.output.send(data.data)
 
         return None
-
-    def setup(
-        self,
-        configuration: Dict[str, Any],
-        inputs: Dict[str, DataReceiver],
-        outputs: Dict[str, DataSender],
-    ) -> Callable[[], Any]:
-
-        pose_input = inputs.get("Pose", None)
-
-        output = outputs.get("Pose", None)
-        l = PerfectLocalization(pose_input, output)
-        return l.run
 
     def finalize(self) -> None:
         return None

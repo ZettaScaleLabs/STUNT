@@ -1,5 +1,6 @@
 from zenoh_flow.interfaces import Source
 from zenoh_flow import DataSender
+from zenoh_flow.types import Context
 from typing import Any, Dict, Callable
 import time
 import asyncio
@@ -15,7 +16,7 @@ DEFAULT_KE = "/stunt/location"
 
 
 class ZenohLocation(Source):
-    def __init__(self, configuration, output):
+    def __init__(self, context, configuration, outputs):
 
         self.period = 1 / int(
             configuration.get("frequency", DEFAULT_SAMPLING_FREQUENCY)
@@ -39,10 +40,10 @@ class ZenohLocation(Source):
             mode=SubMode.Push,
         )
 
-        self.output = output
+        self.output = outputs.get("Pose", None)
         self.pose = None
 
-    async def create_data(self):
+    async def iteration(self):
         await asyncio.sleep(self.state.period)
 
         if self.pose is not None:
@@ -53,13 +54,6 @@ class ZenohLocation(Source):
 
     def on_sensor_update(self, sample):
         self.pose = Pose.deserialize(sample.payload)
-
-    def setup(
-        self, configuration: Dict[str, Any], outputs: Dict[str, DataSender]
-    ) -> Callable[[], Any]:
-        output = outputs.get("Pose", None)
-        c = ZenohLocation(configuration, output)
-        return c.create_data
 
     def finalize(self) -> None:
         self.sub.close()

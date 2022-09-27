@@ -1,5 +1,6 @@
 from zenoh_flow.interfaces import Operator
 from zenoh_flow import DataReceiver, DataSender
+from zenoh_flow.types import Context
 from typing import Dict, Any, Callable
 import time
 import asyncio
@@ -35,7 +36,7 @@ DEFAULT_MIN_MOVING_SPEED = 0.7
 
 
 class BehaviourPlanning(Operator):
-    def __init__(self, configuration, pose_input, output):
+    def __init__(self, context, configuration, inputs, outputs):
         configuration = configuration if configuration is not None else {}
 
         self.carla_port = int(configuration.get("port", DEFAULT_CARLA_PORT))
@@ -66,10 +67,10 @@ class BehaviourPlanning(Operator):
 
         self.is_first = True
 
-        self.pose_input = pose_input
-        self.output = output
+        self.pose_input = inputs.get("Pose", None)
+        self.output = outputs.get("Trajectory", None)
 
-    async def run(self):
+    async def iteration(self):
 
         # wait for location data
         data_msg = await self.pose_input.recv()
@@ -132,19 +133,6 @@ class BehaviourPlanning(Operator):
             await self.output.send(trajectory.serialize())
 
         return None
-
-    def setup(
-        self,
-        configuration: Dict[str, Any],
-        inputs: Dict[str, DataReceiver],
-        outputs: Dict[str, DataSender],
-    ) -> Callable[[], Any]:
-
-        pose_input = inputs.get("Pose", None)
-        output = outputs.get("Trajectory", None)
-
-        l = BehaviourPlanning(configuration, pose_input, output)
-        return l.run
 
     def finalize(self) -> None:
         return None

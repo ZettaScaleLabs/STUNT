@@ -1,5 +1,6 @@
 from zenoh_flow.interfaces import Operator
 from zenoh_flow import DataReceiver, DataSender
+from zenoh_flow.types import Context
 from typing import Dict, Any, Callable
 import time
 import asyncio
@@ -19,10 +20,10 @@ DEFAULT_TRACKING_NUM_STEPS = 10
 class PerfectTracker(Operator):
     def __init__(
         self,
+        context,
         configuration,
-        obstacles_input,
-        pose_input,
-        output,
+        inputs,
+        outputs,
     ):
         configuration = configuration if configuration is not None else {}
 
@@ -41,9 +42,9 @@ class PerfectTracker(Operator):
 
         self._obstacles = defaultdict(lambda: deque(maxlen=self.tracking_num_steps))
 
-        self.obstacles_input = obstacles_input
-        self.pose_input = pose_input
-        self.output = output
+        self.obstacles_input = inputs.get("Obstacles", None)
+        self.pose_input = inputs.get("Pose", None)
+        self.output = outputs.get("ObstacleTrajectories", None)
 
         self.pose = Pose()
         self.speed_limits = []
@@ -69,10 +70,7 @@ class PerfectTracker(Operator):
             )
         return task_list
 
-    async def run(self):
-
-        task_wait_obstacles = asyncio.create_task(self.wait_obstacles())
-        task_wait_pose = asyncio.create_task(self.wait_pose())
+    async def iteration(self):
 
         (done, pending) = await asyncio.wait(
             self.create_task_list(),
@@ -132,39 +130,7 @@ class PerfectTracker(Operator):
                     json.dumps(obstacle_trajectories).encode("utf-8")
                 )
 
-        # print(f'Done task: {who} : {data_msg.data.decode("utf-8")}')
-
-        # # wait for location data
-        # data_msg = await self.pose_input.recv()
-        # pose = Pose.deserialize(data_msg.data)
-
-        # deadline = (
-        #     self.base_deadline_ms
-        #     - (pose.forward_speed - self.base_speed) * self.decrease_ms
-        # )
-
-        # await self.output.send(TimeToDecision(deadline).serialize())
-
         return None
-
-    def setup(
-        self,
-        configuration: Dict[str, Any],
-        inputs: Dict[str, DataReceiver],
-        outputs: Dict[str, DataSender],
-    ) -> Callable[[], Any]:
-
-        pose_input = inputs.get("Pose", None)
-        obstacles_input = inputs.get("Obstacles", None)
-        output = outputs.get("ObstacleTrajectories", None)
-
-        l = PerfectTracker(
-            configuration,
-            obstacles_input,
-            pose_input,
-            output,
-        )
-        return l.run
 
     def finalize(self) -> None:
         return None

@@ -1,5 +1,6 @@
 from zenoh_flow.interfaces import Source
 from zenoh_flow import DataSender
+from zenoh_flow.types import Context
 from typing import Any, Dict, Callable, List
 import time
 import asyncio
@@ -9,7 +10,7 @@ from stunt import DEFAULT_SAMPLING_FREQUENCY
 
 
 class GroundTruthLocalization(Source):
-    def __init__(self, configuration, output):
+    def __init__(self, context, configuration, outputs):
 
         configuration = {} if configuration is None else configuration
         self.period = 1 / int(
@@ -19,26 +20,18 @@ class GroundTruthLocalization(Source):
         self.sensor = Localization(configuration, self.on_sensor_update)
 
         self.pose = None
-        self.output = output
+        self.output = outputs.get("Pose", None)
 
     def on_sensor_update(self, data):
         self.pose = data
 
-    async def create_data(self):
+    async def iteration(self):
         await asyncio.sleep(self.period)
 
         if self.pose is not None:
             await self.output.send(self.pose.serialize())
 
         return None
-
-    def setup(
-        self, configuration: Dict[str, Any], outputs: Dict[str, DataSender]
-    ) -> Callable[[], Any]:
-        output = outputs.get("Pose", None)
-
-        aself = GroundTruthLocalization(configuration, output)
-        return aself.create_data
 
     def finalize(self) -> None:
         return None

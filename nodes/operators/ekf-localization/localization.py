@@ -1,5 +1,6 @@
 from zenoh_flow.interfaces import Operator
 from zenoh_flow import DataReceiver, DataSender
+from zenoh_flow.types import Context
 from typing import Dict, Any, Callable
 import time
 import asyncio
@@ -205,13 +206,13 @@ class EKF:
 
 
 class Localization(Operator):
-    def __init__(self, configuration, gnss_input, imu_input, output):
+    def __init__(self, context, configuration, inputs, outputs):
 
         configuration = {} if configuration is None else configuration
 
-        self.gnss_input = gnss_input
-        self.imu_input = imu_input
-        self.output = output
+        self.gnss_input = inputs.get("GNSS", None)
+        self.imu_input = inputs.get("IMU", None)
+        self.output = outputs.get("Pose", None)
 
         self.pending = []
 
@@ -287,7 +288,7 @@ class Localization(Operator):
             task_list.append(asyncio.create_task(self.wait_imu(), name="IMU"))
         return task_list
 
-    async def run(self):
+    async def iteration(self):
 
         (done, pending) = await asyncio.wait(
             self.create_task_list(),
@@ -315,21 +316,6 @@ class Localization(Operator):
                 await self.output.send(self.ekf.last_pose_estimate.serialize())
 
         return None
-
-    def setup(
-        self,
-        configuration: Dict[str, Any],
-        inputs: Dict[str, DataReceiver],
-        outputs: Dict[str, DataSender],
-    ) -> Callable[[], Any]:
-
-        gnss_input = inputs.get("GNSS", None)
-        imu_input = inputs.get("IMU", None)
-        output = outputs.get("Pose", None)
-
-        l = Localization(configuration, gnss_input, imu_input, output)
-
-        return l.run
 
     def finalize(self) -> None:
         return None
