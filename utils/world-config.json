@@ -6,7 +6,7 @@
     "weather":"CloudyNoon",
     "ego_spawn_point_index":2,
     "num_people":0,
-    "num_vehicles":0,
+    "num_vehicles":2,
     "fps":60,
     "challenge_config":{
         "enabled": false,

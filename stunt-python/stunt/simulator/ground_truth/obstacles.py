@@ -33,7 +33,6 @@ class Obstacles:
         for obstacle_type in self.obstacles_types:
 
             current_obstacles = self.carla_world.get_actors().filter(obstacle_type)
-
             # removing ego vehicle from the detected obstacles, a car does not
             # detect itself
             current_obstacles = list(

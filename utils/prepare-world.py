@@ -213,11 +213,7 @@ def main(config):
     carla_client = carla.Client(carla_host, carla_port)
     carla_world = carla_client.load_world(town_map)
     carla_world.set_weather(getattr(carla.WeatherParameters, weather))
-    world_settings = carla_world.get_settings()
-    world_settings.fixed_delta_seconds = 1 / int(config["fps"])
     tm = carla_client.get_trafficmanager(traffic_manager_port)
-
-    carla_world.apply_settings(world_settings)
 
     # spawing things
     ego_vehicle, vehicle_ids, people_ids = spawn_actors(
@@ -247,6 +243,7 @@ def main(config):
         # setting world as synchronous (simulator slows down a lot with all sensors)
         world_settings = carla_world.get_settings()
         world_settings.synchronous_mode = True
+        world_settings.fixed_delta_seconds = 1 / int(config["fps"])
         carla_world.apply_settings(world_settings)
 
         # configuring zenoh
