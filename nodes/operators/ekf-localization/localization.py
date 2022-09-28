@@ -245,12 +245,8 @@ class Localization(Operator):
                 if vehicle.attributes["role_name"] == "hero":
                     found = True
                     snapshot = self.carla_world.get_snapshot()
-                    vec_transform = Transform.from_simulator_transform(
-                        vehicle.get_transform()
-                    )
-                    velocity_vector = Vector3D.from_simulator_vector(
-                        vehicle.get_velocity()
-                    )
+                    vec_transform = Transform.from_simulator(vehicle.get_transform())
+                    velocity_vector = Vector3D.from_simulator(vehicle.get_velocity())
 
                     forward_speed = np.linalg.norm(
                         np.array(

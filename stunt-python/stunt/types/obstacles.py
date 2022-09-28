@@ -174,7 +174,7 @@ class Obstacle(object):
         self.__depth_threshold = 5
 
     @classmethod
-    def from_simulator_actor(cls, actor):
+    def from_simulator(cls, actor):
         """Creates an Obstacle from a simulator actor.
 
         Args:
@@ -191,9 +191,9 @@ class Obstacle(object):
         # We do not use everywhere from_simulator* methods in order to reduce
         # runtime.
         # Convert the transform provided by the simulation to the STUNT class.
-        transform = Transform.from_simulator_transform(actor.get_transform())
+        transform = Transform.from_simulator(actor.get_transform())
         # Convert the bounding box from the simulation to the STUNT one.
-        bounding_box = BoundingBox3D.from_simulator_bounding_box(actor.bounding_box)
+        bounding_box = BoundingBox3D.from_simulator(actor.bounding_box)
         if isinstance(actor, CarlaVehicle):
             label = "vehicle"
         else:
@@ -874,7 +874,7 @@ class TrafficLight(Obstacle):
         self.trigger_volume_extent = trigger_volume_extent
 
     @classmethod
-    def from_simulator_actor(cls, traffic_light):
+    def from_simulator(cls, traffic_light):
         """Creates a TrafficLight from a simulator traffic light actor.
 
         Args:
@@ -887,7 +887,7 @@ class TrafficLight(Obstacle):
         if not isinstance(traffic_light, CarlaTrafficLight):
             raise ValueError("The traffic light must be a TrafficLight")
         # Retrieve the Transform of the TrafficLight.
-        transform = Transform.from_simulator_transform(traffic_light.get_transform())
+        transform = Transform.from_simulator(traffic_light.get_transform())
         # Retrieve the Trigger Volume of the TrafficLight.
         trigger_volume_extent = Vector3D(
             traffic_light.trigger_volume.extent.x,

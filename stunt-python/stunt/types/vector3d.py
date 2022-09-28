@@ -21,7 +21,7 @@ class Vector3D(object):
         self.x, self.y, self.z = float(x), float(y), float(z)
 
     @classmethod
-    def from_simulator_vector(cls, vector):
+    def from_simulator(cls, vector):
         """Creates a STUNT Vector3D from a simulator 3D vector.
 
         Args:

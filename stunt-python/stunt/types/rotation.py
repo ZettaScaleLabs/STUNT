@@ -27,7 +27,7 @@ class Rotation(object):
         self.roll = roll
 
     @classmethod
-    def from_simulator_rotation(cls, rotation):
+    def from_simulator(cls, rotation):
         """Creates a STUNT Rotation from a simulator rotation.
 
         Args:

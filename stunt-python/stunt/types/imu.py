@@ -36,8 +36,8 @@ class IMUMeasurement(object):
         if not isinstance(data, CarlaIMUMeasurement):
             raise ValueError("The data must be a Location or carla.IMUMeasurement")
 
-        accelerometer = Vector3D.from_simulator_vector(data.accelerometer)
-        gyroscope = Vector3D.from_simulator_vector(data.gyroscope)
+        accelerometer = Vector3D.from_simulator(data.accelerometer)
+        gyroscope = Vector3D.from_simulator(data.gyroscope)
 
         return cls(accelerometer, data.compass, gyroscope, data.timestamp * 1000)
 

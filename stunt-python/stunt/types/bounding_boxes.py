@@ -165,7 +165,7 @@ class BoundingBox3D(object):
         return cls(corners=corners_3d)
 
     @classmethod
-    def from_simulator_bounding_box(cls, bbox):
+    def from_simulator(cls, bbox):
         """Creates a STUNT bounding box from a simulator bounding box.
 
         Args:
@@ -175,10 +175,10 @@ class BoundingBox3D(object):
             :py:class:`.BoundingBox3D`: A bounding box instance.
         """
         transform = Transform(
-            Location.from_simulator_location(bbox.location),
+            Location.from_simulator(bbox.location),
             Rotation(),
         )
-        extent = Vector3D.from_simulator_vector(bbox.extent)
+        extent = Vector3D.from_simulator(bbox.extent)
         return cls(transform, extent)
 
     def as_simulator_bounding_box(self):

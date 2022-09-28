@@ -69,7 +69,7 @@ class Vector2D(object):
         return "Vector2D(x={}, y={})".format(self.x, self.y)
 
     @classmethod
-    def from_simulator_vector(cls, vector):
+    def from_simulator(cls, vector):
         """Creates a STUNT Vector2D from a simulator 2D vector.
 
         Args:

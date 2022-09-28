@@ -26,7 +26,7 @@ class Location(Vector3D):
         super(Location, self).__init__(x, y, z)
 
     @classmethod
-    def from_simulator_location(cls, location):
+    def from_simulator(cls, location):
         """Creates a STUNT Location from a simulator location.
 
         Args:

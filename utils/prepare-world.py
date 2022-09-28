@@ -4,25 +4,26 @@ import argparse
 import random
 import time
 
+from carla import VehicleControl as CarlaVehicleControl
 
-from stunt.types import IMUMeasurement
+from stunt.types import (
+    IMUMeasurement,
+    GnssMeasurement,
+    Image,
+    LidarMeasurement,
+    VehicleControl,
+)
+from stunt.simulator.sensors import (
+    IMUSensor,
+    GNSSSensor,
+    CameraSensor,
+    LidarSensor,
+    ZenohSensor,
+    ZenohControl,
+)
 
 import zenoh
 from zenoh import Reliability, SubMode
-
-
-class ZenohSensor:
-    def __init__(self, session, ke, sensor, data_type):
-        self.session = session
-        self.ke = ke
-        self.sensor = sensor
-        self.data_type = data_type
-
-        self.sensor.listen(self.on_data)
-
-    def on_data(self, data):
-        stunt_data = self.data_type.from_simulator(data)
-        self.session.put(self.ke, stunt_data.serialize())
 
 
 def spawn_people(client, world, num_people: int):
@@ -225,10 +226,10 @@ def main(config):
         num_vehicles,
     )
 
-    # setting autopilot for non-ego vehicles
-    vehicles = carla_world.get_actors(vehicle_ids)
-    for v in vehicles:
-        v.set_autopilot(True, tm.get_port())
+    # # setting autopilot for non-ego vehicles
+    # vehicles = carla_world.get_actors(vehicle_ids)
+    # for v in vehicles:
+    #     v.set_autopilot(True, tm.get_port())
 
     print(f"Ego vehicle {ego_vehicle}")
 
@@ -236,15 +237,9 @@ def main(config):
 
         new_config = config["challenge_config"]
 
-        print(
-            f"Configured as Challenge, setting the simulator to synchronous, adding sensors and Zenoh Publishers"
-        )
+        print(f"Challenge Mode, adding sensors and Zenoh Publishers")
 
         # setting world as synchronous (simulator slows down a lot with all sensors)
-        world_settings = carla_world.get_settings()
-        world_settings.synchronous_mode = True
-        world_settings.fixed_delta_seconds = 1 / int(config["fps"])
-        carla_world.apply_settings(world_settings)
 
         # configuring zenoh
         zconf = zenoh.Config()
@@ -254,37 +249,92 @@ def main(config):
 
         zsession = zenoh.open(zconf)
 
-        imu_sensor = imu_setup(carla_world, ego_vehicle, new_config["imu"])
-        camera_pub = ZenohSensor(
-            zsession, new_config["imu"]["ke"], imu_sensor, IMUMeasurement
+        # imu_sensor = imu_setup(carla_world, ego_vehicle, new_config["imu"])
+
+        imu_pub = ZenohSensor(
+            zsession,
+            new_config["imu"]["ke"],
+            IMUSensor,
+            IMUMeasurement,
+            new_config["imu"],
         )
 
-        counter = 0
-        while True:
-            time.sleep(1)
-            frame_id = carla_world.tick()
-            print(f"[{counter}] Ticking the world frame id {frame_id}")
+        gnss_pub = ZenohSensor(
+            zsession,
+            new_config["gnss"]["ke"],
+            GNSSSensor,
+            GnssMeasurement,
+            new_config["gnss"],
+        )
 
+        gnss_pub = ZenohSensor(
+            zsession,
+            new_config["gnss"]["ke"],
+            GNSSSensor,
+            GnssMeasurement,
+            new_config["gnss"],
+        )
+
+        center_camera_pub = ZenohSensor(
+            zsession,
+            new_config["center_camera"]["ke"],
+            CameraSensor,
+            Image,
+            new_config["center_camera"],
+        )
+
+        tele_camera_pub = ZenohSensor(
+            zsession,
+            new_config["tele_camera"]["ke"],
+            CameraSensor,
+            Image,
+            new_config["tele_camera"],
+        )
+
+        center_lidar_pub = ZenohSensor(
+            zsession,
+            new_config["center_lidar"]["ke"],
+            LidarSensor,
+            LidarMeasurement,
+            new_config["center_lidar"],
+        )
+
+        tele_lidar_pub = ZenohSensor(
+            zsession,
+            new_config["tele_lidar"]["ke"],
+            LidarSensor,
+            LidarMeasurement,
+            new_config["tele_lidar"],
+        )
+
+        print(f"Challenge Mode, setting simulator as synchronous")
+        world_settings = carla_world.get_settings()
+        world_settings.synchronous_mode = True
+        world_settings.fixed_delta_seconds = 1 / int(config["fps"])
+        carla_world.apply_settings(world_settings)
+
+        counter = 0
+
+        def on_ctrl_data(sample):
+            ctrl = VehicleControl.deserialize(sample.payload.decode("utf-8"))
+            carla_ctrl = CarlaVehicleControl()
+
+            carla_ctrl.throttle = ctrl.throttle
+            carla_ctrl.steer = ctrl.steer
+            carla_ctrl.brake = ctrl.brake
+            ego_vehicle.apply_control(carla_ctrl)
+
+            frame_id = carla_world.tick()
+            print(
+                f"[{counter}] Ticking the world frame id {frame_id} - Control Received {ctrl}"
+            )
             counter += 1
+
+        control_sub = ZenohControl(zsession, new_config["control"]["ke"])
 
     else:
         while True:
             time.sleep(5000)
-
-
-def imu_setup(carla_world, ego_vehicle, config):
-    bp = carla_world.get_blueprint_library().find("sensor.other.imu")
-    bp.set_attribute("role_name", config["name"])
-    bp.set_attribute("sensor_tick", str(1 / config["frequency"]))
-    bp.set_attribute("noise_accel_stddev_x", str(config["noise_accel_stddev_x"]))
-    bp.set_attribute("noise_accel_stddev_y", str(config["noise_accel_stddev_y"]))
-    bp.set_attribute("noise_accel_stddev_z", str(config["noise_accel_stddev_z"]))
-    bp.set_attribute("noise_gyro_stddev_x", str(config["noise_gyro_stddev_x"]))
-    bp.set_attribute("noise_gyro_stddev_y", str(config["noise_gyro_stddev_y"]))
-    bp.set_attribute("noise_gyro_stddev_z", str(config["noise_gyro_stddev_z"]))
-
-    sensor = carla_world.spawn_actor(bp, carla.Transform(), attach_to=ego_vehicle)
-    return sensor
 
 
 if __name__ == "__main__":

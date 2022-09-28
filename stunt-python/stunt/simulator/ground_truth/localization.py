@@ -35,8 +35,8 @@ class Localization:
         self.carla_world.on_tick(self.on_world_tick)
 
     def on_world_tick(self, snapshot):
-        vec_transform = Transform.from_simulator_transform(self.player.get_transform())
-        velocity_vector = Vector3D.from_simulator_vector(self.player.get_velocity())
+        vec_transform = Transform.from_simulator(self.player.get_transform())
+        velocity_vector = Vector3D.from_simulator(self.player.get_velocity())
 
         forward_speed = np.linalg.norm(
             np.array([velocity_vector.x, velocity_vector.y, velocity_vector.z])

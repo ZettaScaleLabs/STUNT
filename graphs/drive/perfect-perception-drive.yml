@@ -39,7 +39,9 @@ sources:
 
   - id : CarlaObstacles
     configuration:
-      type: 'vehicle.*'
+      types:
+        - 'vehicle.*'
+        - 'walker.pedestrian.*'
     descriptor : /home/ato/Workspace/STUNT/nodes/sources/ground-truth/carla-obstacles/carla-obstacles.yml
 
   - id : CarlaLocalization

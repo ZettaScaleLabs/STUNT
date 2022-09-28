@@ -7,7 +7,6 @@ from stunt.map import Lane
 from agents.navigation.global_route_planner import GlobalRoutePlanner
 
 
-
 class HDMap(object):
     """Wrapper class around the CARLA map.
 
@@ -43,7 +42,7 @@ class HDMap(object):
         """
         waypoint = self._get_waypoint(location, project_to_road=True)
         if waypoint:
-            return Transform.from_simulator_transform(waypoint.transform)
+            return Transform.from_simulator(waypoint.transform)
         else:
             return None
 
@@ -307,7 +306,7 @@ class HDMap(object):
         if waypoint:
             left_lane_waypoint = waypoint.get_left_lane()
             if left_lane_waypoint:
-                return Transform.from_simulator_transform(left_lane_waypoint.transform)
+                return Transform.from_simulator(left_lane_waypoint.transform)
         return None
 
     def get_right_lane(self, location: Location):
@@ -315,7 +314,7 @@ class HDMap(object):
         if waypoint:
             right_lane_waypoint = waypoint.get_right_lane()
             if right_lane_waypoint:
-                return Transform.from_simulator_transform(right_lane_waypoint.transform)
+                return Transform.from_simulator(right_lane_waypoint.transform)
         return None
 
     def get_all_lanes(self, location: Location):
@@ -326,9 +325,7 @@ class HDMap(object):
             wp_left = waypoint.get_left_lane()
             w_rotation = waypoint.transform.rotation
             while wp_left and wp_left.lane_type == LaneType.Driving:
-                left_location = Location.from_simulator_location(
-                    wp_left.transform.location
-                )
+                left_location = Location.from_simulator(wp_left.transform.location)
                 lanes.append(self.get_lane(left_location, lane_id=wp_left.lane_id))
 
                 # If left lane is facing the opposite direction, its left
@@ -341,9 +338,7 @@ class HDMap(object):
 
             wp_right = waypoint.get_right_lane()
             while wp_right and wp_right.lane_type == LaneType.Driving:
-                right_location = Location.from_simulator_location(
-                    wp_right.transform.location
-                )
+                right_location = Location.from_simulator(wp_right.transform.location)
                 lanes.append(self.get_lane(right_location, lane_id=wp_right.lane_id))
 
                 # Same logic as above. If right lane of current is in
@@ -385,16 +380,13 @@ class HDMap(object):
         # TODO:(ionel): The planner returns several options in intersections.
         # We always take the first one, but this is not correct.
         return deque(
-            [
-                Transform.from_simulator_transform(waypoint[0].transform)
-                for waypoint in route
-            ]
+            [Transform.from_simulator(waypoint[0].transform) for waypoint in route]
         )
 
     def _lateral_shift(self, transform, shift) -> Location:
         transform.rotation.yaw += 90
         shifted = transform.location + shift * transform.get_forward_vector()
-        return Location.from_simulator_location(shifted)
+        return Location.from_simulator(shifted)
 
     def _get_waypoint(
         self, location: Location, project_to_road: bool = False, lane_type=LaneType.Any

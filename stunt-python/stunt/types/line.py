@@ -349,7 +349,7 @@ class LaneMarking(object):
         self.lane_change = LaneChange(lane_change)
 
     @classmethod
-    def from_simulator_lane_marking(cls, lane_marking):
+    def from_simulator(cls, lane_marking):
         """Creates a STUNT LaneMarking from a simulator lane marking.
 
         Args:

@@ -42,7 +42,7 @@ class Obstacles:
             sim_obstacles.extend(current_obstacles)
 
         for sim_obs in sim_obstacles:
-            obstacles.append(Obstacle.from_simulator_actor(sim_obs).to_dict())
+            obstacles.append(Obstacle.from_simulator(sim_obs).to_dict())
 
         self.on_data(obstacles)
 
@@ -66,6 +66,6 @@ class TrafficLights:
         sim_obstacles = self.carla_world.get_actors().filter(self.obstacle_type)
         obstacles = []
         for sim_obs in sim_obstacles:
-            obstacles.append(TrafficLight.from_simulator_actor(sim_obs).to_dict())
+            obstacles.append(TrafficLight.from_simulator(sim_obs).to_dict())
 
         self.on_data(obstacles)

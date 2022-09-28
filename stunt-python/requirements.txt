@@ -3,3 +3,4 @@ numpy
 opencv-python
 carla==0.9.13
 shapely
+#eclipse-zenoh

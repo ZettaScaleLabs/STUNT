@@ -71,7 +71,7 @@ class Transform(object):
             )
 
     @classmethod
-    def from_simulator_transform(cls, transform):
+    def from_simulator(cls, transform):
         """Creates a STUNT transform from a simulator transform.
 
         Args:
@@ -84,8 +84,8 @@ class Transform(object):
         if not isinstance(transform, CarlaTransform):
             raise ValueError("transform should be of type Transform")
         return cls(
-            Location.from_simulator_location(transform.location),
-            Rotation.from_simulator_rotation(transform.rotation),
+            Location.from_simulator(transform.location),
+            Rotation.from_simulator(transform.rotation),
         )
 
     @staticmethod

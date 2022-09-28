@@ -26,9 +26,9 @@ operators:
   - id: PIDController
     configuration:
       # PID parameters
-      P: 0.90
-      I: 0.07
-      D: 0.0
+      P: 0.5
+      I: 0.1
+      D: 0.06
     descriptor: /home/ato/Workspace/STUNT/nodes/operators/pid-control/pid-control.yml
 
 
@@ -39,17 +39,19 @@ sources:
 
   - id : CarlaObstacles
     configuration:
-      type: 'vehicle.*'
+      types:
+        - 'vehicle.*'
+        - 'walker.pedestrian.*'
     descriptor : /home/ato/Workspace/STUNT/nodes/sources/ground-truth/carla-obstacles/carla-obstacles.yml
 
   - id : CarlaGNSS
     configuration:
-      frequency: 20
+      frequency: 5
     descriptor : /home/ato/Workspace/STUNT/nodes/sources/carla-gnss/carla-gnss.yml
 
   - id : CarlaIMU
     configuration:
-      frequency: 20
+      frequency: 100
     descriptor : /home/ato/Workspace/STUNT/nodes/sources/carla-imu/carla-imu.yml
 
 sinks:
