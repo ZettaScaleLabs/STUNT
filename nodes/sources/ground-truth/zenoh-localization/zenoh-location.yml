@@ -1,5 +1,5 @@
 id: ZenohIMU
-uri: file:///home/ato/Workspace/STUNT/nodes/sources/ground-truth/zenoh-location/zenoh-location.py
+uri: file:///home/ato/Workspace/STUNT/nodes/sources/ground-truth/zenoh-localization/zenoh-location.py
 configuration:
   locator: 'tcp/127.0.0.1:7887'
   mode: client

@@ -1,0 +1,10 @@
+id: ZenohControl
+uri: file:///home/ato/Workspace/STUNT/nodes/sinks/zenoh-control/zenoh-control.py
+configuration:
+  locator: 'tcp/127.0.0.1:7887'
+  mode: client
+  key_expression: /stunt/control
+inputs:
+  - id: Data
+    type: CtrlData
+tags: []

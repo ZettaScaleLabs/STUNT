@@ -15,10 +15,11 @@ operators:
     descriptor:  /home/ato/Workspace/STUNT/nodes/operators/sort-tracker/sort-tracker.yml
 
 sources:
-  - id : CarlaCamera
+  - id : Camera
     configuration:
-      name: center-camera
-    descriptor : /home/ato/Workspace/STUNT/nodes/sources/carla-camera/carla-camera.yml
+      mode: "client"
+      key_expression: "/stunt/center-camera"
+    descriptor : /home/ato/Workspace/STUNT/nodes/sources/zenoh-camera/zenoh-camera.yml
 
   - id : CarlaLocalization
     descriptor : /home/ato/Workspace/STUNT/nodes/sources/ground-truth/carla-localization/carla-localization.yml
@@ -29,7 +30,7 @@ sinks:
 
 links:
 - from:
-    node : CarlaCamera
+    node : Camera
     output : Image
   to:
     node : ObjectDetection
@@ -64,7 +65,7 @@ links:
     input : TTD
 
 - from:
-    node : CarlaCamera
+    node : Camera
     output : Image
   to:
     node : SortTracker

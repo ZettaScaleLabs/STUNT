@@ -6,12 +6,13 @@
     "weather":"CloudyNoon",
     "ego_spawn_point_index":9,
     "num_people":0,
-    "num_vehicles":0,
+    "num_vehicles":5,
     "fps":60,
     "challenge_config":{
         "enabled": true,
         "locators":["tcp/127.0.0.1:7887"],
         "mode":"client",
+        "sleep_time":0.0167,
         "center_camera":{
             "host":"192.168.122.35",
             "port":2000,
@@ -102,6 +103,25 @@
         },
         "control":{
             "ke":"/stunt/ego-control"
+        },
+        "obstacles":{
+            "name":"ground-truth-obstacles",
+            "host":"192.168.122.35",
+            "port":2000,
+            "ke":"/stunt/ground-truth/obstacles",
+            "types":["vehicle.*","walker.pedestrian.*"]
+        },
+        "traffic-lights":{
+            "name":"ground-truth-traffic-lights",
+            "host":"192.168.122.35",
+            "port":2000,
+            "ke":"/stunt/ground-truth/traffic-lights"
+        },
+        "location":{
+            "name":"ground-truth-location",
+            "host":"192.168.122.35",
+            "port":2000,
+            "ke":"/stunt/ground-truth/location"
         }
     }
 }

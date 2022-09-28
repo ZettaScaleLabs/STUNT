@@ -12,6 +12,9 @@ from stunt.types import (
     Image,
     LidarMeasurement,
     VehicleControl,
+    SimulatorObstacle,
+    TrafficLight,
+    Pose,
 )
 from stunt.simulator.sensors import (
     IMUSensor,
@@ -21,6 +24,8 @@ from stunt.simulator.sensors import (
     ZenohSensor,
     ZenohControl,
 )
+
+from stunt.simulator.ground_truth import Localization, Obstacles, TrafficLights
 
 import zenoh
 from zenoh import Reliability, SubMode
@@ -307,41 +312,64 @@ def main(config):
             new_config["tele_lidar"],
         )
 
+        obstacles_pub = ZenohSensor(
+            zsession,
+            new_config["obstacles"]["ke"],
+            Obstacles,
+            SimulatorObstacle,
+            new_config["obstacles"],
+        )
+
+        traffic_lights_pub = ZenohSensor(
+            zsession,
+            new_config["traffic-lights"]["ke"],
+            TrafficLights,
+            TrafficLight,
+            new_config["traffic-lights"],
+        )
+
+        location_pub = ZenohSensor(
+            zsession,
+            new_config["location"]["ke"],
+            Localization,
+            Pose,
+            new_config["location"],
+        )
+
         print(f"Challenge Mode, setting simulator as synchronous")
         world_settings = carla_world.get_settings()
         world_settings.synchronous_mode = True
         world_settings.fixed_delta_seconds = 1 / int(config["fps"])
         carla_world.apply_settings(world_settings)
 
-        # counter = 0
-        # def on_ctrl_data(sample):
-        #     ctrl = VehicleControl.deserialize(sample.payload.decode("utf-8"))
-        #     carla_ctrl = CarlaVehicleControl()
-
-        #     carla_ctrl.throttle = ctrl.throttle
-        #     carla_ctrl.steer = ctrl.steer
-        #     carla_ctrl.brake = ctrl.brake
-        #     ego_vehicle.apply_control(carla_ctrl)
-
-        #     frame_id = carla_world.tick()
-        #     print(
-        #         f"[{counter}] Ticking the world frame id {frame_id} - Control Received {ctrl}"
-        #     )
-        #     counter += 1
-
-        # control_sub = ZenohControl(zsession, new_config["control"]["ke"], on_ctrl_data)
         counter = 0
+
+        def on_ctrl_data(sample):
+            ctrl = VehicleControl.deserialize(sample.payload)
+            carla_ctrl = CarlaVehicleControl()
+
+            carla_ctrl.throttle = ctrl.throttle
+            carla_ctrl.steer = ctrl.steer
+            carla_ctrl.brake = ctrl.brake
+            ego_vehicle.apply_control(carla_ctrl)
+
+            # frame_id = carla_world.tick()
+            # print(f"Ticking the world frame id {frame_id} - Control Received {ctrl}")
+            print(f"Control Received {ctrl}")
+            # counter += 1
+
+        control_sub = ZenohControl(zsession, new_config["control"]["ke"], on_ctrl_data)
+
+        # counter = 0
         while True:
-            time.sleep(1)
+            time.sleep(float(new_config["sleep_time"]))
             frame_id = carla_world.tick()
-            print(
-                f"[{counter}] Ticking the world frame id {frame_id}"
-            )
-            counter += 1
+            print(f"Ticking the world frame id {frame_id}")
+            # counter += 1
 
     else:
         while True:
-            time.sleep(5000)
+            time.sleep(1)
 
 
 if __name__ == "__main__":

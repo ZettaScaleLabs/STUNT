@@ -1,3 +1,4 @@
+import json
 import zenoh
 from zenoh import Reliability, SubMode
 
@@ -10,8 +11,13 @@ class ZenohSensor:
         self.sensor = sensor_type(configuration, self.on_data)
 
     def on_data(self, data):
-        stunt_data = self.data_type.from_simulator(data)
-        self.session.put(self.ke, stunt_data.serialize())
+        if isinstance(data, list):
+            self.session.put(self.ke, json.dumps(data).encode("utf-8"))
+        elif isinstance(data, self.data_type):
+            self.session.put(self.ke, data.serialize())
+        else:
+            stunt_data = self.data_type.from_simulator(data)
+            self.session.put(self.ke, stunt_data.serialize())
 
 
 class ZenohControl:
