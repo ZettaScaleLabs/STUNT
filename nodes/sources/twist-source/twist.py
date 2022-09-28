@@ -52,20 +52,20 @@ class TwistSrc(Source):
         self.twist = Twist.deserialize(data.payload)
 
     async def iteration(self):
-        await asyncio.sleep(self.state.period)
+        await asyncio.sleep(self.period)
 
-        if self.state.twist is not None:
+        if self.twist is not None:
 
             d = {
                 "linear": Vector3D(
-                    self.state.twist.linear.x,
-                    self.state.twist.linear.y,
-                    self.state.twist.linear.z,
+                    self.twist.linear.x,
+                    self.twist.linear.y,
+                    self.twist.linear.z,
                 ).to_dict(),
                 "angular": Vector3D(
-                    self.state.twist.angular.x,
-                    self.state.twist.angular.y,
-                    self.state.twist.angular.z,
+                    self.twist.angular.x,
+                    self.twist.angular.y,
+                    self.twist.angular.z,
                 ).to_dict(),
             }
 

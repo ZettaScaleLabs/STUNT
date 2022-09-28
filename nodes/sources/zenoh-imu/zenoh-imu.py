@@ -5,8 +5,9 @@ from typing import Any, Dict, Callable
 import time
 import asyncio
 
-
+import json
 from stunt.types import IMUMeasurement
+from stunt import DEFAULT_SAMPLING_FREQUENCY
 import zenoh
 from zenoh import Reliability, SubMode
 
@@ -44,7 +45,7 @@ class ZenohIMU(Source):
         self.imu = None
 
     async def iteration(self):
-        await asyncio.sleep(self.state.period)
+        await asyncio.sleep(self.period)
 
         if self.imu is not None:
             await self.output.send(self.imu.serialize())

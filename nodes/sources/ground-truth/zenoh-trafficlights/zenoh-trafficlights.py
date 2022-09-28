@@ -5,8 +5,9 @@ from typing import Any, Dict, Callable
 import time
 import asyncio
 
-
+import json
 from stunt.types import TrafficLight
+from stunt import DEFAULT_SAMPLING_FREQUENCY
 import zenoh
 from zenoh import Reliability, SubMode
 
@@ -44,7 +45,7 @@ class ZenohTrafficLights(Source):
         self.traffic_lights = None
 
     async def iteration(self):
-        await asyncio.sleep(self.state.period)
+        await asyncio.sleep(self.period)
 
         if self.traffic_lights is not None:
             obstacles = []
@@ -61,7 +62,6 @@ class ZenohTrafficLights(Source):
         self.traffic_lights = []
         for tl in tls:
             self.traffic_lights.append(TrafficLight.from_dict(tl))
-
 
     def finalize(self) -> None:
         self.sub.close()

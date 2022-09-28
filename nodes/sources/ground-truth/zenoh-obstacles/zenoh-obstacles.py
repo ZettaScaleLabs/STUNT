@@ -5,8 +5,9 @@ from typing import Any, Dict, Callable
 import time
 import asyncio
 
-
+import json
 from stunt.types import Obstacle
+from stunt import DEFAULT_SAMPLING_FREQUENCY
 import zenoh
 from zenoh import Reliability, SubMode
 
@@ -44,7 +45,7 @@ class ZenohObstacles(Source):
         self.obstacles = None
 
     async def iteration(self):
-        await asyncio.sleep(self.state.period)
+        await asyncio.sleep(self.period)
 
         if self.obstacles is not None:
             obstacles = []

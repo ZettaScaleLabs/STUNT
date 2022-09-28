@@ -28,9 +28,9 @@ class T2C(Operator):
         linear = Vector3D.from_dict(deserialized["linear"])
         angular = Vector3D.from_dict(deserialized["angular"])
 
-        throttle = linear.x * self.state.sensitivity if linear.x > 0 else 0.0
-        brake = -linear.x * self.state.sensitivity if linear.x < 0 else 0.0
-        steer = angular.z * self.state.sensitivity
+        throttle = linear.x * self.sensitivity if linear.x > 0 else 0.0
+        brake = -linear.x * self.sensitivity if linear.x < 0 else 0.0
+        steer = angular.z * self.sensitivity
 
         ctrl = VehicleControl(
             throttle,

@@ -5,8 +5,9 @@ from typing import Any, Dict, Callable
 import time
 import asyncio
 
-
+import json
 from stunt.types import Image
+from stunt import DEFAULT_SAMPLING_FREQUENCY
 import zenoh
 from zenoh import Reliability, SubMode
 
@@ -16,7 +17,7 @@ DEFAULT_KE = "/stunt/camera"
 
 
 class ZenohCamera(Source):
-    def __init__(self, context, configuration, output):
+    def __init__(self, context, configuration, outputs):
 
         self.period = 1 / int(
             configuration.get("frequency", DEFAULT_SAMPLING_FREQUENCY)
@@ -44,8 +45,7 @@ class ZenohCamera(Source):
         self.frame = None
 
     async def iteration(self):
-        await asyncio.sleep(self.state.period)
-
+        await asyncio.sleep(self.period)
         if self.frame is not None:
             await self.output.send(self.frame.serialize())
             self.frame = None

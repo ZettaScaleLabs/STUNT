@@ -313,24 +313,31 @@ def main(config):
         world_settings.fixed_delta_seconds = 1 / int(config["fps"])
         carla_world.apply_settings(world_settings)
 
+        # counter = 0
+        # def on_ctrl_data(sample):
+        #     ctrl = VehicleControl.deserialize(sample.payload.decode("utf-8"))
+        #     carla_ctrl = CarlaVehicleControl()
+
+        #     carla_ctrl.throttle = ctrl.throttle
+        #     carla_ctrl.steer = ctrl.steer
+        #     carla_ctrl.brake = ctrl.brake
+        #     ego_vehicle.apply_control(carla_ctrl)
+
+        #     frame_id = carla_world.tick()
+        #     print(
+        #         f"[{counter}] Ticking the world frame id {frame_id} - Control Received {ctrl}"
+        #     )
+        #     counter += 1
+
+        # control_sub = ZenohControl(zsession, new_config["control"]["ke"], on_ctrl_data)
         counter = 0
-
-        def on_ctrl_data(sample):
-            ctrl = VehicleControl.deserialize(sample.payload.decode("utf-8"))
-            carla_ctrl = CarlaVehicleControl()
-
-            carla_ctrl.throttle = ctrl.throttle
-            carla_ctrl.steer = ctrl.steer
-            carla_ctrl.brake = ctrl.brake
-            ego_vehicle.apply_control(carla_ctrl)
-
+        while True:
+            time.sleep(1)
             frame_id = carla_world.tick()
             print(
-                f"[{counter}] Ticking the world frame id {frame_id} - Control Received {ctrl}"
+                f"[{counter}] Ticking the world frame id {frame_id}"
             )
             counter += 1
-
-        control_sub = ZenohControl(zsession, new_config["control"]["ke"])
 
     else:
         while True:

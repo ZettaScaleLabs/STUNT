@@ -11,14 +11,11 @@ operators:
     descriptor:  /home/ato/Workspace/STUNT/nodes/operators/time-to-decision/time-to-decision.yml
 
 sources:
-  - id : CarlaCamera
+  - id : Camera
     configuration:
-      name: tl-camera
-      frequency: 20
-      fov: 45
-      location: [0.0, 0.0, 2.0]
-
-    descriptor : /home/ato/Workspace/STUNT/nodes/sources/carla-camera/carla-camera.yml
+      mode: "client"
+      key_expression: "/stunt/tele-camera"
+    descriptor : /home/ato/Workspace/STUNT/nodes/sources/zenoh-camera/zenoh-camera.yml
 
   - id : CarlaLocalization
     descriptor : /home/ato/Workspace/STUNT/nodes/sources/ground-truth/carla-localization/carla-localization.yml
@@ -29,7 +26,7 @@ sinks:
 
 links:
 - from:
-    node : CarlaCamera
+    node : Camera
     output : Image
   to:
     node : TrafficLightDetection

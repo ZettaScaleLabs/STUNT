@@ -5,8 +5,9 @@ from typing import Any, Dict, Callable
 import time
 import asyncio
 
-
+import json
 from stunt.types import LidarMeasurement
+from stunt import DEFAULT_SAMPLING_FREQUENCY
 import zenoh
 from zenoh import Reliability, SubMode
 
@@ -16,11 +17,7 @@ DEFAULT_KE = "/stunt/lidar"
 
 
 class ZenohLidar(Source):
-    def __init__(self,
-        context,
-        configuration,
-        outputs
-    ):
+    def __init__(self, context, configuration, outputs):
 
         self.period = 1 / int(
             configuration.get("frequency", DEFAULT_SAMPLING_FREQUENCY)
@@ -48,7 +45,7 @@ class ZenohLidar(Source):
         self.lidar = None
 
     async def iteration(self):
-        await asyncio.sleep(self.state.period)
+        await asyncio.sleep(self.period)
 
         if self.lidar is not None:
             await self.output.send(self.lidar.serialize())
@@ -58,7 +55,6 @@ class ZenohLidar(Source):
 
     def on_sensor_update(self, sample):
         self.lidar = LidarMeasurement.deserialize(sample.payload)
-
 
     def finalize(self) -> None:
         self.sub.close()
