@@ -4,7 +4,7 @@ import logging
 import os
 
 import cv2
-
+import numpy as np
 
 DEFAULT_SAMPLING_FREQUENCY = 30
 DEFAULT_CARLA_HOST = "localhost"
@@ -13,39 +13,6 @@ DEFAULT_CARLA_PORT = 2000
 
 from stunt import types
 from stunt import simulator
-
-
-class CarlaSrcState(object):
-    def __init__(self, configuration):
-
-        self.carla_port = 2000
-        self.carla_host = "localhost"
-        self.period = 1 / 30
-
-        if configuration is not None and configuration.get("port") is not None:
-            self.carla_port = int(configuration["port"])
-
-        if configuration is not None and configuration.get("host") is not None:
-            self.carla_host = configuration["host"]
-
-        if configuration is not None and configuration.get("frequency") is not None:
-            self.period = 1 / configuration["frequency"]
-
-        self.carla_client = carla.Client(self.carla_host, self.carla_port)
-        self.carla_world = self.carla_client.get_world()
-
-        self.player = None
-        while self.player is None:
-            time.sleep(1)
-            possible_vehicles = self.carla_world.get_actors().filter("vehicle.*")
-            for vehicle in possible_vehicles:
-                if vehicle.attributes["role_name"] == "hero":
-                    print("Ego vehicle found")
-                    self.player = vehicle
-                    break
-
-    def on_world_tick(self, timestamp):
-        None
 
 
 # def run_visualizer_control_loop():
@@ -125,3 +92,53 @@ def verify_keys_in_dict(required_keys, arg_dict):
     assert set(required_keys).issubset(
         set(arg_dict.keys())
     ), "one or more of {} not found in {}".format(required_keys, arg_dict)
+
+
+def create_camera_intrinsic_matrix(width: int, height: int, fov: float):
+    """Creates the intrinsic matrix for a camera with the given
+    parameters.
+
+    Args:
+        width (int): The width of the image returned by the camera.
+        height (int): The height of the image returned by the camera.
+        fov (float): The field-of-view of the camera.
+
+    Returns:
+        :py:class:`numpy.ndarray`: A 3x3 intrinsic matrix of the camera.
+    """
+    k = np.identity(3)
+    # We use width - 1 and height - 1 to find the center column and row
+    # of the image, because the images are indexed from 0.
+
+    # Center column of the image.
+    k[0, 2] = (width - 1) / 2.0
+    # Center row of the image.
+    k[1, 2] = (height - 1) / 2.0
+    # Focal length.
+    k[0, 0] = k[1, 1] = (width - 1) / (2.0 * np.tan(fov * np.pi / 360.0))
+    return k
+
+
+def create_camera_unreal_transform(transform):
+    """Converts a Transform from the camera coordinate space to the
+    Unreal coordinate space.
+
+    The camera space is defined as:
+        +x to right, +y to down, +z into the screen.
+
+    The unreal coordinate space is defined as:
+        +x into the screen, +y to right, +z to up.
+
+    Args:
+        transform (:py:class:`~stunt.types.Transform`): The transform to
+            convert to Unreal coordinate space.
+
+    Returns:
+        :py:class:`~stunt.types.Transform`: The given transform after
+            transforming to the Unreal coordinate space.
+    """
+
+    to_unreal_transform = types.Transform(
+        matrix=np.array([[0, 0, 1, 0], [1, 0, 0, 0], [0, -1, 0, 0], [0, 0, 0, 1]])
+    )
+    return transform * to_unreal_transform

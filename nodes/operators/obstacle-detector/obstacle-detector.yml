@@ -1,4 +1,4 @@
-id: TrafficLightsDetection
+id: ObstacleDetector
 uri: file:///home/ato/Workspace/STUNT/nodes/operators/obstacle-detector/obstacle-detector.py
 configuration:
   obstacle_detection_model_path: dependencies/models/obstacle_detection/faster-rcnn/ # list of model paths

@@ -14,3 +14,11 @@ rust-based components doing the hard calculations.
 
 
 All data exchanged between the components is serialized as JSON.
+
+
+---
+
+#### Credits
+
+STUNT nodes are based on [Pylot](https://github.com/erdos-project/pylot) operators.
+Copyright of [Pylot](https://github.com/erdos-project/pylot) operators belongs to UC Berkeley
