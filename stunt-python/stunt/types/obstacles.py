@@ -202,7 +202,9 @@ class Obstacle(object):
         detailed_label = actor.type_id
         # TODO: (Sukrit): Move from vehicles and people to separate classes
         # for bicycles, motorcycles, cars and persons.
-        return cls(bounding_box, 1.0, label, actor.id, transform, detailed_label)
+        return cls(
+            bounding_box, 1.0, label, actor.id, transform, detailed_label
+        )
 
     def as_mot16_str(self, timestamp):
         if not self.bounding_box_2D:
@@ -240,7 +242,9 @@ class Obstacle(object):
         """
 
         if self.transform is None:
-            raise ValueError("Obstacle {} does not have a transform".format(self.id))
+            raise ValueError(
+                "Obstacle {} does not have a transform".format(self.id)
+            )
         # Get the location of the vehicle and the obstacle as numpy arrays.
         other_location = other_transform.location.as_numpy_array()
         obstacle_location = self.transform.location.as_numpy_array()
@@ -294,7 +298,9 @@ class Obstacle(object):
             )
             frame.draw_3d_box(corners, color)
         else:
-            raise ValueError("Obstacle {} does not have bounding box".format(self.id))
+            raise ValueError(
+                "Obstacle {} does not have bounding box".format(self.id)
+            )
 
     def draw_trajectory_on_frame(
         self, trajectory, frame, point_color, draw_label: bool = False
@@ -311,7 +317,10 @@ class Obstacle(object):
                 self.bounding_box.transform.location + self.bounding_box.extent
             )
             for transform in trajectory:
-                [start_transform, end_transform] = transform.transform_locations(
+                [
+                    start_transform,
+                    end_transform,
+                ] = transform.transform_locations(
                     [start_location, end_location]
                 )
                 start_point = start_transform.to_camera_view(
@@ -338,7 +347,9 @@ class Obstacle(object):
             )
             frame.draw_text(screen_point, text, point_color)
 
-    def get_bounding_box_corners(self, obstacle_transform, obstacle_radius=None):
+    def get_bounding_box_corners(
+        self, obstacle_transform, obstacle_radius=None
+    ):
         """Gets the corners of the obstacle's bounding box.
         Note:
             The bounding box is applied on the given obstacle transfom, and not
@@ -352,7 +363,10 @@ class Obstacle(object):
             end_location = (
                 self.bounding_box.transform.location + self.bounding_box.extent
             )
-            [start_location, end_location] = obstacle_transform.transform_locations(
+            [
+                start_location,
+                end_location,
+            ] = obstacle_transform.transform_locations(
                 [start_location, end_location]
             )
         else:
@@ -397,7 +411,11 @@ class Obstacle(object):
         return self.label == "person"
 
     def is_speed_limit(self):
-        return self.label in ["speed limit 30", "speed limit 60", "speed limit 90"]
+        return self.label in [
+            "speed limit 30",
+            "speed limit 60",
+            "speed limit 90",
+        ]
 
     def is_stop_sign(self):
         return self.label == "stop sign" or self.label == "stop marking"
@@ -462,7 +480,9 @@ class Obstacle(object):
         # to the required segmentation class.
         if cropped_image.size > 0:
             masked_image = np.zeros_like(cropped_image)
-            masked_image[np.where(cropped_image == self.segmentation_class)] = 1
+            masked_image[
+                np.where(cropped_image == self.segmentation_class)
+            ] = 1
             seg_threshold = self.__segmentation_threshold * masked_image.size
             if np.sum(masked_image) >= seg_threshold:
                 # The bounding box contains the required number of pixels that
@@ -470,7 +490,9 @@ class Obstacle(object):
                 # obstacle is the depth in the image.
                 masked_depth = cropped_depth[np.where(masked_image == 1)]
                 mean_depth = np.mean(masked_depth) * 1000
-                depth = self._distance(depth_frame.camera_setup.get_transform())
+                depth = self._distance(
+                    depth_frame.camera_setup.get_transform()
+                )
                 if abs(depth - mean_depth) <= self.__depth_threshold:
                     self.bounding_box_2D = bbox_2d
                     return bbox_2d
@@ -480,8 +502,11 @@ class Obstacle(object):
         return self.__str__()
 
     def __str__(self):
-        obstacle = "Obstacle(id: {}, label: {}, confidence: {}, " "bbox: {})".format(
-            self.id, self.label, self.confidence, self.bounding_box
+        obstacle = (
+            "Obstacle(id: {}, label: {}, confidence: {}, "
+            "bbox: {})".format(
+                self.id, self.label, self.confidence, self.bounding_box
+            )
         )
         if self.transform:
             return obstacle + " at " + str(self.transform)
@@ -559,7 +584,9 @@ class ObstacleTrajectory(object):
         self.obstacle = obstacle
         self.trajectory = trajectory
 
-    def draw_on_frame(self, frame, bbox_color_map, ego_transform: Transform = None):
+    def draw_on_frame(
+        self, frame, bbox_color_map, ego_transform: Transform = None
+    ):
         """Draws the tracked obstacle as a 2D bounding box."""
         self.obstacle.draw_on_frame(frame, bbox_color_map, ego_transform)
 
@@ -624,7 +651,9 @@ class ObstacleTrajectory(object):
         return self.__str__()
 
     def __str__(self):
-        return "Obstacle {}, trajectory {}".format(self.obstacle, self.trajectory)
+        return "Obstacle {}, trajectory {}".format(
+            self.obstacle, self.trajectory
+        )
 
     def to_dict(self):
         trajectory = []
@@ -903,7 +932,9 @@ class TrafficLight(Obstacle):
         elif traffic_light_state == CarlaTrafficLightState.Green:
             state = TrafficLightColor.GREEN
 
-        return cls(1.0, state, traffic_light.id, transform, trigger_volume_extent)
+        return cls(
+            1.0, state, traffic_light.id, transform, trigger_volume_extent
+        )
 
     def draw_on_bird_eye_frame(self, frame):
         # Intrinsic and extrinsic matrix of the top down camera.
@@ -1014,12 +1045,17 @@ class TrafficLight(Obstacle):
             if cropped_image.size > 0:
                 masked_image = np.zeros_like(cropped_image)
                 masked_image[
-                    np.where(np.logical_or(cropped_image == 12, cropped_image == 18))
+                    np.where(
+                        np.logical_or(cropped_image == 12, cropped_image == 18)
+                    )
                 ] = 1
                 if np.sum(masked_image) >= 0.20 * masked_image.size:
                     masked_depth = cropped_depth[np.where(masked_image == 1)]
                     mean_depth = np.mean(masked_depth) * 1000
-                    if abs(mean_depth - bounding_box[0].z) <= 2 and mean_depth < 150:
+                    if (
+                        abs(mean_depth - bounding_box[0].z) <= 2
+                        and mean_depth < 150
+                    ):
                         traffic_lights.append(
                             TrafficLight(
                                 1.0,
@@ -1064,14 +1100,17 @@ class TrafficLight(Obstacle):
             rotation_matrix[0, 1] = -np.sin(yaw)
             rotation_matrix[1, 0] = np.sin(yaw)
             rotation_matrix[1, 1] = np.cos(yaw)
-            location_vector = np.array([[location.x], [location.y], [location.z]])
+            location_vector = np.array(
+                [[location.x], [location.y], [location.z]]
+            )
             transformed = np.dot(rotation_matrix, location_vector)
             return Location(
                 x=transformed[0, 0], y=transformed[1, 0], z=transformed[2, 0]
             )
 
         transformed_points = [
-            rotate(np.radians(self.transform.rotation.yaw), point) for point in points
+            rotate(np.radians(self.transform.rotation.yaw), point)
+            for point in points
         ]
         base_relative_points = [
             self.transform.location + point for point in transformed_points
@@ -1088,7 +1127,9 @@ class TrafficLight(Obstacle):
         elif town_name == "Town05":
             return self._get_bboxes_for_town5()
         else:
-            raise ValueError("Could not find a town named {}".format(town_name))
+            raise ValueError(
+                "Could not find a town named {}".format(town_name)
+            )
 
     def _get_bboxes_for_town1_or_2(self):
         points = [
@@ -1325,7 +1366,9 @@ def get_nearby_obstacles_info(obstacle_trajectories, radius, filter_fn=None):
     # we estimate using the direction determined by the last two distinct
     # locations
     for i in range(len(sorted_trajectories)):
-        cur_obstacle_angle = sorted_trajectories[i].estimate_obstacle_orientation()
+        cur_obstacle_angle = sorted_trajectories[
+            i
+        ].estimate_obstacle_orientation()
         nearby_obstacles_ego_transforms.append(
             Transform(
                 location=nearby_obstacles_ego_locations[i].location,
@@ -1377,7 +1420,9 @@ def compute_vehicle_speed_factor(
     v_angle = v_vector.get_angle(wp_vector)
 
     min_angle = (
-        -0.5 * configuration["vehicle_max_angle"] / configuration["coast_factor"]
+        -0.5
+        * configuration["vehicle_max_angle"]
+        / configuration["coast_factor"]
     )
     if (
         min_angle < v_angle < configuration["vehicle_max_angle"]
@@ -1387,7 +1432,10 @@ def compute_vehicle_speed_factor(
         speed_factor_v = min(
             speed_factor_v,
             v_dist
-            / (configuration["coast_factor"] * configuration["vehicle_max_distance"]),
+            / (
+                configuration["coast_factor"]
+                * configuration["vehicle_max_distance"]
+            ),
         )
 
     if (
@@ -1401,11 +1449,16 @@ def compute_vehicle_speed_factor(
         speed_factor_v = min(
             speed_factor_v,
             v_dist
-            / (configuration["coast_factor"] * configuration["vehicle_max_distance"]),
+            / (
+                configuration["coast_factor"]
+                * configuration["vehicle_max_distance"]
+            ),
         )
 
     min_nearby_angle = (
-        -0.5 * configuration["vehicle_max_angle"] * configuration["coast_factor"]
+        -0.5
+        * configuration["vehicle_max_angle"]
+        * configuration["coast_factor"]
     )
     if (
         min_nearby_angle

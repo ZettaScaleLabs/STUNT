@@ -5,7 +5,11 @@ import numpy as np
 import array
 
 from stunt.types import Location, Rotation
-from stunt import DEFAULT_SAMPLING_FREQUENCY, DEFAULT_CARLA_HOST, DEFAULT_CARLA_PORT
+from stunt import (
+    DEFAULT_SAMPLING_FREQUENCY,
+    DEFAULT_CARLA_HOST,
+    DEFAULT_CARLA_PORT,
+)
 
 
 DEFAULT_LIDAR_NAME = "stunt-lidar"
@@ -27,7 +31,9 @@ class LidarSensor:
     def __init__(self, configuration, on_data):
 
         configuration = {} if configuration is None else configuration
-        self.period = 1 / configuration.get("frequency", DEFAULT_SAMPLING_FREQUENCY)
+        self.period = 1 / configuration.get(
+            "frequency", DEFAULT_SAMPLING_FREQUENCY
+        )
 
         self.carla_port = int(configuration.get("port", DEFAULT_CARLA_PORT))
         self.carla_host = configuration.get("host", DEFAULT_CARLA_HOST)
@@ -51,7 +57,9 @@ class LidarSensor:
         self.player = None
         while self.player is None:
             time.sleep(1)
-            possible_vehicles = self.carla_world.get_actors().filter("vehicle.*")
+            possible_vehicles = self.carla_world.get_actors().filter(
+                "vehicle.*"
+            )
             for vehicle in possible_vehicles:
                 if vehicle.attributes["role_name"] == "hero":
                     self.player = vehicle
@@ -60,7 +68,9 @@ class LidarSensor:
         # Waiting EGO vehicle
         while self.player is None:
             time.sleep(1)
-            possible_vehicles = self.carla_world.get_actors().filter("vehicle.*")
+            possible_vehicles = self.carla_world.get_actors().filter(
+                "vehicle.*"
+            )
             for vehicle in possible_vehicles:
                 if vehicle.attributes["role_name"] == "hero":
                     self.player = vehicle
@@ -80,20 +90,28 @@ class LidarSensor:
 
         if self.sensor is None:
             #  Configuring the sensor in CARLA
-            bp = self.carla_world.get_blueprint_library().find("sensor.lidar.ray_cast")
+            bp = self.carla_world.get_blueprint_library().find(
+                "sensor.lidar.ray_cast"
+            )
 
             bp.set_attribute("role_name", self.name)
             bp.set_attribute("channels", str(self.lidar_channels))
             bp.set_attribute("range", str(self.lidar_range_cm))
             bp.set_attribute("points_per_second", str(self.lidar_pps))
-            bp.set_attribute("rotation_frequency", str(self.rotation_frequency))
+            bp.set_attribute(
+                "rotation_frequency", str(self.rotation_frequency)
+            )
             bp.set_attribute("upper_fov", str(self.lidar_upper_fov))
             bp.set_attribute("lower_fov", str(self.lidar_lower_fov))
             bp.set_attribute("sensor_tick", str(self.period))
 
-            bp.set_attribute("dropoff_zero_intensity", str(DEFAULT_ZERO_INTENSITY))
+            bp.set_attribute(
+                "dropoff_zero_intensity", str(DEFAULT_ZERO_INTENSITY)
+            )
             bp.set_attribute("dropoff_general_rate", str(DEFAULT_GENERAL_RATE))
-            bp.set_attribute("dropoff_intensity_limit", str(DEFAULT_INTENSITY_LIMIT))
+            bp.set_attribute(
+                "dropoff_intensity_limit", str(DEFAULT_INTENSITY_LIMIT)
+            )
 
             lidar_location = carla.Location(*self.lidar_location)
             lidar_rotation = carla.Rotation(*self.lidar_rotation)

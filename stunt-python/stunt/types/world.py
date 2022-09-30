@@ -25,7 +25,9 @@ class World(object):
         self.obstacle_predictions = []
         self._ego_obstacle_predictions = []
         self.pose = None
-        self.ego_trajectory = deque(maxlen=self._configuration["tracking_num_steps"])
+        self.ego_trajectory = deque(
+            maxlen=self._configuration["tracking_num_steps"]
+        )
         self.ego_transform = None
         self.ego_velocity_vector = None
         self._lanes = None
@@ -64,8 +66,12 @@ class World(object):
         if static_obstacles != None:
             for obstacle in static_obstacles:
                 if (
-                    obstacle.transform.location.distance(self.ego_transform.location)
-                    <= self._configuration["static_obstacle_distance_threshold"]
+                    obstacle.transform.location.distance(
+                        self.ego_transform.location
+                    )
+                    <= self._configuration[
+                        "static_obstacle_distance_threshold"
+                    ]
                 ):
                     self.static_obstacles.append(obstacle)
 
@@ -95,7 +101,9 @@ class World(object):
             self._num_ticks_stopped = 0
             if self._last_stop_ego_location is not None:
                 self._distance_since_last_full_stop = (
-                    self.ego_transform.location.distance(self._last_stop_ego_location)
+                    self.ego_transform.location.distance(
+                        self._last_stop_ego_location
+                    )
                 )
             else:
                 self._distance_since_last_full_stop = 0
@@ -105,7 +113,9 @@ class World(object):
         self.waypoints = waypoints
 
     def follow_waypoints(self, target_speed: float):
-        self.waypoints.remove_completed(self.ego_transform.location, self.ego_transform)
+        self.waypoints.remove_completed(
+            self.ego_transform.location, self.ego_transform
+        )
         return self.waypoints.slice_waypoints(
             0, self._configuration["num_waypoints_ahead"], target_speed
         )
@@ -125,8 +135,12 @@ class World(object):
                     previous_origin = transform
                     # Ensure the prediction is nearby.
                     if (
-                        self.ego_transform.location.l2_distance(transform.location)
-                        <= self._configuration["dynamic_obstacle_distance_threshold"]
+                        self.ego_transform.location.l2_distance(
+                            transform.location
+                        )
+                        <= self._configuration[
+                            "dynamic_obstacle_distance_threshold"
+                        ]
                     ):
                         obstacle = prediction.obstacle_trajectory.obstacle
                         obstacle_corners = obstacle.get_bounding_box_corners(
@@ -150,7 +164,9 @@ class World(object):
                 obstacle.draw_on_bird_eye_frame(frame)
                 obstacle.transform = world_transform
         if self.waypoints:
-            self.waypoints.draw_on_frame(frame, self.ego_transform.inverse_transform())
+            self.waypoints.draw_on_frame(
+                frame, self.ego_transform.inverse_transform()
+            )
         # TODO:: Draw lane markings. We do not draw them currently
         # because we need to transform them from world frame of reference
         # to ego vehicle frame of reference, which is slow to compute.
@@ -300,7 +316,10 @@ class World(object):
                 if new_speed_factor_p < speed_factor_p:
                     speed_factor_p = new_speed_factor_p
 
-            elif obstacle.is_vehicle() and self._configuration["stop_for_vehicles"]:
+            elif (
+                obstacle.is_vehicle()
+                and self._configuration["stop_for_vehicles"]
+            ):
                 new_speed_factor_v = self.stop_vehicle(obstacle, wp_vector)
                 if new_speed_factor_v < speed_factor_v:
                     speed_factor_v = new_speed_factor_v
@@ -375,7 +394,10 @@ class World(object):
 
             return True, 1
         # The ego vehicle can carry on driving.
-        if tl.state == TrafficLightColor.GREEN or tl.state == TrafficLightColor.OFF:
+        if (
+            tl.state == TrafficLightColor.GREEN
+            or tl.state == TrafficLightColor.OFF
+        ):
             return True, 1
 
         height_delta = tl.transform.location.z - self.ego_transform.location.z
@@ -385,14 +407,18 @@ class World(object):
             traffic_light_max_distance = (
                 self._configuration["traffic_light_max_distance"] * 2.5
             )
-            traffic_light_max_angle = self._configuration["traffic_light_max_angle"] / 3
+            traffic_light_max_angle = (
+                self._configuration["traffic_light_max_angle"] / 3
+            )
             american_tl = True
         else:
 
             traffic_light_max_distance = self._configuration[
                 "traffic_light_max_distance"
             ]
-            traffic_light_max_angle = self._configuration["traffic_light_max_angle"]
+            traffic_light_max_angle = self._configuration[
+                "traffic_light_max_angle"
+            ]
             american_tl = False
         speed_factor_tl = 1
         ego_location_2d = self.ego_transform.location.as_vector_2D()
@@ -410,7 +436,10 @@ class World(object):
             speed_factor_tl = min(
                 speed_factor_tl,
                 tl_dist
-                / (self._configuration["coast_factor"] * traffic_light_max_distance),
+                / (
+                    self._configuration["coast_factor"]
+                    * traffic_light_max_distance
+                ),
             )
 
         if (
@@ -426,7 +455,10 @@ class World(object):
             speed_factor_tl = min(
                 speed_factor_tl,
                 tl_dist
-                / (self._configuration["coast_factor"] * traffic_light_max_distance),
+                / (
+                    self._configuration["coast_factor"]
+                    * traffic_light_max_distance
+                ),
             )
 
         if (
@@ -440,7 +472,10 @@ class World(object):
                     dist_to_intersection = self._map.distance_to_intersection(
                         self.ego_transform.location, max_distance_to_check=20
                     )
-                    if dist_to_intersection is not None and dist_to_intersection < 12:
+                    if (
+                        dist_to_intersection is not None
+                        and dist_to_intersection < 12
+                    ):
                         if (
                             tl.bounding_box_2D is None
                             or tl.bounding_box_2D.get_width()
@@ -457,7 +492,8 @@ class World(object):
             else:
                 if (
                     tl_dist
-                    < traffic_light_max_distance / self._configuration["coast_factor"]
+                    < traffic_light_max_distance
+                    / self._configuration["coast_factor"]
                 ):
                     # The traffic light is nearby and the vehicle is driving
                     # straight; the angle to the traffic light can be higher.

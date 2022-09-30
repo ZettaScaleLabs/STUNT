@@ -30,7 +30,9 @@ class ZenohLidar(Source):
         self.zconf = zenoh.Config()
 
         self.zconf.insert_json5(zenoh.config.MODE_KEY, json.dumps(self.mode))
-        self.zconf.insert_json5(zenoh.config.CONNECT_KEY, json.dumps([self.locator]))
+        self.zconf.insert_json5(
+            zenoh.config.CONNECT_KEY, json.dumps([self.locator])
+        )
 
         self.session = zenoh.open(self.zconf)
 

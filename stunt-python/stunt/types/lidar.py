@@ -99,7 +99,9 @@ class PointCloud(object):
 
         return cls(
             dictionary["timestamp"],
-            np.frombuffer(dictionary["global_points"], dtype=np.dtype("f4")).tolist(),
+            np.frombuffer(
+                dictionary["global_points"], dtype=np.dtype("f4")
+            ).tolist(),
         )
 
     def serialize(self):
@@ -115,7 +117,9 @@ class PointCloud(object):
     ):
         # Converts points in lidar coordinates to points in camera coordinates.
         to_camera_tranform = Transform(
-            matrix=np.array([[0, -1, 0, 0], [0, 0, -1, 0], [1, 0, 0, 0], [0, 0, 0, 1]])
+            matrix=np.array(
+                [[0, -1, 0, 0], [0, 0, -1, 0], [1, 0, 0, 0], [0, 0, 0, 1]]
+            )
         )
         return to_camera_tranform.transform_points(self.global_points)
 
@@ -137,7 +141,8 @@ class PointCloud(object):
 
         # Project our 2D pixel location into 3D space, onto the z=1 plane.
         p3d = np.dot(
-            inv(camera_intrinsic_matrix), np.array([[pixel.x], [pixel.y], [1.0]])
+            inv(camera_intrinsic_matrix),
+            np.array([[pixel.x], [pixel.y], [1.0]]),
         )
         location = PointCloud.get_closest_point_in_point_cloud(
             fwd_points, Vector2D(p3d[0], p3d[1]), normalized=True
@@ -154,7 +159,9 @@ class PointCloud(object):
         return pixel_location
 
     @staticmethod
-    def get_closest_point_in_point_cloud(fwd_points, pixel, normalized: bool = False):
+    def get_closest_point_in_point_cloud(
+        fwd_points, pixel, normalized: bool = False
+    ):
         """Finds the closest point in the point cloud to the given point.
 
         Args:

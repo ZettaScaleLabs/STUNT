@@ -98,7 +98,10 @@ class WaypointPlanner(Operator):
                         obstacle_trajectory,
                         obstacle.transform,
                         1.0,
-                        [ego_transform.inverse_transform() * obstacle.transform],
+                        [
+                            ego_transform.inverse_transform()
+                            * obstacle.transform
+                        ],
                     )
                     predictions.append(prediction)
             elif isinstance(prediction_msg[0], ObstaclePrediction):
@@ -107,7 +110,9 @@ class WaypointPlanner(Operator):
                 # predictions = prediction_msg[0]
             else:
                 raise ValueError(
-                    "Unexpected obstacles msg type {}".format(type(prediction_msg[0]))
+                    "Unexpected obstacles msg type {}".format(
+                        type(prediction_msg[0])
+                    )
                 )
         return predictions
 
@@ -139,11 +144,15 @@ class WaypointPlanner(Operator):
 
         if not any(t.get_name() == "ObstaclePredictions" for t in task_list):
             task_list.append(
-                asyncio.create_task(self.wait_obstacles(), name="ObstaclePredictions")
+                asyncio.create_task(
+                    self.wait_obstacles(), name="ObstaclePredictions"
+                )
             )
 
         if not any(t.get_name() == "Pose" for t in task_list):
-            task_list.append(asyncio.create_task(self.wait_pose(), name="Pose"))
+            task_list.append(
+                asyncio.create_task(self.wait_pose(), name="Pose")
+            )
 
         if not any(t.get_name() == "Trajectory" for t in task_list):
             task_list.append(
@@ -152,7 +161,9 @@ class WaypointPlanner(Operator):
 
         if not any(t.get_name() == "TrafficLights" for t in task_list):
             task_list.append(
-                asyncio.create_task(self.wait_traffic_lights(), name="TrafficLights")
+                asyncio.create_task(
+                    self.wait_traffic_lights(), name="TrafficLights"
+                )
             )
         return task_list
 
@@ -192,7 +203,9 @@ class WaypointPlanner(Operator):
                 predictions_list = json.loads(data_msg.data.decode("utf-8"))
                 self.obstacle_trajectories = []
                 for p in predictions_list:
-                    self.obstacle_trajectories.append(ObstaclePrediction.from_dict(p))
+                    self.obstacle_trajectories.append(
+                        ObstaclePrediction.from_dict(p)
+                    )
 
             elif who == "TrafficLights":
                 traffic_lights = json.loads(data_msg.data.decode("utf-8"))

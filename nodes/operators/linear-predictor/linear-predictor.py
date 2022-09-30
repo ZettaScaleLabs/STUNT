@@ -69,7 +69,9 @@ class LinearPredictor(Operator):
 
         if not any(t.get_name() == "ObstacleTrajectories" for t in task_list):
             task_list.append(
-                asyncio.create_task(self.wait_obstacles(), name="ObstacleTrajectories")
+                asyncio.create_task(
+                    self.wait_obstacles(), name="ObstacleTrajectories"
+                )
             )
         return task_list
 
@@ -93,7 +95,9 @@ class LinearPredictor(Operator):
                 trajectory_list = json.loads(data_msg.data.decode("utf-8"))
                 obstacle_trajectories = []
                 for t in trajectory_list:
-                    obstacle_trajectories.append(ObstacleTrajectory.from_dict(t))
+                    obstacle_trajectories.append(
+                        ObstacleTrajectory.from_dict(t)
+                    )
 
                 obstacle_predictions_list = []
 
@@ -127,7 +131,9 @@ class LinearPredictor(Operator):
                         transform = obstacle_trajectory.trajectory[-(t + 1)]
                         xy[t][0] = transform.location.x
                         xy[t][1] = transform.location.y
-                    linear_model_params = np.linalg.lstsq(ts, xy, rcond=None)[0]
+                    linear_model_params = np.linalg.lstsq(ts, xy, rcond=None)[
+                        0
+                    ]
                     # Predict future steps and convert to list of locations.
                     predict_array = np.matmul(future_ts, linear_model_params)
                     predictions = []
@@ -138,9 +144,12 @@ class LinearPredictor(Operator):
                         predictions.append(
                             Transform(
                                 location=Location(
-                                    x=predict_array[t][0], y=predict_array[t][1]
+                                    x=predict_array[t][0],
+                                    y=predict_array[t][1],
                                 ),
-                                rotation=nearby_obstacles_ego_transforms[idx].rotation,
+                                rotation=nearby_obstacles_ego_transforms[
+                                    idx
+                                ].rotation,
                             )
                         )
                     obstacle_predictions_list.append(

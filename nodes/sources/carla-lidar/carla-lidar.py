@@ -14,7 +14,9 @@ class CarlaLidar(Source):
     def __init__(self, context, configuration, outputs):
 
         configuration = {} if configuration is None else configuration
-        self.period = 1 / configuration.get("frequency", DEFAULT_SAMPLING_FREQUENCY)
+        self.period = 1 / configuration.get(
+            "frequency", DEFAULT_SAMPLING_FREQUENCY
+        )
 
         self.lidar_reading = None
 

@@ -41,7 +41,9 @@ class BehaviourPlanning(Operator):
 
         self.carla_port = int(configuration.get("port", DEFAULT_CARLA_PORT))
         self.carla_host = configuration.get("host", DEFAULT_CARLA_HOST)
-        self.goal_location = Location(*configuration.get("goal", DEFAULT_LOCATION_GOAL))
+        self.goal_location = Location(
+            *configuration.get("goal", DEFAULT_LOCATION_GOAL)
+        )
 
         self.carla_world = None
         self.carla_client = None
@@ -99,7 +101,10 @@ class BehaviourPlanning(Operator):
         # check if we the car can change its behaviour
         self.state = self.best_state_transition()
 
-        if self.state != old_state and self.state == BehaviorPlannerState.OVERTAKE:
+        if (
+            self.state != old_state
+            and self.state == BehaviorPlannerState.OVERTAKE
+        ):
             self.route.remove_waypoint_if_close(ego_transform.location, 10)
         else:
             if not self.map.is_intersection(ego_transform.location):
@@ -122,7 +127,9 @@ class BehaviourPlanning(Operator):
             if waypoints.is_empty():
                 # No more waypoints stop the car
                 waypoints = Waypoints(
-                    deque([ego_transform]), deque([0]), deque(RoadOption.LANE_FOLLOW)
+                    deque([ego_transform]),
+                    deque([0]),
+                    deque(RoadOption.LANE_FOLLOW),
                 )
 
             trajectory = Trajectory(waypoints, self.state)
@@ -200,7 +207,9 @@ class BehaviourPlanning(Operator):
             state_cost = 0
             # Compute the cost of the trajectory.
             for i in range(len(self.cost_functions)):
-                cost_func = self.cost_functions[i](self.state, state, self.ego_info)
+                cost_func = self.cost_functions[i](
+                    self.state, state, self.ego_info
+                )
                 state_cost += self.function_weights[i] * cost_func
             # Check if it's the best trajectory.
             if state_cost < min_state_cost:
@@ -210,7 +219,9 @@ class BehaviourPlanning(Operator):
 
     def get_goal_location(self, ego_transform):
         if len(self.route.waypoints) > 1:
-            dist = ego_transform.location.distance(self.route.waypoints[0].location)
+            dist = ego_transform.location.distance(
+                self.route.waypoints[0].location
+            )
             if dist < 5:
                 new_goal_location = self.route.waypoints[2].location
             else:

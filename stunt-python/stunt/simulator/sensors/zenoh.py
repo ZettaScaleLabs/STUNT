@@ -25,5 +25,8 @@ class ZenohControl:
         self.session = session
         self.ke = ke
         self.sub = self.session.subscribe(
-            self.ke, on_data, reliability=Reliability.Reliable, mode=SubMode.Push
+            self.ke,
+            on_data,
+            reliability=Reliability.Reliable,
+            mode=SubMode.Push,
         )

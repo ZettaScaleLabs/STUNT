@@ -63,7 +63,8 @@ class EKF:
     def skew_symmetric(self, v):
         """Skew symmetric form of a 3x1 vector."""
         return np.array(
-            [[0, -v[2], v[1]], [v[2], 0, -v[0]], [-v[1], v[0], 0]], dtype=np.float64
+            [[0, -v[2], v[1]], [v[2], 0, -v[0]], [-v[1], v[0], 0]],
+            dtype=np.float64,
         )
 
     def update_from_gnss(
@@ -90,7 +91,9 @@ class EKF:
         # Compute Kalman gain. (shape=(9, 3))
         K_k = self._last_covariance.dot(
             H_k.T.dot(
-                np.linalg.inv(H_k.dot(self._last_covariance.dot(H_k.T)) + self.__R_GNSS)
+                np.linalg.inv(
+                    H_k.dot(self._last_covariance.dot(H_k.T)) + self.__R_GNSS
+                )
             )
         )
 
@@ -141,7 +144,9 @@ class EKF:
         # Transform the IMU accelerometer data from the body frame to the
         # world frame, and retrieve location and velocity estimates.
         accelerometer_data = (
-            last_rotation_estimate.matrix.dot(imu.accelerometer.as_numpy_array())
+            last_rotation_estimate.matrix.dot(
+                imu.accelerometer.as_numpy_array()
+            )
             + self.gravity
         )
 
@@ -152,11 +157,14 @@ class EKF:
             + (((delta_t**2) / 2.0) * accelerometer_data)
         )
         # Estimate the velocity.
-        velocity_estimate = last_velocity_estimate + (delta_t * accelerometer_data)
+        velocity_estimate = last_velocity_estimate + (
+            delta_t * accelerometer_data
+        )
 
         # Estimate rotation
-        rotation_estimate = last_rotation_estimate * Quaternion.from_angular_velocity(
-            imu.gyroscope, delta_t
+        rotation_estimate = (
+            last_rotation_estimate
+            * Quaternion.from_angular_velocity(imu.gyroscope, delta_t)
         )
 
         # Fuse the GNSS values using an EKF to fix drifts and noise in
@@ -216,10 +224,18 @@ class Localization(Operator):
 
         self.pending = []
 
-        gravity = np.array(configuration.get("gravity", DEFAULT_GRAVITY_VECTOR))
-        imu_f = configuration.get("kalman", DEFAULT_IMU_F).get("imu_f", DEFAULT_IMU_F)
-        imu_w = configuration.get("kalman", DEFAULT_IMU_F).get("imu_w", DEFAULT_IMU_W)
-        gnss = configuration.get("kalman", DEFAULT_GNSS).get("gnss", DEFAULT_GNSS)
+        gravity = np.array(
+            configuration.get("gravity", DEFAULT_GRAVITY_VECTOR)
+        )
+        imu_f = configuration.get("kalman", DEFAULT_IMU_F).get(
+            "imu_f", DEFAULT_IMU_F
+        )
+        imu_w = configuration.get("kalman", DEFAULT_IMU_F).get(
+            "imu_w", DEFAULT_IMU_W
+        )
+        gnss = configuration.get("kalman", DEFAULT_GNSS).get(
+            "gnss", DEFAULT_GNSS
+        )
 
         self.ekf = EKF(imu_f, imu_w, gnss, gravity)
 
@@ -240,17 +256,27 @@ class Localization(Operator):
         # Waiting EGO vehicle
         while found is False:
             time.sleep(1)
-            possible_vehicles = self.carla_world.get_actors().filter("vehicle.*")
+            possible_vehicles = self.carla_world.get_actors().filter(
+                "vehicle.*"
+            )
             for vehicle in possible_vehicles:
                 if vehicle.attributes["role_name"] == "hero":
                     found = True
                     snapshot = self.carla_world.get_snapshot()
-                    vec_transform = Transform.from_simulator(vehicle.get_transform())
-                    velocity_vector = Vector3D.from_simulator(vehicle.get_velocity())
+                    vec_transform = Transform.from_simulator(
+                        vehicle.get_transform()
+                    )
+                    velocity_vector = Vector3D.from_simulator(
+                        vehicle.get_velocity()
+                    )
 
                     forward_speed = np.linalg.norm(
                         np.array(
-                            [velocity_vector.x, velocity_vector.y, velocity_vector.z]
+                            [
+                                velocity_vector.x,
+                                velocity_vector.y,
+                                velocity_vector.z,
+                            ]
                         )
                     )
 
@@ -278,7 +304,9 @@ class Localization(Operator):
         task_list = [] + self.pending
 
         if not any(t.get_name() == "GNSS" for t in task_list):
-            task_list.append(asyncio.create_task(self.wait_gnss(), name="GNSS"))
+            task_list.append(
+                asyncio.create_task(self.wait_gnss(), name="GNSS")
+            )
 
         if not any(t.get_name() == "IMU" for t in task_list):
             task_list.append(asyncio.create_task(self.wait_imu(), name="IMU"))

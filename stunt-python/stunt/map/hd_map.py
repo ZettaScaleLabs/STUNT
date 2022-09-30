@@ -23,7 +23,9 @@ class HDMap(object):
         # TODO: get logger here
         self._map = simulator_map
         # Setup global planner.
-        self._grp = GlobalRoutePlanner(self._map, 1.0)  # Distance between waypoints
+        self._grp = GlobalRoutePlanner(
+            self._map, 1.0
+        )  # Distance between waypoints
 
     @classmethod
     def from_opendrive(cls, opendrive):
@@ -89,7 +91,9 @@ class HDMap(object):
         else:
             return True
 
-    def are_on_same_lane(self, location1: Location, location2: Location) -> bool:
+    def are_on_same_lane(
+        self, location1: Location, location2: Location
+    ) -> bool:
         """Checks if two locations are on the same lane.
 
         Args:
@@ -114,9 +118,9 @@ class HDMap(object):
         else:
             # Return False if we're in intersection and the other
             # obstacle isn't.
-            if self.__is_intersection(waypoint1) and not self.__is_intersection(
-                waypoint2
-            ):
+            if self.__is_intersection(
+                waypoint1
+            ) and not self.__is_intersection(waypoint2):
                 return False
             if waypoint2.lane_type == LaneType.Driving:
                 # This may return True when the lane is different, but in
@@ -135,7 +139,9 @@ class HDMap(object):
         Returns:
             bool: True if the transform is on the opposite lane.
         """
-        waypoint = self._get_waypoint(transform.location, lane_type=LaneType.Driving)
+        waypoint = self._get_waypoint(
+            transform.location, lane_type=LaneType.Driving
+        )
         if not waypoint:
             return True
         if self.__is_intersection(waypoint):
@@ -207,7 +213,9 @@ class HDMap(object):
         Returns:
             bool: True if the location is on a bidirectional lane.
         """
-        waypoint = self._get_waypoint(location, lane_type=LaneType.Bidirectional)
+        waypoint = self._get_waypoint(
+            location, lane_type=LaneType.Bidirectional
+        )
         return not waypoint
 
     def must_obey_traffic_light(
@@ -248,7 +256,9 @@ class HDMap(object):
                 or tl_waypoint.lane_id != ego_waypoint.lane_id
             ):
                 continue
-            if ego_transform.is_within_distance_ahead(tl_loc, tl_max_dist_thresh):
+            if ego_transform.is_within_distance_ahead(
+                tl_loc, tl_max_dist_thresh
+            ):
                 return (True, tl_loc)
         return (False, None)
 
@@ -263,7 +273,9 @@ class HDMap(object):
         min_angle = 25.0
         selected_tl_loc = None
         for tl_loc in tl_locations:
-            if ego_transform.is_within_distance_ahead(tl_loc, tl_max_dist_thresh):
+            if ego_transform.is_within_distance_ahead(
+                tl_loc, tl_max_dist_thresh
+            ):
                 angle, distance = ego_transform.get_angle_and_magnitude(tl_loc)
                 if distance < 60.0 and angle < min(25.0, min_angle):
                     min_angle = angle
@@ -274,7 +286,10 @@ class HDMap(object):
             return (False, None)
 
     def get_lane(
-        self, location: Location, waypoint_precision: float = 0.05, lane_id: int = 0
+        self,
+        location: Location,
+        waypoint_precision: float = 0.05,
+        lane_id: int = 0,
     ) -> Lane:
         lane_waypoints = []
         # Consider waypoints in opposite direction of camera so we can get
@@ -297,7 +312,8 @@ class HDMap(object):
             for w in lane_waypoints
         ]
         right_markings = [
-            self._lateral_shift(w.transform, w.lane_width * 0.5) for w in lane_waypoints
+            self._lateral_shift(w.transform, w.lane_width * 0.5)
+            for w in lane_waypoints
         ]
         return Lane(lane_id, left_markings, right_markings)
 
@@ -325,8 +341,12 @@ class HDMap(object):
             wp_left = waypoint.get_left_lane()
             w_rotation = waypoint.transform.rotation
             while wp_left and wp_left.lane_type == LaneType.Driving:
-                left_location = Location.from_simulator(wp_left.transform.location)
-                lanes.append(self.get_lane(left_location, lane_id=wp_left.lane_id))
+                left_location = Location.from_simulator(
+                    wp_left.transform.location
+                )
+                lanes.append(
+                    self.get_lane(left_location, lane_id=wp_left.lane_id)
+                )
 
                 # If left lane is facing the opposite direction, its left
                 # lane would point back to the current lane, so we select
@@ -338,8 +358,12 @@ class HDMap(object):
 
             wp_right = waypoint.get_right_lane()
             while wp_right and wp_right.lane_type == LaneType.Driving:
-                right_location = Location.from_simulator(wp_right.transform.location)
-                lanes.append(self.get_lane(right_location, lane_id=wp_right.lane_id))
+                right_location = Location.from_simulator(
+                    wp_right.transform.location
+                )
+                lanes.append(
+                    self.get_lane(right_location, lane_id=wp_right.lane_id)
+                )
 
                 # Same logic as above. If right lane of current is in
                 # opposite direction, move rightwards by selecting it's
@@ -350,7 +374,9 @@ class HDMap(object):
                     wp_right = wp_left.get_left_lane()
         return lanes
 
-    def compute_waypoints(self, source_loc: Location, destination_loc: Location):
+    def compute_waypoints(
+        self, source_loc: Location, destination_loc: Location
+    ):
         """Computes waypoints between two locations.
 
         Assumes that the ego vehicle has the same orientation as the lane on
@@ -380,7 +406,10 @@ class HDMap(object):
         # TODO:(ionel): The planner returns several options in intersections.
         # We always take the first one, but this is not correct.
         return deque(
-            [Transform.from_simulator(waypoint[0].transform) for waypoint in route]
+            [
+                Transform.from_simulator(waypoint[0].transform)
+                for waypoint in route
+            ]
         )
 
     def _lateral_shift(self, transform, shift) -> Location:
@@ -389,7 +418,10 @@ class HDMap(object):
         return Location.from_simulator(shifted)
 
     def _get_waypoint(
-        self, location: Location, project_to_road: bool = False, lane_type=LaneType.Any
+        self,
+        location: Location,
+        project_to_road: bool = False,
+        lane_type=LaneType.Any,
     ):
         try:
             waypoint = self._map.get_waypoint(

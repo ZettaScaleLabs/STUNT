@@ -26,7 +26,10 @@ from stunt.types import (
     Pose,
 )
 
-from stunt import create_camera_unreal_transform, create_camera_intrinsic_matrix
+from stunt import (
+    create_camera_unreal_transform,
+    create_camera_intrinsic_matrix,
+)
 
 DEFAULT_CAMERA_FOV = 90
 DEFAULT_CAMERA_WIDTH = 1920
@@ -53,16 +56,30 @@ class ObstacleLocationFinder(Operator):
 
         self.camera_fov = configuration.get("camera_fov", DEFAULT_CAMERA_FOV)
         self.camera_transform = Transform(
-            Location(*configuration.get("camera_location", DEFAULT_CAMERA_LOCATION)),
-            Rotation(*configuration.get("camera_rotation", DEFAULT_CAMERA_ROTATION)),
+            Location(
+                *configuration.get("camera_location", DEFAULT_CAMERA_LOCATION)
+            ),
+            Rotation(
+                *configuration.get("camera_rotation", DEFAULT_CAMERA_ROTATION)
+            ),
         )
-        self.camera_types = configuration.get("camera_type", DEFAULT_CAMERA_TYPE)
-        self.camera_width = configuration.get("camera_width", DEFAULT_CAMERA_WIDTH)
-        self.camera_height = configuration.get("camera_height", DEFAULT_CAMERA_HEIGHT)
+        self.camera_types = configuration.get(
+            "camera_type", DEFAULT_CAMERA_TYPE
+        )
+        self.camera_width = configuration.get(
+            "camera_width", DEFAULT_CAMERA_WIDTH
+        )
+        self.camera_height = configuration.get(
+            "camera_height", DEFAULT_CAMERA_HEIGHT
+        )
 
         self.lidar_transform = Transform(
-            Location(*configuration.get("lidar_location", DEFAULT_LIDAR_LOCATION)),
-            Rotation(*configuration.get("lidar_rotation", DEFAULT_LIDAR_ROTATION)),
+            Location(
+                *configuration.get("lidar_location", DEFAULT_LIDAR_LOCATION)
+            ),
+            Rotation(
+                *configuration.get("lidar_rotation", DEFAULT_LIDAR_ROTATION)
+            ),
         )
 
         self.lidar_type = configuration.get("lidar_type", DEFAULT_LIDAR_TYPE)
@@ -86,15 +103,21 @@ class ObstacleLocationFinder(Operator):
         task_list = [] + self.pending
 
         if not any(t.get_name() == "Pose" for t in task_list):
-            task_list.append(asyncio.create_task(self.wait_pose(), name="Pose"))
+            task_list.append(
+                asyncio.create_task(self.wait_pose(), name="Pose")
+            )
 
         if not any(t.get_name() == "TrackedObstacles" for t in task_list):
             task_list.append(
-                asyncio.create_task(self.wait_obstacles(), name="TrackedObstacles")
+                asyncio.create_task(
+                    self.wait_obstacles(), name="TrackedObstacles"
+                )
             )
 
         if not any(t.get_name() == "LIDAR" for t in task_list):
-            task_list.append(asyncio.create_task(self.wait_lidar(), name="LIDAR"))
+            task_list.append(
+                asyncio.create_task(self.wait_lidar(), name="LIDAR")
+            )
 
         return task_list
 
@@ -105,7 +128,9 @@ class ObstacleLocationFinder(Operator):
             self.camera_width, self.camera_height, self.camera_fov
         )
 
-        camera_unreal_transform = create_camera_unreal_transform(world_camera_transform)
+        camera_unreal_transform = create_camera_unreal_transform(
+            world_camera_transform
+        )
 
         obstacles_with_location = []
         for obstacle in obstacles:
@@ -137,7 +162,9 @@ class ObstacleLocationFinder(Operator):
                 self.pose = Pose.deserialize(data_msg.data)
             elif who == "LIDAR":
                 lidar_reading = LidarMeasurement.deserialize(data_msg.data)
-                self.point_cloud = PointCloud.from_lidar_measurement(lidar_reading)
+                self.point_cloud = PointCloud.from_lidar_measurement(
+                    lidar_reading
+                )
             elif who == "TrackedObstacles":
                 dict_obstacles = json.loads(data_msg.data.decode("utf-8"))
                 obstacles = []
@@ -149,7 +176,9 @@ class ObstacleLocationFinder(Operator):
                     and self.pose is not None
                     and self.point_cloud is not None
                 ):
-                    obstacles_with_location = self.get_obstacle_locations(obstacles)
+                    obstacles_with_location = self.get_obstacle_locations(
+                        obstacles
+                    )
 
                 await self.output.send(
                     json.dumps(obstacles_with_location).encode("utf-8")

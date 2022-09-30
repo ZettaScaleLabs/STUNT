@@ -58,12 +58,16 @@ class Lane(object):
                 marking = Vector3D(marking[0, 0], marking[0, 1], marking[0, 2])
             else:
                 marking = marking.location
-            pixel_location = marking.to_camera_view(extrinsic_matrix, intrinsic_matrix)
+            pixel_location = marking.to_camera_view(
+                extrinsic_matrix, intrinsic_matrix
+            )
             if pixel_location.z >= 0:
                 try:
                     frame.draw_point(pixel_location, lane_color_l)
                     if binary_frame:
-                        binary_frame.draw_point(pixel_location, (255, 255, 255))
+                        binary_frame.draw_point(
+                            pixel_location, (255, 255, 255)
+                        )
                 except Exception:
                     continue
         for marking in self.right_markings:
@@ -75,12 +79,16 @@ class Lane(object):
                 marking = Vector3D(marking[0, 0], marking[0, 1], marking[0, 2])
             else:
                 marking = marking.location
-            pixel_location = marking.to_camera_view(extrinsic_matrix, intrinsic_matrix)
+            pixel_location = marking.to_camera_view(
+                extrinsic_matrix, intrinsic_matrix
+            )
             if pixel_location.z >= 0:
                 try:
                     frame.draw_point(pixel_location, lane_color_r)
                     if binary_frame:
-                        binary_frame.draw_point(pixel_location, (255, 255, 255))
+                        binary_frame.draw_point(
+                            pixel_location, (255, 255, 255)
+                        )
                 except Exception:
                     continue
 
@@ -119,7 +127,9 @@ class Lane(object):
                 marking = Vector3D(marking[0, 0], marking[0, 1], marking[0, 2])
             else:
                 marking = marking.location
-            pixel_location = marking.to_camera_view(extrinsic_matrix, intrinsic_matrix)
+            pixel_location = marking.to_camera_view(
+                extrinsic_matrix, intrinsic_matrix
+            )
             if pixel_location.z >= 0:
                 try:
                     cv2.circle(
@@ -147,7 +157,9 @@ class Lane(object):
                 marking = Vector3D(marking[0, 0], marking[0, 1], marking[0, 2])
             else:
                 marking = marking.location
-            pixel_location = marking.to_camera_view(extrinsic_matrix, intrinsic_matrix)
+            pixel_location = marking.to_camera_view(
+                extrinsic_matrix, intrinsic_matrix
+            )
             if pixel_location.z >= 0:
                 try:
                     cv2.circle(
@@ -171,11 +183,15 @@ class Lane(object):
 
         for marking in self.left_markings:
             world.debug.draw_point(
-                marking.as_simulator_location(), size=0.1, color=Color(255, 255, 0)
+                marking.as_simulator_location(),
+                size=0.1,
+                color=Color(255, 255, 0),
             )
         for marking in self.right_markings:
             world.debug.draw_point(
-                marking.as_simulator_location(), size=0.1, color=Color(255, 255, 0)
+                marking.as_simulator_location(),
+                size=0.1,
+                color=Color(255, 255, 0),
             )
 
     def get_closest_lane_waypoint(self, location):
@@ -205,14 +221,18 @@ class Lane(object):
         index_other = 0
         center_markings = deque([])
         for transform in anchor_markings:
-            dist = transform.location.distance(other_markings[index_other].location)
+            dist = transform.location.distance(
+                other_markings[index_other].location
+            )
             while index_other + 1 < len(
                 other_markings
             ) and dist > transform.location.distance(
                 other_markings[index_other + 1].location
             ):
                 index_other += 1
-                dist = transform.location.distance(other_markings[index_other].location)
+                dist = transform.location.distance(
+                    other_markings[index_other].location
+                )
             if index_other < len(other_markings):
                 other_loc = other_markings[index_other].location
                 center_location = Location(
@@ -256,7 +276,9 @@ class Lane(object):
     @classmethod
     def from_dict(cls, dictionary):
         return cls(
-            dictionary["id"], dictionary["left_markings"], dictionary["right_markings"]
+            dictionary["id"],
+            dictionary["left_markings"],
+            dictionary["right_markings"],
         )
 
     def serialize(self):

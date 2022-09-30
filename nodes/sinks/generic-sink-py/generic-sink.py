@@ -17,7 +17,6 @@ class GenericSink(Sink):
     ):
         self.in_stream = inputs.get("Data", None)
 
-
     async def iteration(self):
         data_msg = await self.in_stream.recv()
         data = json.loads(data_msg.data.decode("utf-8"))

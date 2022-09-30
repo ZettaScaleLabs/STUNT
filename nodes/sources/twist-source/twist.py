@@ -38,7 +38,9 @@ class TwistSrc(Source):
 
         self.config = zenoh.Config()
         self.config.insert_json5(zenoh.config.MODE_KEY, json.dumps("client"))
-        self.config.insert_json5(zenoh.config.CONNECT_KEY, json.dumps([self.router]))
+        self.config.insert_json5(
+            zenoh.config.CONNECT_KEY, json.dumps([self.router])
+        )
         self.session = zenoh.open(self.config)
 
         self.subscriber = self.session.subscribe(

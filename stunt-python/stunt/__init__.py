@@ -141,6 +141,8 @@ def create_camera_unreal_transform(transform):
     """
 
     to_unreal_transform = types.Transform(
-        matrix=np.array([[0, 0, 1, 0], [1, 0, 0, 0], [0, -1, 0, 0], [0, 0, 0, 1]])
+        matrix=np.array(
+            [[0, 0, 1, 0], [1, 0, 0, 0], [0, -1, 0, 0], [0, 0, 0, 1]]
+        )
     )
     return transform * to_unreal_transform

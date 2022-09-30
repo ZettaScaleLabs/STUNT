@@ -37,7 +37,8 @@ class Location(Vector3D):
         """
 
         if not (
-            isinstance(location, CarlaLocation) or isinstance(location, CarlaVector3D)
+            isinstance(location, CarlaLocation)
+            or isinstance(location, CarlaVector3D)
         ):
             raise ValueError("The location must be a Location or Vector3D")
         return cls(location.x, location.y, location.z)

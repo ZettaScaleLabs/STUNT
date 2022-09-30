@@ -33,7 +33,9 @@ class GnssMeasurement(object):
         """
 
         if not isinstance(gnss, CarlaGnssMeasurement):
-            raise ValueError("The gnss must be a Location or carla.GnssMeasurement")
+            raise ValueError(
+                "The gnss must be a Location or carla.GnssMeasurement"
+            )
         return cls(
             gnss.altitude,
             gnss.latitude,

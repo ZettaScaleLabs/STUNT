@@ -8,7 +8,11 @@ import time
 import carla
 from carla import VehicleControl as CarlaVehicleControl
 from stunt.types import VehicleControl
-from stunt import DEFAULT_SAMPLING_FREQUENCY, DEFAULT_CARLA_HOST, DEFAULT_CARLA_PORT
+from stunt import (
+    DEFAULT_SAMPLING_FREQUENCY,
+    DEFAULT_CARLA_HOST,
+    DEFAULT_CARLA_PORT,
+)
 
 
 class CtrlCar(Sink):
@@ -30,7 +34,10 @@ class CtrlCar(Sink):
         if configuration is not None and configuration.get("host") is not None:
             self.carla_host = configuration["host"]
 
-        if configuration is not None and configuration.get("frequency") is not None:
+        if (
+            configuration is not None
+            and configuration.get("frequency") is not None
+        ):
             self.period = 1 / configuration["frequency"]
 
         self.carla_client = carla.Client(self.carla_host, self.carla_port)
@@ -39,7 +46,9 @@ class CtrlCar(Sink):
         self.player = None
         while self.player is None:
             time.sleep(1)
-            possible_vehicles = self.carla_world.get_actors().filter("vehicle.*")
+            possible_vehicles = self.carla_world.get_actors().filter(
+                "vehicle.*"
+            )
             for vehicle in possible_vehicles:
                 if vehicle.attributes["role_name"] == "hero":
                     print("Ego vehicle found")

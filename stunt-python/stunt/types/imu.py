@@ -34,12 +34,16 @@ class IMUMeasurement(object):
         """
 
         if not isinstance(data, CarlaIMUMeasurement):
-            raise ValueError("The data must be a Location or carla.IMUMeasurement")
+            raise ValueError(
+                "The data must be a Location or carla.IMUMeasurement"
+            )
 
         accelerometer = Vector3D.from_simulator(data.accelerometer)
         gyroscope = Vector3D.from_simulator(data.gyroscope)
 
-        return cls(accelerometer, data.compass, gyroscope, data.timestamp * 1000)
+        return cls(
+            accelerometer, data.compass, gyroscope, data.timestamp * 1000
+        )
 
     def to_simulator(self):
         return CarlaIMUMeasurement(
@@ -63,7 +67,10 @@ class IMUMeasurement(object):
         gyroscope = Vector3D.from_dict(dictionary["gyroscope"])
 
         return cls(
-            accelerometer, dictionary["compass"], gyroscope, dictionary["timestamp"]
+            accelerometer,
+            dictionary["compass"],
+            gyroscope,
+            dictionary["timestamp"],
         )
 
     def serialize(self):

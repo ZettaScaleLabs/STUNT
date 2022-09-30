@@ -17,7 +17,9 @@ class CarlaGNSS(Source):
     def __init__(self, context, configuration, outputs):
         configuration = {} if configuration is None else configuration
 
-        self.period = 1 / configuration.get("frequency", DEFAULT_SAMPLING_FREQUENCY)
+        self.period = 1 / configuration.get(
+            "frequency", DEFAULT_SAMPLING_FREQUENCY
+        )
         self.sensor = GNSSSensor(configuration, self.on_sensor_update)
 
         self.output = outputs.get("GNSS", None)
@@ -32,7 +34,6 @@ class CarlaGNSS(Source):
         if self.data is not None:
             await self.output.send(self.data.serialize())
         return None
-
 
     def finalize(self) -> None:
         return None

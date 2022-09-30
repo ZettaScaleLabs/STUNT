@@ -52,12 +52,16 @@ class ObstacleDetection(Operator):
         )
 
         self.min_threshold = configuration.get(
-            "obstacle_detection_min_score_threshold", DEFAULT_MIN_SCORE_THRESHOLD
+            "obstacle_detection_min_score_threshold",
+            DEFAULT_MIN_SCORE_THRESHOLD,
         )
         self.gpu_memory_fraction = configuration.get(
-            "obstacle_detection_gpu_memory_fraction", DEFAULT_GPU_MEMORY_FRACTION
+            "obstacle_detection_gpu_memory_fraction",
+            DEFAULT_GPU_MEMORY_FRACTION,
         )
-        self.gpu_index = configuration.get("obstacle_detection_gpu_index", DEFAULT_GPU)
+        self.gpu_index = configuration.get(
+            "obstacle_detection_gpu_index", DEFAULT_GPU
+        )
 
         self.labels_path = configuration.get(
             "path_coco_labels", DEFAULT_COCO_LABELS_PATH
@@ -82,7 +86,9 @@ class ObstacleDetection(Operator):
         tf.config.experimental.set_visible_devices(
             [physical_devices[self.gpu_index]], "GPU"
         )
-        tf.config.experimental.set_memory_growth(physical_devices[self.gpu_index], True)
+        tf.config.experimental.set_memory_growth(
+            physical_devices[self.gpu_index], True
+        )
 
         # Unique bounding box id. Incremented for each bounding box.
         self.unique_id = 0
@@ -114,7 +120,8 @@ class ObstacleDetection(Operator):
         bbox_color_list = coco_bbox_color_list.reshape((-1, 3)) * 255
         # Transform to ints
         bbox_colors = [
-            (bbox_color_list[_]).astype(np.uint8) for _ in range(len(bbox_color_list))
+            (bbox_color_list[_]).astype(np.uint8)
+            for _ in range(len(bbox_color_list))
         ]
         bbox_colors = np.array(bbox_colors, dtype=np.uint8).reshape(
             len(bbox_colors), 1, 1, 3
@@ -157,7 +164,9 @@ class ObstacleDetection(Operator):
         task_list = [] + self.pending
 
         if not any(t.get_name() == "Image" for t in task_list):
-            task_list.append(asyncio.create_task(self.wait_image(), name="Image"))
+            task_list.append(
+                asyncio.create_task(self.wait_image(), name="Image")
+            )
 
         if not any(t.get_name() == "TTD" for t in task_list):
             task_list.append(asyncio.create_task(self.wait_ttd(), name="TTD"))
@@ -182,21 +191,39 @@ class ObstacleDetection(Operator):
             elif who == "Image":
                 self.frame = Image.deserialize(data_msg.data)
 
-                num_detections, res_boxes, res_scores, res_classes = self.run_model(
-                    self.frame.as_rgb_numpy_array()
-                )
+                (
+                    num_detections,
+                    res_boxes,
+                    res_scores,
+                    res_classes,
+                ) = self.run_model(self.frame.as_rgb_numpy_array())
                 obstacles = []
                 for i in range(0, num_detections):
                     if res_scores[i] >= self.min_threshold:
                         if res_classes[i] in self.coco_labels:
-                            if self.coco_labels[res_classes[i]] in OBSTACLE_LABELS:
+                            if (
+                                self.coco_labels[res_classes[i]]
+                                in OBSTACLE_LABELS
+                            ):
                                 obstacles.append(
                                     Obstacle(
                                         BoundingBox2D(
-                                            int(res_boxes[i][1] * self.frame.width),
-                                            int(res_boxes[i][3] * self.frame.width),
-                                            int(res_boxes[i][0] * self.frame.height),
-                                            int(res_boxes[i][2] * self.frame.height),
+                                            int(
+                                                res_boxes[i][1]
+                                                * self.frame.width
+                                            ),
+                                            int(
+                                                res_boxes[i][3]
+                                                * self.frame.width
+                                            ),
+                                            int(
+                                                res_boxes[i][0]
+                                                * self.frame.height
+                                            ),
+                                            int(
+                                                res_boxes[i][2]
+                                                * self.frame.height
+                                            ),
                                         ),
                                         float(res_scores[i]),
                                         self.coco_labels[res_classes[i]],

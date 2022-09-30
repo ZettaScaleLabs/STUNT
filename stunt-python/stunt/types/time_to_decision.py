@@ -1,5 +1,6 @@
 import json
 
+
 class TimeToDecision(object):
     def __init__(self, deadline):
         self.deadline = deadline

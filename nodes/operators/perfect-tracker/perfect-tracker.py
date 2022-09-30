@@ -9,7 +9,13 @@ import json
 from collections import defaultdict, deque
 from cv2 import transform
 
-from stunt.types import ObstacleTrajectory, Obstacle, Transform, Quaternion, Pose
+from stunt.types import (
+    ObstacleTrajectory,
+    Obstacle,
+    Transform,
+    Quaternion,
+    Pose,
+)
 
 
 DEFAULT_PREDICTION_EGO_AGENT = False
@@ -33,14 +39,17 @@ class PerfectTracker(Operator):
             "prediction_ego_agent", DEFAULT_PREDICTION_EGO_AGENT
         )
         self.dynamic_obstacle_distance_threshold = configuration.get(
-            "dynamic_obstacle_distance_threshold", DEFAULT_OBSTACLE_DISTANCE_THRESHOLD_M
+            "dynamic_obstacle_distance_threshold",
+            DEFAULT_OBSTACLE_DISTANCE_THRESHOLD_M,
         )
 
         self.tracking_num_steps = configuration.get(
             "tracking_num_steps", DEFAULT_TRACKING_NUM_STEPS
         )
 
-        self._obstacles = defaultdict(lambda: deque(maxlen=self.tracking_num_steps))
+        self._obstacles = defaultdict(
+            lambda: deque(maxlen=self.tracking_num_steps)
+        )
 
         self.obstacles_input = inputs.get("Obstacles", None)
         self.pose_input = inputs.get("Pose", None)
@@ -62,7 +71,9 @@ class PerfectTracker(Operator):
         task_list = [] + self.pending
 
         if not any(t.get_name() == "Pose" for t in task_list):
-            task_list.append(asyncio.create_task(self.wait_pose(), name="Pose"))
+            task_list.append(
+                asyncio.create_task(self.wait_pose(), name="Pose")
+            )
 
         if not any(t.get_name() == "Obstacles" for t in task_list):
             task_list.append(
@@ -98,7 +109,9 @@ class PerfectTracker(Operator):
 
                 # skip tracking the object is too far away
                 if (
-                    self.pose.transform.location.distance(obstacle.transform.location)
+                    self.pose.transform.location.distance(
+                        obstacle.transform.location
+                    )
                     > self.dynamic_obstacle_distance_threshold
                 ):
                     continue

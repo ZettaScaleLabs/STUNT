@@ -1,7 +1,11 @@
 import carla
 import time
 
-from stunt import DEFAULT_SAMPLING_FREQUENCY, DEFAULT_CARLA_HOST, DEFAULT_CARLA_PORT
+from stunt import (
+    DEFAULT_SAMPLING_FREQUENCY,
+    DEFAULT_CARLA_HOST,
+    DEFAULT_CARLA_PORT,
+)
 
 
 DEFAULT_NOISE_ALT_STDDEV = 0.0
@@ -17,11 +21,15 @@ class GNSSSensor:
     def __init__(self, configuration, on_data):
 
         configuration = {} if configuration is None else configuration
-        self.period = 1 / configuration.get("frequency", DEFAULT_SAMPLING_FREQUENCY)
+        self.period = 1 / configuration.get(
+            "frequency", DEFAULT_SAMPLING_FREQUENCY
+        )
 
         self.carla_port = int(configuration.get("port", DEFAULT_CARLA_PORT))
         self.carla_host = configuration.get("host", DEFAULT_CARLA_HOST)
-        self.period = 1 / configuration.get("frequency", DEFAULT_SAMPLING_FREQUENCY)
+        self.period = 1 / configuration.get(
+            "frequency", DEFAULT_SAMPLING_FREQUENCY
+        )
         self.name = configuration.get("name", DEFAULT_GNSS_NAME)
 
         self.noise_alt_stddev = configuration.get(
@@ -51,7 +59,9 @@ class GNSSSensor:
 
         while self.player is None:
             time.sleep(1)
-            possible_vehicles = self.carla_world.get_actors().filter("vehicle.*")
+            possible_vehicles = self.carla_world.get_actors().filter(
+                "vehicle.*"
+            )
             for vehicle in possible_vehicles:
                 if vehicle.attributes["role_name"] == "hero":
                     self.player = vehicle
@@ -71,7 +81,9 @@ class GNSSSensor:
 
         if self.sensor is None:
 
-            bp = self.carla_world.get_blueprint_library().find("sensor.other.gnss")
+            bp = self.carla_world.get_blueprint_library().find(
+                "sensor.other.gnss"
+            )
 
             bp.set_attribute("role_name", self.name)
             bp.set_attribute("noise_alt_stddev", str(self.noise_alt_stddev))

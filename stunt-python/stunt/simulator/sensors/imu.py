@@ -1,7 +1,11 @@
 import carla
 import time
 
-from stunt import DEFAULT_SAMPLING_FREQUENCY, DEFAULT_CARLA_HOST, DEFAULT_CARLA_PORT
+from stunt import (
+    DEFAULT_SAMPLING_FREQUENCY,
+    DEFAULT_CARLA_HOST,
+    DEFAULT_CARLA_PORT,
+)
 from stunt.types import IMUMeasurement
 
 
@@ -52,7 +56,9 @@ class IMUSensor:
 
         while self.player is None:
             time.sleep(1)
-            possible_vehicles = self.carla_world.get_actors().filter("vehicle.*")
+            possible_vehicles = self.carla_world.get_actors().filter(
+                "vehicle.*"
+            )
             for vehicle in possible_vehicles:
                 if vehicle.attributes["role_name"] == "hero":
                     self.player = vehicle
@@ -70,16 +76,30 @@ class IMUSensor:
                     break
 
         if self.sensor is None:
-            bp = self.carla_world.get_blueprint_library().find("sensor.other.imu")
+            bp = self.carla_world.get_blueprint_library().find(
+                "sensor.other.imu"
+            )
 
             bp.set_attribute("role_name", self.name)
             bp.set_attribute("sensor_tick", str(self.period))
-            bp.set_attribute("noise_accel_stddev_x", str(self.noise_accel_stddev_x))
-            bp.set_attribute("noise_accel_stddev_y", str(self.noise_accel_stddev_y))
-            bp.set_attribute("noise_accel_stddev_z", str(self.noise_accel_stddev_z))
-            bp.set_attribute("noise_gyro_stddev_x", str(self.noise_gyro_stddev_x))
-            bp.set_attribute("noise_gyro_stddev_y", str(self.noise_gyro_stddev_y))
-            bp.set_attribute("noise_gyro_stddev_z", str(self.noise_gyro_stddev_z))
+            bp.set_attribute(
+                "noise_accel_stddev_x", str(self.noise_accel_stddev_x)
+            )
+            bp.set_attribute(
+                "noise_accel_stddev_y", str(self.noise_accel_stddev_y)
+            )
+            bp.set_attribute(
+                "noise_accel_stddev_z", str(self.noise_accel_stddev_z)
+            )
+            bp.set_attribute(
+                "noise_gyro_stddev_x", str(self.noise_gyro_stddev_x)
+            )
+            bp.set_attribute(
+                "noise_gyro_stddev_y", str(self.noise_gyro_stddev_y)
+            )
+            bp.set_attribute(
+                "noise_gyro_stddev_z", str(self.noise_gyro_stddev_z)
+            )
 
             self.sensor = self.carla_world.spawn_actor(
                 bp, carla.Transform(), attach_to=self.player

@@ -56,14 +56,22 @@ class Transform(object):
                 self.matrix[0, 0], self.matrix[1, 0], self.matrix[2, 0]
             )
             pitch_r = math.asin(np.clip(self.forward_vector.z, -1, 1))
-            yaw_r = math.acos(np.clip(self.forward_vector.x / math.cos(pitch_r), -1, 1))
-            roll_r = math.asin(np.clip(matrix[2, 1] / (-1 * math.cos(pitch_r)), -1, 1))
+            yaw_r = math.acos(
+                np.clip(self.forward_vector.x / math.cos(pitch_r), -1, 1)
+            )
+            roll_r = math.asin(
+                np.clip(matrix[2, 1] / (-1 * math.cos(pitch_r)), -1, 1)
+            )
             self.rotation = Rotation(
-                math.degrees(pitch_r), math.degrees(yaw_r), math.degrees(roll_r)
+                math.degrees(pitch_r),
+                math.degrees(yaw_r),
+                math.degrees(roll_r),
             )
         else:
             self.location, self.rotation = location, rotation
-            self.matrix = Transform._create_matrix(self.location, self.rotation)
+            self.matrix = Transform._create_matrix(
+                self.location, self.rotation
+            )
 
             # Forward vector is retrieved from the matrix.
             self.forward_vector = Vector3D(
@@ -228,7 +236,9 @@ class Transform(object):
         """
 
         points = np.array([loc.as_numpy_array() for loc in locations])
-        transformed_points = self.__transform(points, np.linalg.inv(self.matrix))
+        transformed_points = self.__transform(
+            points, np.linalg.inv(self.matrix)
+        )
         return [Location(x, y, z) for x, y, z in transformed_points]
 
     def as_simulator_transform(self):
@@ -267,7 +277,9 @@ class Transform(object):
             angle = 0
         return angle, magnitude
 
-    def is_within_distance_ahead(self, dst_loc: Location, max_distance: float) -> bool:
+    def is_within_distance_ahead(
+        self, dst_loc: Location, max_distance: float
+    ) -> bool:
         """Checks if a location is within a distance.
 
         Args:

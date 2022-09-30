@@ -17,7 +17,9 @@ class Trajectory:
 
     def to_dict(self):
         return {
-            "waypoints": None if self.waypoints is None else self.waypoints.to_dict(),
+            "waypoints": None
+            if self.waypoints is None
+            else self.waypoints.to_dict(),
             "state": self.state.serialize(),
         }
 

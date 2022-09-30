@@ -29,7 +29,9 @@ class Pose(object):
         localization_time: float = None,
     ):
         if not isinstance(transform, Transform):
-            raise ValueError("transform should be of type STUNT.utils.Transform")
+            raise ValueError(
+                "transform should be of type STUNT.utils.Transform"
+            )
         self.transform = transform
         # Forward speed in m/s.
         self.forward_speed = forward_speed
@@ -44,7 +46,10 @@ class Pose(object):
 
     def __str__(self):
         return "Pose(transform: {}, forward speed: {}, velocity vector: {}, ts: {})".format(
-            self.transform, self.forward_speed, self.velocity_vector, self.localization_time
+            self.transform,
+            self.forward_speed,
+            self.velocity_vector,
+            self.localization_time,
         )
 
     def to_dict(self):

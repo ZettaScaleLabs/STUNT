@@ -71,19 +71,29 @@ def spawn_people(client, world, num_people: int):
     for response in client.apply_batch_sync(batch, True):
         if response.error:
             print(
-                "Received an error while spawning a person: {}".format(response.error)
+                "Received an error while spawning a person: {}".format(
+                    response.error
+                )
             )
         else:
             ped_ids.append(response.actor_id)
     # Spawn the person controllers
-    ped_controller_bp = world.get_blueprint_library().find("controller.ai.walker")
+    ped_controller_bp = world.get_blueprint_library().find(
+        "controller.ai.walker"
+    )
     batch = []
     for ped_id in ped_ids:
-        batch.append(command.SpawnActor(ped_controller_bp, Transform(), ped_id))
+        batch.append(
+            command.SpawnActor(ped_controller_bp, Transform(), ped_id)
+        )
     ped_control_ids = []
     for response in client.apply_batch_sync(batch, True):
         if response.error:
-            print("Error while spawning a person controller: {}".format(response.error))
+            print(
+                "Error while spawning a person controller: {}".format(
+                    response.error
+                )
+            )
         else:
             ped_control_ids.append(response.actor_id)
 
@@ -119,7 +129,9 @@ def spawn_ego_vehicle(
     return ego_vehicle
 
 
-def spawn_vehicles(client, world, traffic_manager_port: int, num_vehicles: int):
+def spawn_vehicles(
+    client, world, traffic_manager_port: int, num_vehicles: int
+):
     """Spawns vehicles at random locations inside the world.
 
     Args:
@@ -156,7 +168,9 @@ def spawn_vehicles(client, world, traffic_manager_port: int, num_vehicles: int):
 
         # Change the color of the vehicle.
         if blueprint.has_attribute("color"):
-            color = random.choice(blueprint.get_attribute("color").recommended_values)
+            color = random.choice(
+                blueprint.get_attribute("color").recommended_values
+            )
             blueprint.set_attribute("color", color)
 
         # Let the vehicle drive itself.
@@ -164,7 +178,9 @@ def spawn_vehicles(client, world, traffic_manager_port: int, num_vehicles: int):
 
         batch.append(
             command.SpawnActor(blueprint, transform).then(
-                command.SetAutopilot(command.FutureActor, True, traffic_manager_port)
+                command.SetAutopilot(
+                    command.FutureActor, True, traffic_manager_port
+                )
             )
         )
 
@@ -173,7 +189,9 @@ def spawn_vehicles(client, world, traffic_manager_port: int, num_vehicles: int):
     for response in client.apply_batch_sync(batch, True):
         if response.error:
             print(
-                "Received an error while spawning a vehicle: {}".format(response.error)
+                "Received an error while spawning a vehicle: {}".format(
+                    response.error
+                )
             )
         else:
             vehicle_ids.append(response.actor_id)
@@ -188,7 +206,9 @@ def spawn_actors(
     num_people: int,
     num_vehicles: int,
 ):
-    vehicle_ids = spawn_vehicles(client, world, traffic_manager_port, num_vehicles)
+    vehicle_ids = spawn_vehicles(
+        client, world, traffic_manager_port, num_vehicles
+    )
     ego_vehicle = spawn_ego_vehicle(
         world, traffic_manager_port, ego_spawn_point_index, False
     )
@@ -200,7 +220,9 @@ def spawn_actors(
     for i, ped_control_id in enumerate(people_control_ids):
         # Start person.
         people_actors[i].start()
-        people_actors[i].go_to_location(world.get_random_location_from_navigation())
+        people_actors[i].go_to_location(
+            world.get_random_location_from_navigation()
+        )
     return ego_vehicle, vehicle_ids, people
 
 
@@ -249,8 +271,12 @@ def main(config):
         # configuring zenoh
         zconf = zenoh.Config()
 
-        zconf.insert_json5(zenoh.config.MODE_KEY, json.dumps(new_config["mode"]))
-        zconf.insert_json5(zenoh.config.CONNECT_KEY, json.dumps(new_config["locators"]))
+        zconf.insert_json5(
+            zenoh.config.MODE_KEY, json.dumps(new_config["mode"])
+        )
+        zconf.insert_json5(
+            zenoh.config.CONNECT_KEY, json.dumps(new_config["locators"])
+        )
 
         zsession = zenoh.open(zconf)
 
@@ -358,7 +384,9 @@ def main(config):
             print(f"Control Received {ctrl}")
             # counter += 1
 
-        control_sub = ZenohControl(zsession, new_config["control"]["ke"], on_ctrl_data)
+        control_sub = ZenohControl(
+            zsession, new_config["control"]["ke"], on_ctrl_data
+        )
 
         # counter = 0
         while True:

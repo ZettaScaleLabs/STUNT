@@ -43,7 +43,9 @@ class PIDController(Operator):
         self.d = configuration.get("D", DEFAULT_D_PARAMETER)
         self.dt = configuration.get("DT", PID_DT_PARAMETER)
 
-        self.throttle_max = configuration.get("throttle_max", DEFAULT_THROTTLE_MAX)
+        self.throttle_max = configuration.get(
+            "throttle_max", DEFAULT_THROTTLE_MAX
+        )
         self.steer_gain = configuration.get("steer_gain", DEFAULT_STEER_GAIN)
         self.brake_max = configuration.get("brake_max", DEFAULT_BRAKE_MAX)
 
@@ -90,7 +92,9 @@ class PIDController(Operator):
             de = 0.0
             ie = 0.0
 
-        return np.clip((self.p * error) + (self.d * de) + (self.i * ie), -1.0, 1.0)
+        return np.clip(
+            (self.p * error) + (self.d * de) + (self.i * ie), -1.0, 1.0
+        )
 
     def radians_to_steer(self, rad: float):
         """Converts radians to steer input.
@@ -105,7 +109,9 @@ class PIDController(Operator):
             steer = max(steer, -1)
         return steer
 
-    def compute_throttle_and_brake(self, current_speed: float, target_speed: float):
+    def compute_throttle_and_brake(
+        self, current_speed: float, target_speed: float
+    ):
         """Computes the throttle/brake required to reach the target speed.
 
         It uses the longitudinal controller to derive the required information.
@@ -148,7 +154,9 @@ class PIDController(Operator):
         task_list = [] + self.pending
 
         if not any(t.get_name() == "Pose" for t in task_list):
-            task_list.append(asyncio.create_task(self.wait_pose(), name="Pose"))
+            task_list.append(
+                asyncio.create_task(self.wait_pose(), name="Pose")
+            )
 
         if not any(t.get_name() == "Waypoints" for t in task_list):
             task_list.append(

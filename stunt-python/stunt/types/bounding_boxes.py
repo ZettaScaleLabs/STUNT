@@ -31,7 +31,9 @@ class BoundingBox2D(object):
 
     def get_center_point(self) -> Vector2D:
         # revert to using // if a problem is raised in the future
-        return Vector2D((self.x_min + self.x_max) / 2, (self.y_min + self.y_max) / 2)
+        return Vector2D(
+            (self.x_min + self.x_max) / 2, (self.y_min + self.y_max) / 2
+        )
 
     def as_width_height_bbox(self):
         return [self.x_min, self.y_min, self.get_width(), self.get_height()]
@@ -54,8 +56,13 @@ class BoundingBox2D(object):
         Returns:
             :obj:`float`: The IoU of the two bounding boxes.
         """
-        if other_bbox.x_min > other_bbox.x_max or other_bbox.y_min > other_bbox.y_max:
-            raise AssertionError("Other bbox is malformed {}".format(other_bbox))
+        if (
+            other_bbox.x_min > other_bbox.x_max
+            or other_bbox.y_min > other_bbox.y_max
+        ):
+            raise AssertionError(
+                "Other bbox is malformed {}".format(other_bbox)
+            )
 
         if self.x_min > self.x_max or self.y_min > self.y_max:
             raise AssertionError("Bounding box is malformed {}".format(self))
@@ -156,12 +163,32 @@ class BoundingBox3D(object):
         c, s = np.cos(rotation_y), np.sin(rotation_y)
         R = np.array([[c, 0, s], [0, 1, 0], [-s, 0, c]], dtype=np.float32)
         l, w, h = bbox_dimensions[2], bbox_dimensions[1], bbox_dimensions[0]
-        x_corners = [l / 2, l / 2, -l / 2, -l / 2, l / 2, l / 2, -l / 2, -l / 2]
+        x_corners = [
+            l / 2,
+            l / 2,
+            -l / 2,
+            -l / 2,
+            l / 2,
+            l / 2,
+            -l / 2,
+            -l / 2,
+        ]
         y_corners = [0, 0, 0, 0, -h, -h, -h, -h]
-        z_corners = [w / 2, -w / 2, -w / 2, w / 2, w / 2, -w / 2, -w / 2, w / 2]
+        z_corners = [
+            w / 2,
+            -w / 2,
+            -w / 2,
+            w / 2,
+            w / 2,
+            -w / 2,
+            -w / 2,
+            w / 2,
+        ]
         corners = np.array([x_corners, y_corners, z_corners], dtype=np.float32)
         corners_3d = np.dot(R, corners).transpose(1, 0)
-        corners_3d = corners_3d + np.array(location, dtype=np.float32).reshape(1, 3)
+        corners_3d = corners_3d + np.array(location, dtype=np.float32).reshape(
+            1, 3
+        )
         return cls(corners=corners_3d)
 
     @classmethod
@@ -246,9 +273,9 @@ class BoundingBox3D(object):
         # the origin of the bounding box.
 
         if self.corners is not None:
-            pts_2d = np.dot(intrinsic_matrix, self.corners.transpose(1, 0)).transpose(
-                1, 0
-            )
+            pts_2d = np.dot(
+                intrinsic_matrix, self.corners.transpose(1, 0)
+            ).transpose(1, 0)
             pts_2d = pts_2d[:, :2] / pts_2d[:, 2:]
             camera_coordinates = [Vector2D(pt[0], pt[1]) for pt in pts_2d]
             return camera_coordinates
@@ -277,7 +304,9 @@ class BoundingBox3D(object):
         # contains the 3D bounding box vertices relative to the world.
         camera_coordinates = []
         for vertex in bbox:
-            location_2D = vertex.to_camera_view(extrinsic_matrix, intrinsic_matrix)
+            location_2D = vertex.to_camera_view(
+                extrinsic_matrix, intrinsic_matrix
+            )
 
             # Add the points to the image.
             camera_coordinates.append(location_2D)
@@ -355,10 +384,20 @@ def get_bounding_box_in_camera_view(bb_coordinates, image_width, image_height):
         points = []
         # If the points are themselves within the image, add them to the
         # set of thresholded points.
-        if p1[0] >= 0 and p1[0] < image_width and p1[1] >= 0 and p1[1] < image_height:
+        if (
+            p1[0] >= 0
+            and p1[0] < image_width
+            and p1[1] >= 0
+            and p1[1] < image_height
+        ):
             points.append(p1)
 
-        if p2[0] >= 0 and p2[0] < image_width and p2[1] >= 0 and p2[1] < image_height:
+        if (
+            p2[0] >= 0
+            and p2[0] < image_width
+            and p2[1] >= 0
+            and p2[1] < image_height
+        ):
             points.append(p2)
 
         # Compute the intersection of the line segment formed by p1 -- p2

@@ -358,7 +358,9 @@ class LaneMarking(object):
         Returns:
             :py:class:`.LaneMarking`: A STUNT lane-marking.
         """
-        return cls(lane_marking.color, lane_marking.type, lane_marking.lane_change)
+        return cls(
+            lane_marking.color, lane_marking.type, lane_marking.lane_change
+        )
 
     def __repr__(self):
         return self.__str__()

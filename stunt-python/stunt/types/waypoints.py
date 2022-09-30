@@ -91,7 +91,9 @@ class Waypoints(object):
 
     def apply_speed_factor(self, speed_factor: float):
         if self.target_speeds:
-            self.target_speeds = [speed_factor * ts for ts in self.target_speeds]
+            self.target_speeds = [
+                speed_factor * ts for ts in self.target_speeds
+            ]
 
     def as_numpy_array_2D(self):
         """Returns the waypoints as a numpy array of lists of x and y."""
@@ -116,7 +118,9 @@ class Waypoints(object):
     def is_empty(self) -> bool:
         return len(self.waypoints) == 0
 
-    def remove_waypoint_if_close(self, location: Location, distance: float = 5) -> bool:
+    def remove_waypoint_if_close(
+        self, location: Location, distance: float = 5
+    ) -> bool:
         """Removes the first waypoint if it is less than distance m away."""
         if self.waypoints is None or len(self.waypoints) == 0:
             return False
@@ -183,7 +187,9 @@ class Waypoints(object):
         """Returns the angle between the transform and the first waypoint that
         is at least min_distance away."""
         wp_index = self._get_index(transform, min_distance)
-        angle, _ = transform.get_angle_and_magnitude(self.waypoints[wp_index].location)
+        angle, _ = transform.get_angle_and_magnitude(
+            self.waypoints[wp_index].location
+        )
         return angle
 
     def get_vector(self, transform: Transform, min_distance: float):
@@ -195,7 +201,9 @@ class Waypoints(object):
             - transform.location.as_vector_2D()
         )
 
-    def get_target_speed(self, transform: Transform, min_distance: float) -> float:
+    def get_target_speed(
+        self, transform: Transform, min_distance: float
+    ) -> float:
         """Gets the target speed at the first waypoint that is at least
         min_distance away."""
         wp_index = self._get_index(transform, min_distance)
@@ -204,10 +212,14 @@ class Waypoints(object):
     def slice_waypoints(
         self, start_index: int, end_index: int, target_speed: float = None
     ):
-        head_wps = deque(itertools.islice(self.waypoints, start_index, end_index))
+        head_wps = deque(
+            itertools.islice(self.waypoints, start_index, end_index)
+        )
         if target_speed is not None:
             # Use the specified target speed.
-            head_target_speeds = deque([target_speed for _ in range(len(head_wps))])
+            head_target_speeds = deque(
+                [target_speed for _ in range(len(head_wps))]
+            )
         else:
             # Otherwise use the already existing target speeds.
             head_target_speeds = deque(
@@ -245,7 +257,9 @@ class Waypoints(object):
             #     waypoint_txt = '{} {}'.format(waypoint_txt,
             #                                   self.road_options[index])
             if waypoint_txt != "":
-                bgr_frame.draw_text(pixel_location, waypoint_txt, [255, 255, 255])
+                bgr_frame.draw_text(
+                    pixel_location, waypoint_txt, [255, 255, 255]
+                )
 
     def draw_on_world(self, world):
         """Draw waypoints on the simulator world."""

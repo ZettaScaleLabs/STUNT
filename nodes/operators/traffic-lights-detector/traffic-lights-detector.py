@@ -44,12 +44,16 @@ class TrafficLightDetection(Operator):
             "traffic_light_det_model_path", DEFAULT_MODEL_PATH
         )
         self.min_threshold = configuration.get(
-            "traffic_light_det_min_score_threshold", DEFAULT_MIN_SCORE_THRESHOLD
+            "traffic_light_det_min_score_threshold",
+            DEFAULT_MIN_SCORE_THRESHOLD,
         )
         self.gpu_memory_fraction = configuration.get(
-            "traffic_light_det_gpu_memory_fraction", DEFAULT_GPU_MEMORY_FRACTION
+            "traffic_light_det_gpu_memory_fraction",
+            DEFAULT_GPU_MEMORY_FRACTION,
         )
-        self.gpu_index = configuration.get("traffic_light_det_gpu_index", DEFAULT_GPU)
+        self.gpu_index = configuration.get(
+            "traffic_light_det_gpu_index", DEFAULT_GPU
+        )
 
         self.labels = {
             1: TrafficLightColor.GREEN,
@@ -64,7 +68,9 @@ class TrafficLightDetection(Operator):
         tf.config.experimental.set_visible_devices(
             [physical_devices[self.gpu_index]], "GPU"
         )
-        tf.config.experimental.set_memory_growth(physical_devices[self.gpu_index], True)
+        tf.config.experimental.set_memory_growth(
+            physical_devices[self.gpu_index], True
+        )
 
         # Unique bounding box id. Incremented for each bounding box.
         self.unique_id = 0
@@ -137,7 +143,9 @@ class TrafficLightDetection(Operator):
         task_list = [] + self.pending
 
         if not any(t.get_name() == "Image" for t in task_list):
-            task_list.append(asyncio.create_task(self.wait_image(), name="Image"))
+            task_list.append(
+                asyncio.create_task(self.wait_image(), name="Image")
+            )
 
         if not any(t.get_name() == "TTD" for t in task_list):
             task_list.append(asyncio.create_task(self.wait_ttd(), name="TTD"))
@@ -162,7 +170,9 @@ class TrafficLightDetection(Operator):
             elif who == "Image":
                 self.frame = Image.deserialize(data_msg.data)
 
-                boxes, scores, labels = self.run_model(self.frame.as_rgb_numpy_array())
+                boxes, scores, labels = self.run_model(
+                    self.frame.as_rgb_numpy_array()
+                )
 
                 traffic_lights = []
 
@@ -177,7 +187,9 @@ class TrafficLightDetection(Operator):
                 for tl in traffic_lights_dec:
                     traffic_lights.append(tl.to_dict())
 
-                await self.output.send(json.dumps(traffic_lights).encode("utf-8"))
+                await self.output.send(
+                    json.dumps(traffic_lights).encode("utf-8")
+                )
 
         return None
 

@@ -78,7 +78,9 @@ class EvaluationLocalization(Sink):
             )
 
         if not any(t.get_name() == "Perfect" for t in task_list):
-            task_list.append(asyncio.create_task(self.wait_perfect(), name="Perfect"))
+            task_list.append(
+                asyncio.create_task(self.wait_perfect(), name="Perfect")
+            )
         return task_list
 
     async def iteration(self):

@@ -5,7 +5,9 @@ DEFAULT_MIN_MOVING_SPEED = 0.7
 
 
 class EgoInfo(object):
-    def __init__(self, last_time_moving=0, last_time_stopped=0, current_time=0):
+    def __init__(
+        self, last_time_moving=0, last_time_stopped=0, current_time=0
+    ):
         self.last_time_moving = 0
         self.last_time_stopped = 0
         self.current_time = 0

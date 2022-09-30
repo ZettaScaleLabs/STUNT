@@ -39,7 +39,6 @@ class CarlaIMU(Source):
 
         return None
 
-
     def finalize(self) -> None:
         return None
 

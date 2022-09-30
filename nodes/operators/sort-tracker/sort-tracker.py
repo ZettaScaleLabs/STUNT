@@ -85,7 +85,9 @@ class SortTracker(Operator):
                 Frame to reinitialize with.
             obstacles : List of perception.detection.obstacle.Obstacle.
         """
-        detections, labels, ids = self.convert_detections_for_sort_alg(obstacles)
+        detections, labels, ids = self.convert_detections_for_sort_alg(
+            obstacles
+        )
         self.tracker.update(detections, labels, ids)
 
     def track(self, frame):
@@ -144,7 +146,9 @@ class SortTracker(Operator):
         task_list = [] + self.pending
 
         if not any(t.get_name() == "Image" for t in task_list):
-            task_list.append(asyncio.create_task(self.wait_image(), name="Image"))
+            task_list.append(
+                asyncio.create_task(self.wait_image(), name="Image")
+            )
 
         if not any(t.get_name() == "TTD" for t in task_list):
             task_list.append(asyncio.create_task(self.wait_ttd(), name="TTD"))
@@ -177,7 +181,10 @@ class SortTracker(Operator):
                 self.obstacles.append(Obstacle.from_dict(o))
 
             self.detection_update_count += 1
-            if self.detection_update_count % self.track_every_nth_detection == 0:
+            if (
+                self.detection_update_count % self.track_every_nth_detection
+                == 0
+            ):
                 detected_obstacles = []
                 for obstacle in self.obstacles:
                     if obstacle.is_vehicle() or obstacle.is_person():

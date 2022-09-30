@@ -49,7 +49,8 @@ class EKF:
     def skew_symmetric(self, v):
         """Skew symmetric form of a 3x1 vector."""
         return np.array(
-            [[0, -v[2], v[1]], [v[2], 0, -v[0]], [-v[1], v[0], 0]], dtype=np.float64
+            [[0, -v[2], v[1]], [v[2], 0, -v[0]], [-v[1], v[0], 0]],
+            dtype=np.float64,
         )
 
     def update_from_gnss(
@@ -73,7 +74,9 @@ class EKF:
         # Compute Kalman gain. (shape=(9, 3))
         K_k = self._last_covariance.dot(
             H_k.T.dot(
-                np.linalg.inv(H_k.dot(self._last_covariance.dot(H_k.T)) + self.__R_GNSS)
+                np.linalg.inv(
+                    H_k.dot(self._last_covariance.dot(H_k.T)) + self.__R_GNSS
+                )
             )
         )
 
@@ -110,7 +113,6 @@ class EKF:
 
         print(f"DeltaT {delta_t}")
 
-
         # retreiving last estimations
         last_rotation_estimate = Quaternion.from_rotation(
             self.last_pose_estimate.transform.rotation
@@ -125,7 +127,9 @@ class EKF:
         # Transform the IMU accelerometer data from the body frame to the
         # world frame, and retrieve location and velocity estimates.
         accelerometer_data = (
-            last_rotation_estimate.matrix.dot(imu.accelerometer.as_numpy_array())
+            last_rotation_estimate.matrix.dot(
+                imu.accelerometer.as_numpy_array()
+            )
             + self.gravity
         )
 
@@ -136,11 +140,14 @@ class EKF:
             + (((delta_t**2) / 2.0) * accelerometer_data)
         )
         # Estimate the velocity.
-        velocity_estimate = last_velocity_estimate + (delta_t * accelerometer_data)
+        velocity_estimate = last_velocity_estimate + (
+            delta_t * accelerometer_data
+        )
 
         # Estimate rotation
-        rotation_estimate = last_rotation_estimate * Quaternion.from_angular_velocity(
-            imu.gyroscope, delta_t
+        rotation_estimate = (
+            last_rotation_estimate
+            * Quaternion.from_angular_velocity(imu.gyroscope, delta_t)
         )
 
         # Fuse the GNSS values using an EKF to fix drifts and noise in
@@ -241,7 +248,13 @@ if __name__ == "__main__":
         for line in f:
             localizations.append(json.loads(line))
 
-    ekf = EKF(localizations[0], DEFAULT_IMU_F, DEFAULT_IMU_W, DEFAULT_GNSS, DEFAULT_GRAVITY_VECTOR)
+    ekf = EKF(
+        localizations[0],
+        DEFAULT_IMU_F,
+        DEFAULT_IMU_W,
+        DEFAULT_GNSS,
+        DEFAULT_GRAVITY_VECTOR,
+    )
 
     print("#############################################")
     print(f"EKF initial pose: {ekf.last_pose_estimate}")

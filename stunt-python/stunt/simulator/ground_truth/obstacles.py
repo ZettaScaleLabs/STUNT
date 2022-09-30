@@ -17,7 +17,9 @@ class Obstacles:
 
         self.carla_port = int(configuration.get("port", DEFAULT_CARLA_PORT))
         self.carla_host = configuration.get("host", DEFAULT_CARLA_HOST)
-        self.obstacles_types = configuration.get("types", DEFAULT_OBSTACLE_TYPES)
+        self.obstacles_types = configuration.get(
+            "types", DEFAULT_OBSTACLE_TYPES
+        )
 
         self.on_data = on_data
 
@@ -32,11 +34,16 @@ class Obstacles:
 
         for obstacle_type in self.obstacles_types:
 
-            current_obstacles = self.carla_world.get_actors().filter(obstacle_type)
+            current_obstacles = self.carla_world.get_actors().filter(
+                obstacle_type
+            )
             # removing ego vehicle from the detected obstacles, a car does not
             # detect itself
             current_obstacles = list(
-                filter(lambda x: x.attributes["role_name"] != "hero", sim_obstacles)
+                filter(
+                    lambda x: x.attributes["role_name"] != "hero",
+                    sim_obstacles,
+                )
             )
 
             sim_obstacles.extend(current_obstacles)
@@ -63,7 +70,9 @@ class TrafficLights:
         self.carla_world.on_tick(self.on_world_tick)
 
     def on_world_tick(self, _):
-        sim_obstacles = self.carla_world.get_actors().filter(self.obstacle_type)
+        sim_obstacles = self.carla_world.get_actors().filter(
+            self.obstacle_type
+        )
         obstacles = []
         for sim_obs in sim_obstacles:
             obstacles.append(TrafficLight.from_simulator(sim_obs).to_dict())

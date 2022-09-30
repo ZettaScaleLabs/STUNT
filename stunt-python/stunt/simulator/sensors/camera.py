@@ -2,7 +2,11 @@ import carla
 import time
 
 from stunt.types import Location, Rotation
-from stunt import DEFAULT_SAMPLING_FREQUENCY, DEFAULT_CARLA_HOST, DEFAULT_CARLA_PORT
+from stunt import (
+    DEFAULT_SAMPLING_FREQUENCY,
+    DEFAULT_CARLA_HOST,
+    DEFAULT_CARLA_PORT,
+)
 
 
 DEFAULT_CAMERA_LOCATION = (0.0, 0.0, 0.0)
@@ -18,11 +22,15 @@ class CameraSensor:
     def __init__(self, configuration, on_data):
 
         configuration = {} if configuration is None else configuration
-        self.period = 1 / configuration.get("frequency", DEFAULT_SAMPLING_FREQUENCY)
+        self.period = 1 / configuration.get(
+            "frequency", DEFAULT_SAMPLING_FREQUENCY
+        )
 
         self.carla_port = int(configuration.get("port", DEFAULT_CARLA_PORT))
         self.carla_host = configuration.get("host", DEFAULT_CARLA_HOST)
-        self.period = 1 / configuration.get("frequency", DEFAULT_SAMPLING_FREQUENCY)
+        self.period = 1 / configuration.get(
+            "frequency", DEFAULT_SAMPLING_FREQUENCY
+        )
 
         self.camera_location = Location(
             *configuration.get("location", DEFAULT_CAMERA_LOCATION)
@@ -45,7 +53,9 @@ class CameraSensor:
         # Waiting EGO vehicle
         while self.player is None:
             time.sleep(1)
-            possible_vehicles = self.carla_world.get_actors().filter("vehicle.*")
+            possible_vehicles = self.carla_world.get_actors().filter(
+                "vehicle.*"
+            )
             for vehicle in possible_vehicles:
                 if vehicle.attributes["role_name"] == "hero":
                     self.player = vehicle
@@ -58,7 +68,8 @@ class CameraSensor:
                     for camera in possible_cameras:
                         if (
                             camera.parent.id == self.player.id
-                            and camera.attributes["role_name"] == self.camera_name
+                            and camera.attributes["role_name"]
+                            == self.camera_name
                         ):
                             self.sensor = camera
                             break
@@ -69,7 +80,9 @@ class CameraSensor:
         if self.sensor is None:
 
             #  Configuring the sensor in CARLA
-            bp = self.carla_world.get_blueprint_library().find(self.camera_type)
+            bp = self.carla_world.get_blueprint_library().find(
+                self.camera_type
+            )
 
             bp.set_attribute("role_name", self.camera_name)
             bp.set_attribute("image_size_x", str(self.image_width))
@@ -82,7 +95,9 @@ class CameraSensor:
 
             # Attaching the sensor to the vehicle
             self.sensor = self.carla_world.spawn_actor(
-                bp, carla.Transform(cam_location, cam_rotation), attach_to=self.player
+                bp,
+                carla.Transform(cam_location, cam_rotation),
+                attach_to=self.player,
             )
 
         self.sensor.listen(on_data)

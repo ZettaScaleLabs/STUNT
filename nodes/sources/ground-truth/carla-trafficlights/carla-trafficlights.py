@@ -36,7 +36,9 @@ class GroundTruthTrafficLights(Source):
         await asyncio.sleep(self.period)
 
         if self.traffic_lights is not None:
-            await self.output.send(json.dumps(self.traffic_lights).encode("utf-8"))
+            await self.output.send(
+                json.dumps(self.traffic_lights).encode("utf-8")
+            )
 
         return None
 

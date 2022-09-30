@@ -12,7 +12,9 @@ from stunt.types import (
     Image,
 )
 
-DEFAULT_MODEL_PATH = "/home/ato/Workspace/models/traffic_light_detection/faster-rcnn"
+DEFAULT_MODEL_PATH = (
+    "/home/ato/Workspace/models/traffic_light_detection/faster-rcnn"
+)
 DEFAULT_MIN_SCORE_THRESHOLD = 0.7
 DEFAULT_GPU_MEMORY_FRACTION = 0.3
 DEFAULT_GPU = 0
@@ -43,7 +45,9 @@ class TrafficLightsTest:
         tf.config.experimental.set_visible_devices(
             [physical_devices[self.gpu_index]], "GPU"
         )
-        tf.config.experimental.set_memory_growth(physical_devices[self.gpu_index], True)
+        tf.config.experimental.set_memory_growth(
+            physical_devices[self.gpu_index], True
+        )
 
         # Unique bounding box id. Incremented for each bounding box.
         self.unique_id = 0

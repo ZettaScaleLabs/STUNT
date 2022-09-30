@@ -62,7 +62,11 @@ class Vector3D(object):
         Returns:
             :obj:`float`: The L1 distance between the two points.
         """
-        return abs(self.x - other.x) + abs(self.y - other.y) + abs(self.z - other.z)
+        return (
+            abs(self.x - other.x)
+            + abs(self.y - other.y)
+            + abs(self.z - other.z)
+        )
 
     def l2_distance(self, other) -> float:
         """Calculates the L2 distance between the point and another point.
@@ -96,7 +100,9 @@ class Vector3D(object):
         position_vector = np.array([[self.x], [self.y], [self.z], [1.0]])
 
         # Transform the points to the camera in 3D.
-        transformed_3D_pos = np.dot(np.linalg.inv(extrinsic_matrix), position_vector)
+        transformed_3D_pos = np.dot(
+            np.linalg.inv(extrinsic_matrix), position_vector
+        )
 
         # Transform the points to 2D.
         position_2D = np.dot(intrinsic_matrix, transformed_3D_pos[:3])
@@ -150,11 +156,15 @@ class Vector3D(object):
 
     def __add__(self, other):
         """Adds the two vectors together and returns the result."""
-        return type(self)(x=self.x + other.x, y=self.y + other.y, z=self.z + other.z)
+        return type(self)(
+            x=self.x + other.x, y=self.y + other.y, z=self.z + other.z
+        )
 
     def __sub__(self, other):
         """Subtracts the other vector from self and returns the result."""
-        return type(self)(x=self.x - other.x, y=self.y - other.y, z=self.z - other.z)
+        return type(self)(
+            x=self.x - other.x, y=self.y - other.y, z=self.z - other.z
+        )
 
     def __repr__(self):
         return self.__str__()

@@ -39,7 +39,9 @@ class VehicleControl(object):
         """
 
         if not isinstance(control, CarlaVehicleControl):
-            raise ValueError("The control must be a Location or CarlaVehicleControl")
+            raise ValueError(
+                "The control must be a Location or CarlaVehicleControl"
+            )
         return cls(
             control.throttle,
             control.steer,

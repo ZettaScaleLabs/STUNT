@@ -133,7 +133,9 @@ class Quaternion(object):
             # To avoid instabilities and nan.
             x, y, z = 0, 0, 0
         else:
-            imaginary = angular_velocity_np / magnitude * np.sin(magnitude / 2.0)
+            imaginary = (
+                angular_velocity_np / magnitude * np.sin(magnitude / 2.0)
+            )
             x, y, z = imaginary
         return cls(w, x, y, z)
 
@@ -237,7 +239,9 @@ class Quaternion(object):
 
     @classmethod
     def from_dict(cls, dictionary):
-        return cls(dictionary["w"], dictionary["x"], dictionary["y"], dictionary["z"])
+        return cls(
+            dictionary["w"], dictionary["x"], dictionary["y"], dictionary["z"]
+        )
 
     def serialize(self):
         return json.dumps(self.to_dict()).encode("utf-8")
