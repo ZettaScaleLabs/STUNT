@@ -1,8 +1,9 @@
 import copy
 import json
 import numpy as np
+from numpy.linalg import inv
 
-from stunt.types import Transform
+from stunt.types import Transform, Vector2D, Location
 
 from carla import LidarMeasurement as CarlaLidarMeasurement
 
@@ -138,7 +139,6 @@ class PointCloud(object):
         p3d = np.dot(
             inv(camera_intrinsic_matrix), np.array([[pixel.x], [pixel.y], [1.0]])
         )
-
         location = PointCloud.get_closest_point_in_point_cloud(
             fwd_points, Vector2D(p3d[0], p3d[1]), normalized=True
         )

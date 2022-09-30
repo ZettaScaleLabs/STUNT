@@ -5,6 +5,7 @@ from typing import Dict, Any, Callable
 import time
 import asyncio
 
+import copy
 import json
 import carla
 import array
@@ -96,6 +97,28 @@ class ObstacleLocationFinder(Operator):
 
         return task_list
 
+    def get_obstacle_locations(self, obstacles):
+        # Get the position of the camera in world frame of reference
+        world_camera_transform = self.pose.transform * self.camera_transform
+        camera_intrinsic_matrix = create_camera_intrinsic_matrix(
+            self.camera_width, self.camera_height, self.camera_fov
+        )
+
+        camera_unreal_transform = create_camera_unreal_transform(world_camera_transform)
+
+        obstacles_with_location = []
+        for obstacle in obstacles:
+            location = self.point_cloud.get_pixel_location(
+                obstacle.bounding_box_2D.get_center_point(),
+                camera_intrinsic_matrix,
+                camera_unreal_transform,
+            )
+            if location is not None:
+                obstacle.transform = Transform(location, Rotation())
+                obstacles_with_location.append(obstacle.to_dict())
+
+        return obstacles_with_location
+
     async def iteration(self):
 
         (done, pending) = await asyncio.wait(
@@ -125,12 +148,7 @@ class ObstacleLocationFinder(Operator):
                     and self.pose is not None
                     and self.point_cloud is not None
                 ):
-                    obstacles_with_location = get_obstacle_locations(
-                        obstacles,
-                        self.point_cloud,
-                        self.pose.transform,
-                        self.camera_transform,
-                    )
+                    obstacles_with_location = self.get_obstacle_locations(obstacles)
 
                 await self.output.send(
                     json.dumps(obstacles_with_location).encode("utf-8")
@@ -144,25 +162,3 @@ class ObstacleLocationFinder(Operator):
 
 def register():
     return ObstacleLocationFinder
-
-
-def get_obstacle_locations(obstacles, point_cloud, ego_transform, camera_transform):
-    # Get the position of the camera in world frame of reference
-    world_camera_transform = ego_transform * camera_transform
-
-    camera_intrinsic_matrix = create_camera_intrinsic_matrix(world_camera_transform)
-
-    camera_unreal_transform = create_camera_unreal_transform(world_camera_transform)
-
-    obstacles_with_location = []
-    for obstacle in obstacles:
-        location = point_cloud.get_pixel_location(
-            obstacle.bounding_box_2D.get_center_point(),
-            camera_intrinsic_matrix,
-            camera_unreal_transform,
-        )
-        if location is not None:
-            obstacle.transform = Transform(location, Rotation())
-            obstacles_with_location.append(obstacle.to_dict())
-
-        return obstacles_with_location
