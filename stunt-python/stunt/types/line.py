@@ -36,13 +36,13 @@ class LaneMarkingColor(Enum):
     def deserialize(cls, serialized):
         if serialized == "WHITE":
             return cls.WHITE
-        elif self == "BLUE":
+        elif serialized == "BLUE":
             return cls.BLUE
-        elif self == "GREEN":
+        elif serialized == "GREEN":
             return cls.GREEN
-        elif self == "RED":
+        elif serialized == "RED":
             return cls.RED
-        elif self == "YELLOW":
+        elif serialized == "YELLOW":
             return cls.YELLOW
         else:
             return cls.OTHER

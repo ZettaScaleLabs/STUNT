@@ -317,17 +317,5 @@ class Localization(Operator):
         return None
 
 
-async def run(gnss_input, imu_input, pose_input, output, state):
-
-    # wait for the inputs
-
-    # await asyncio.sleep(state.period)
-
-    if state.pose is not None:
-        await self.output.send(json.dumps(state.pose).encode("utf-8"))
-
-    return None
-
-
 def register():
     return Localization

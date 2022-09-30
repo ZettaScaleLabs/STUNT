@@ -3,6 +3,7 @@ from stunt.types import Location, Transform, Rotation, Vector3D
 
 import numpy as np
 import cv2
+import json
 from shapely.geometry import Point
 from shapely.geometry.polygon import Polygon
 from carla import Color
@@ -254,7 +255,9 @@ class Lane(object):
 
     @classmethod
     def from_dict(cls, dictionary):
-        return cls(dictionary["id"], dictionary["left_markings"], dictionary["right_markings"])
+        return cls(
+            dictionary["id"], dictionary["left_markings"], dictionary["right_markings"]
+        )
 
     def serialize(self):
         return json.dumps(self.to_dict()).encode("utf-8")

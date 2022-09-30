@@ -250,7 +250,7 @@ class BoundingBox3D(object):
                 1, 0
             )
             pts_2d = pts_2d[:, :2] / pts_2d[:, 2:]
-            camera_coordinates = [STUNTt.utils.Vector2D(pt[0], pt[1]) for pt in pts_2d]
+            camera_coordinates = [Vector2D(pt[0], pt[1]) for pt in pts_2d]
             return camera_coordinates
 
         extent = self.extent

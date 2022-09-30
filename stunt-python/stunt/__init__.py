@@ -65,8 +65,10 @@ def add_timestamp(image_np, timestamp):
 
 def get_top_down_transform(transform, top_down_camera_altitude):
     # Calculation relies on the fact that the camera's FOV is 90.
-    top_down_location = transform.location + Location(0, 0, top_down_camera_altitude)
-    return Transform(top_down_location, Rotation(-90, 0, 0))
+    top_down_location = transform.location + types.Location(
+        0, 0, top_down_camera_altitude
+    )
+    return types.Transform(top_down_location, types.Rotation(-90, 0, 0))
 
 
 def time_epoch_ms() -> int:

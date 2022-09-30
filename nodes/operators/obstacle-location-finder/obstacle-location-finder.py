@@ -23,6 +23,7 @@ from stunt.types import (
     PointCloud,
     Rotation,
     Location,
+    Pose,
 )
 
 from stunt import create_camera_unreal_transform, create_camera_intrinsic_matrix

@@ -6,6 +6,7 @@ import time
 import asyncio
 
 import json
+import numpy as np
 from collections import defaultdict, deque
 from cv2 import transform
 
@@ -16,6 +17,7 @@ from stunt.types import (
     Quaternion,
     TimeToDecision,
     Image,
+    BoundingBox2D,
 )
 
 from sort.sort import Sort
