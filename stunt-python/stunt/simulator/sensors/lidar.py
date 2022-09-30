@@ -1,10 +1,6 @@
 import carla
 import time
-import math
-import numpy as np
-import array
 
-from stunt.types import Location, Rotation
 from stunt import (
     DEFAULT_SAMPLING_FREQUENCY,
     DEFAULT_CARLA_HOST,

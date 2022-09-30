@@ -1,23 +1,22 @@
 from zenoh_flow.interfaces import Source
 from zenoh_flow import DataSender
 from zenoh_flow.types import Context
-from typing import Any, Dict, Callable, List
-import time
+from typing import Any, Dict
 import asyncio
-
-import math
 import json
-import carla
-import array
-import numpy as np
 
-from stunt.types import TrafficLight
+
 from stunt.simulator.ground_truth import TrafficLights
 from stunt import DEFAULT_SAMPLING_FREQUENCY
 
 
 class GroundTruthTrafficLights(Source):
-    def __init__(self, context, configuration, outputs):
+    def __init__(
+        self,
+        context: Context,
+        configuration: Dict[str, Any],
+        outputs: Dict[str, DataSender],
+    ):
 
         configuration = {} if configuration is None else configuration
 

@@ -25,9 +25,9 @@ class Waypoints(object):
         return self.__str__()
 
     def __str__(self):
-        return "Waypoints(waypoints: {}, target_speeds: {}, road_options: {})".format(
-            self.waypoints, self.target_speeds, self.road_options
-        )
+        return f"Waypoints(waypoints: {self.waypoints}, "
+        + "target_speeds: {self.target_speeds}, "
+        + "road_options: {self.road_options})"
 
     def to_dict(self):
 

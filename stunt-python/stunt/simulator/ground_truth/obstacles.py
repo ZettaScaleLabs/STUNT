@@ -1,6 +1,4 @@
 import carla
-import time
-import numpy as np
 
 from stunt.types import Obstacle, TrafficLight
 from stunt import DEFAULT_CARLA_HOST, DEFAULT_CARLA_PORT

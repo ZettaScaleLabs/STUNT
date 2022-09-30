@@ -1,7 +1,7 @@
 from zenoh_flow.interfaces import Sink
 from zenoh_flow import DataReceiver
 from zenoh_flow.types import Context
-from typing import Dict, Any, Callable
+from typing import Dict, Any
 import json
 
 

@@ -1,11 +1,8 @@
 from zenoh_flow.interfaces import Sink
 from zenoh_flow import DataReceiver
 from zenoh_flow.types import Context
-from typing import Dict, Any, Callable
+from typing import Dict, Any
 import json
-
-import time
-import carla
 import zenoh
 
 DEFAULT_ZENOH_LOCATOR = "tcp/127.0.0.1:7447"

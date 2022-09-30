@@ -1,8 +1,7 @@
 from zenoh_flow.interfaces import Source
 from zenoh_flow import DataSender
 from zenoh_flow.types import Context
-from typing import Any, Dict, Callable
-import time
+from typing import Any, Dict
 import asyncio
 
 
@@ -12,7 +11,12 @@ from stunt import DEFAULT_SAMPLING_FREQUENCY
 
 
 class CarlaCamera(Source):
-    def __init__(self, context, configuration, outputs):
+    def __init__(
+        self,
+        context: Context,
+        configuration: Dict[str, Any],
+        outputs: Dict[str, DataSender],
+    ):
         configuration = {} if configuration is None else configuration
 
         self.period = 1 / int(

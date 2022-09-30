@@ -1,13 +1,9 @@
 from zenoh_flow.interfaces import Source
 from zenoh_flow import DataSender
 from zenoh_flow.types import Context
-from typing import Any, Dict, Callable
-import time
+from typing import Any, Dict
 import asyncio
 
-import math
-import json
-import carla
 
 from stunt.types import IMUMeasurement
 from stunt.simulator.sensors import IMUSensor
@@ -15,7 +11,12 @@ from stunt import DEFAULT_SAMPLING_FREQUENCY
 
 
 class CarlaIMU(Source):
-    def __init__(self, context, configuration, outputs):
+    def __init__(
+        self,
+        context: Context,
+        configuration: Dict[str, Any],
+        outputs: Dict[str, DataSender],
+    ):
 
         configuration = {} if configuration is None else configuration
 

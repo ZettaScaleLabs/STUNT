@@ -1,43 +1,15 @@
-import carla
-import time
+from stunt import types
+from stunt import simulator
+
 import logging
 import os
-
+import time
 import cv2
 import numpy as np
 
 DEFAULT_SAMPLING_FREQUENCY = 30
 DEFAULT_CARLA_HOST = "localhost"
 DEFAULT_CARLA_PORT = 2000
-
-
-from stunt import types
-from stunt import simulator
-
-
-# def run_visualizer_control_loop():
-#     """Runs a pygame loop that waits for user commands.
-
-#     The user commands are send on the control_display_stream
-#     to control the pygame visualization window.
-#     """
-#     import pygame
-
-#     clock = pygame.time.Clock()
-#     from pygame.locals import K_n
-
-#     while True:
-#         clock.tick_busy_loop(60)
-#         events = pygame.event.get()
-#         for event in events:
-#             if event.type == pygame.KEYUP:
-#                 if event.key == K_n:
-#                     return event.key
-#             elif event.type == pygame.QUIT:
-#                 raise KeyboardInterrupt
-#             elif event.type == pygame.KEYDOWN:
-#                 if event.key == pygame.K_c and pygame.key.get_mods() & pygame.KMOD_CTRL:
-#                     raise KeyboardInterrupt
 
 
 def add_timestamp(image_np, timestamp):

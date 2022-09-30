@@ -1,5 +1,4 @@
 import json
-import zenoh
 from zenoh import Reliability, SubMode
 
 

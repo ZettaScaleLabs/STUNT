@@ -1,15 +1,14 @@
 from zenoh_flow.interfaces import Operator
 from zenoh_flow import DataReceiver, DataSender
 from zenoh_flow.types import Context
-from typing import Dict, Any, Callable
+from typing import Dict, Any
 import time
 import asyncio
 
-import json
+
 import carla
-import array
 import numpy as np
-import math
+
 
 from stunt.types import (
     GnssMeasurement,
@@ -21,8 +20,6 @@ from stunt.types import (
     Location,
     Rotation,
 )
-
-from stunt import DEFAULT_CARLA_HOST, DEFAULT_CARLA_PORT
 
 DEFAULT_GRAVITY_VECTOR = (0.0, 0.0, -9.81)
 DEFAULT_IMU_F = 0.5
@@ -214,7 +211,13 @@ class EKF:
 
 
 class Localization(Operator):
-    def __init__(self, context, configuration, inputs, outputs):
+    def __init__(
+        self,
+        context: Context,
+        configuration: Dict[str, Any],
+        inputs: Dict[str, DataReceiver],
+        outputs: Dict[str, DataSender],
+    ):
 
         configuration = {} if configuration is None else configuration
 

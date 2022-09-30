@@ -19,7 +19,9 @@ class GnssMeasurement(object):
         return self.__str__()
 
     def __str__(self):
-        return f"GnssMeasurement(altitude={self.altitude}, latitude={self.latitude}, longitude={self.longitude}, ts={self.timestamp})"
+        return f"GnssMeasurement(altitude={self.altitude}, "
+        + "latitude={self.latitude}, longitude={self.longitude}, "
+        + " ts={self.timestamp})"
 
     @classmethod
     def from_simulator(cls, gnss):

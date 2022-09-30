@@ -1,14 +1,12 @@
 from zenoh_flow.interfaces import Operator
 from zenoh_flow import DataReceiver, DataSender
 from zenoh_flow.types import Context
-from typing import Dict, Any, Callable
+from typing import Dict, Any
 
 
 import time
 import asyncio
 
-import math
-import json
 import numpy as np
 from collections import deque
 
@@ -29,10 +27,10 @@ PID_DT_PARAMETER = 0.3
 class PIDController(Operator):
     def __init__(
         self,
-        context,
-        configuration,
-        inputs,
-        outputs,
+        context: Context,
+        configuration: Dict[str, Any],
+        inputs: Dict[str, DataReceiver],
+        outputs: Dict[str, DataSender],
     ):
         configuration = configuration if configuration is not None else {}
 

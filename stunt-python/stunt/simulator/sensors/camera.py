@@ -60,7 +60,8 @@ class CameraSensor:
                 if vehicle.attributes["role_name"] == "hero":
                     self.player = vehicle
 
-                    # check if there is a camera already attached to the vehicle
+                    # check if there is a camera
+                    # already attached to the vehicle
 
                     possible_cameras = self.carla_world.get_actors().filter(
                         self.camera_type

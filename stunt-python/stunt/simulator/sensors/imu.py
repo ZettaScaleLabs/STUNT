@@ -6,7 +6,6 @@ from stunt import (
     DEFAULT_CARLA_HOST,
     DEFAULT_CARLA_PORT,
 )
-from stunt.types import IMUMeasurement
 
 
 DEFAULT_IMU_NAME = "stunt-imu"

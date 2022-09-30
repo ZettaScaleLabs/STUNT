@@ -49,7 +49,9 @@ class SimulatorObstacle(object):
         return self.__str__()
 
     def __str__(self):
-        return f"Obstacle(attributes={self.attributes}, id={self.id}, is_alive={self.is_alive}, parent={self.parent}, semantic_tags={self.semantic_tags}, type_id={self.type_id})"
+        return f"Obstacle(attributes={self.attributes}, id={self.id}, "
+        +"is_alive={self.is_alive}, parent={self.parent}, "
+        +"semantic_tags={self.semantic_tags}, type_id={self.type_id})"
 
     @classmethod
     def from_simulator(cls, data):
@@ -536,7 +538,7 @@ class Obstacle(object):
 
         try:
             bounding_box = BoundingBox3D.from_dict(dictionary["bounding_box"])
-        except:
+        except Exception:
             bounding_box = BoundingBox2D.from_dict(dictionary["bounding_box"])
 
         transform = (
@@ -1005,7 +1007,7 @@ class TrafficLight(Obstacle):
         Args:
             town_name (:obj:`str`): Name of the town in which the traffic light
                 is.
-            depth_frame (:py:class:`~STUNTt.perception.depth_frame.DepthFrame`):
+            depth_frame (:py:class:``):
                  Depth frame.
             segmented_image: A segmented image np array used to refine the
                  bounding boxes.

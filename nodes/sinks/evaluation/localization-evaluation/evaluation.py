@@ -1,8 +1,8 @@
 from zenoh_flow.interfaces import Sink
 from zenoh_flow import DataReceiver
 from zenoh_flow.types import Context
-from typing import Dict, Any, Callable
-import json
+from typing import Dict, Any
+
 
 import asyncio
 from stunt.types import Pose
@@ -15,7 +15,12 @@ class EvaluationLocalization(Sink):
     def finalize(self):
         return None
 
-    def __init__(self, context, configuration, inputs):
+    def __init__(
+        self,
+        context: Context,
+        configuration: Dict[str, Any],
+        inputs: Dict[str, DataReceiver],
+    ):
 
         self.pending = []
 

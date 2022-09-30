@@ -18,7 +18,8 @@ class Image(object):
         return self.__str__()
 
     def __str__(self):
-        return f"Image(fov={self.fov}, height={self.height}, width={self.width}, raw_data={self.raw_data})"
+        return f"Image(fov={self.fov}, height={self.height}, "
+        + "width={self.width}, raw_data={self.raw_data})"
 
     @classmethod
     def from_simulator(cls, data):

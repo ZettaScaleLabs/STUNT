@@ -1,15 +1,12 @@
 from zenoh_flow.interfaces import Operator
 from zenoh_flow import DataReceiver, DataSender
 from zenoh_flow.types import Context
-from typing import Dict, Any, Callable
-import time
+from typing import Dict, Any
+
 import asyncio
 
 import json
-import carla
-import array
 import numpy as np
-import math
 import tensorflow as tf
 
 from stunt.types import (
@@ -30,7 +27,13 @@ DEFAULT_STATIC_OBSTACLE_DISTANCE_THRESHOLD = 70.0
 
 
 class ObstacleDetection(Operator):
-    def __init__(self, context, configuration, inputs, outputs):
+    def __init__(
+        self,
+        context: Context,
+        configuration: Dict[str, Any],
+        inputs: Dict[str, DataReceiver],
+        outputs: Dict[str, DataSender],
+    ):
 
         configuration = {} if configuration is None else configuration
 
@@ -103,7 +106,8 @@ class ObstacleDetection(Operator):
         """Returns a map from index to label.
 
         Args:
-            labels_path (:obj:`str`): Path to a file storing a label on each line.
+            labels_path (:obj:`str`): Path to a file storing
+            a label on each line.
         """
         labels_map = {}
         with open(labels_path) as labels_file:

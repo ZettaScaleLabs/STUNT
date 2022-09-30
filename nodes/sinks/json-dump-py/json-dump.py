@@ -1,16 +1,18 @@
 from zenoh_flow.interfaces import Sink
 from zenoh_flow import DataReceiver
 from zenoh_flow.types import Context
-from typing import Dict, Any, Callable
-import json
-
-import asyncio
+from typing import Dict, Any
 
 DEFAULT_OUTPUT_FILE = "/tmp/data-dump.log"
 
 
 class JSONDump(Sink):
-    def __init__(self, context, configuration, inputs):
+    def __init__(
+        self,
+        context: Context,
+        configuration: Dict[str, Any],
+        inputs: Dict[str, DataReceiver],
+    ):
         configuration = {} if configuration is None else configuration
         self.output_file = open(
             configuration.get("out_file", DEFAULT_OUTPUT_FILE), "w+"

@@ -1,20 +1,15 @@
 from zenoh_flow.interfaces import Operator
 from zenoh_flow import DataReceiver, DataSender
 from zenoh_flow.types import Context
-from typing import Dict, Any, Callable
-import time
+from typing import Dict, Any
 import asyncio
 
 import json
 import numpy as np
-from collections import defaultdict, deque
-from cv2 import transform
+
 
 from stunt.types import (
-    ObstacleTrajectory,
     Obstacle,
-    Transform,
-    Quaternion,
     TimeToDecision,
     Image,
     BoundingBox2D,
@@ -33,10 +28,10 @@ DEFAULT_MIN_HITS = 1
 class SortTracker(Operator):
     def __init__(
         self,
-        context,
-        configuration,
-        inputs,
-        outputs,
+        context: Context,
+        configuration: Dict[str, Any],
+        inputs: Dict[str, DataReceiver],
+        outputs: Dict[str, DataSender],
     ):
         configuration = configuration if configuration is not None else {}
 

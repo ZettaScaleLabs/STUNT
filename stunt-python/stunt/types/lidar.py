@@ -25,7 +25,9 @@ class LidarMeasurement(object):
         return self.__str__()
 
     def __str__(self):
-        return f"LidarMeasurement(channels={self.channels}, horizontal_angle={self.horizontal_angle}, point_cloud={self.point_cloud})"
+        return f"LidarMeasurement(channels={self.channels}, "
+        +" horizontal_angle={self.horizontal_angle}, "
+        +" point_cloud={self.point_cloud})"
 
     @classmethod
     def from_simulator(cls, data):

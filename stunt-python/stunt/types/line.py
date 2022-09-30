@@ -1,7 +1,4 @@
-import json
-import cv2
 from enum import Enum
-import numpy as np
 
 
 class LaneMarkingColor(Enum):

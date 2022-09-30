@@ -1,4 +1,3 @@
-import json
 import math
 import numpy as np
 
@@ -56,14 +55,14 @@ class World(object):
         self.obstacle_predictions = obstacle_predictions
         self._ego_obstacle_predictions = copy.deepcopy(obstacle_predictions)
 
-        if self.obstacle_predictions != None:
+        if self.obstacle_predictions is not None:
             for obstacle_prediction in self.obstacle_predictions:
                 obstacle_prediction.to_world_coordinates(self.ego_transform)
 
         # Road signs are in world coordinates. Only maintain the road signs
         # that are within the threshold.
         self.static_obstacles = []
-        if static_obstacles != None:
+        if static_obstacles is not None:
             for obstacle in static_obstacles:
                 if (
                     obstacle.transform.location.distance(

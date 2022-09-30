@@ -429,6 +429,6 @@ class HDMap(object):
                 project_to_road=project_to_road,
                 lane_type=lane_type,
             )
-        except RuntimeError as err:
+        except RuntimeError:
             waypoint = None
         return waypoint

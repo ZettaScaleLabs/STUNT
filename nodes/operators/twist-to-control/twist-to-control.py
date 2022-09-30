@@ -1,9 +1,8 @@
 from zenoh_flow.interfaces import Operator
 from zenoh_flow import DataReceiver, DataSender
 from zenoh_flow.types import Context
-from typing import Dict, Any, Callable
-import time
-import asyncio
+from typing import Dict, Any
+
 import json
 
 
@@ -11,7 +10,13 @@ from stunt.types import Vector3D, VehicleControl
 
 
 class T2C(Operator):
-    def __init__(self, context, configuration, inputs, outputs):
+    def __init__(
+        self,
+        context: Context,
+        configuration: Dict[str, Any],
+        inputs: Dict[str, DataReceiver],
+        outputs: Dict[str, DataSender],
+    ):
         configuration = configuration if configuration is not None else {}
 
         self.sensitivity = configuration.get("sensitivity", 1)

@@ -25,7 +25,12 @@ class VehicleControl(object):
         return self.__str__()
 
     def __str__(self):
-        return f"VehicleControl(throttle={self.throttle}, steer={self.steer}, brake={self.brake}, hand_brake={self.hand_brake}, reverse={self.reverse}, manual_gear_shift={self.manual_gear_shift}, gear={self.gear})"
+        return (
+            f"VehicleControl(throttle={self.throttle}, "
+            + "steer={self.steer}, brake={self.brake},"
+            + "hand_brake={self.hand_brake}, reverse={self.reverse}, "
+            + "manual_gear_shift={self.manual_gear_shift}, gear={self.gear})"
+        )
 
     @classmethod
     def from_simulator(cls, control):

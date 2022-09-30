@@ -1,7 +1,7 @@
 from zenoh_flow.interfaces import Operator
 from zenoh_flow import DataReceiver, DataSender
-from typing import Dict, Any, Callable
-import time
+from zenoh_flow.types import Context
+from typing import Dict, Any
 import asyncio
 
 import json
@@ -27,10 +27,10 @@ DEFAULT_PREDICTION_TTD = 500
 class LinearPredictor(Operator):
     def __init__(
         self,
-        context,
-        configuration,
-        inputs,
-        outputs,
+        context: Context,
+        configuration: Dict[str, Any],
+        inputs: Dict[str, DataReceiver],
+        outputs: Dict[str, DataSender],
     ):
         configuration = configuration if configuration is not None else {}
 
@@ -107,7 +107,8 @@ class LinearPredictor(Operator):
                 ) = get_nearby_obstacles_info(
                     obstacle_trajectories, self.prediction_radius
                 )
-                num_predictions = len(nearby_obstacle_trajectories)
+
+                # num_predictions = len(nearby_obstacle_trajectories)
 
                 for idx in range(len(nearby_obstacle_trajectories)):
                     obstacle_trajectory = nearby_obstacle_trajectories[idx]
@@ -138,9 +139,9 @@ class LinearPredictor(Operator):
                     predict_array = np.matmul(future_ts, linear_model_params)
                     predictions = []
                     for t in range(self.prediction_num_future_steps):
-                        # Linear prediction does not predict vehicle orientation, so we
-                        # use our estimated orientation of the vehicle at its latest
-                        # location.
+                        # Linear prediction does not predict
+                        # vehicle orientation, so we use our estimated
+                        # orientation of the vehicle at its latest location.
                         predictions.append(
                             Transform(
                                 location=Location(

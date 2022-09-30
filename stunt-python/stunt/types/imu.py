@@ -20,7 +20,9 @@ class IMUMeasurement(object):
         return self.__str__()
 
     def __str__(self):
-        return f"IMUMeasurement(accelerometer={self.accelerometer}, compass={self.compass}, gyroscope={self.gyroscope}, ts={self.timestamp})"
+        return f"IMUMeasurement(accelerometer={self.accelerometer}, "
+        +"compass={self.compass}, "
+        +"gyroscope={self.gyroscope}, ts={self.timestamp})"
 
     @classmethod
     def from_simulator(cls, data):

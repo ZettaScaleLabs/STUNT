@@ -1,14 +1,13 @@
 from zenoh_flow.interfaces import Source
 from zenoh_flow import DataSender
 from zenoh_flow.types import Context
-from typing import Any, Dict, Callable
-import time
+from typing import Any, Dict
 import asyncio
 import json
 import zenoh
 from zenoh import Reliability, SubMode
 from pycdr import cdr
-from pycdr.types import int8, int32, uint32, float64
+from pycdr.types import float64
 
 from stunt.types import Vector3D
 
@@ -27,7 +26,12 @@ class Twist:
 
 
 class TwistSrc(Source):
-    def __init__(self, context, configuration, outputs):
+    def __init__(
+        self,
+        context: Context,
+        configuration: Dict[str, Any],
+        outputs: Dict[str, DataSender],
+    ):
         self.output = outputs.get("Twist", None)
 
         self.period = 1 / int(configuration.get("frequency"))

@@ -1,23 +1,13 @@
 from zenoh_flow.interfaces import Operator
 from zenoh_flow import DataReceiver, DataSender
 from zenoh_flow.types import Context
-from typing import Dict, Any, Callable
-import time
+from typing import Dict, Any
 import asyncio
-
-import copy
 import json
-import carla
-import array
-import numpy as np
-import math
-import tensorflow as tf
+
 
 from stunt.types import (
     Obstacle,
-    BoundingBox2D,
-    TimeToDecision,
-    Image,
     Transform,
     LidarMeasurement,
     PointCloud,
@@ -43,7 +33,13 @@ DEFAULT_LIDAR_TYPE = "sensor.lidar.ray_cast"
 
 
 class ObstacleLocationFinder(Operator):
-    def __init__(self, context, configuration, inputs, outputs):
+    def __init__(
+        self,
+        context: Context,
+        configuration: Dict[str, Any],
+        inputs: Dict[str, DataReceiver],
+        outputs: Dict[str, DataSender],
+    ):
 
         configuration = {} if configuration is None else configuration
 

@@ -1,19 +1,17 @@
 from zenoh_flow.interfaces import Operator
 from zenoh_flow import DataReceiver, DataSender
 from zenoh_flow.types import Context
-from typing import Dict, Any, Callable
-import time
+from typing import Dict, Any
+
 import asyncio
 
 import json
 from collections import defaultdict, deque
-from cv2 import transform
+
 
 from stunt.types import (
     ObstacleTrajectory,
     Obstacle,
-    Transform,
-    Quaternion,
     Pose,
 )
 
@@ -26,10 +24,10 @@ DEFAULT_TRACKING_NUM_STEPS = 10
 class PerfectTracker(Operator):
     def __init__(
         self,
-        context,
-        configuration,
-        inputs,
-        outputs,
+        context: Context,
+        configuration: Dict[str, Any],
+        inputs: Dict[str, DataReceiver],
+        outputs: Dict[str, DataSender],
     ):
         configuration = configuration if configuration is not None else {}
 
@@ -122,8 +120,9 @@ class PerfectTracker(Operator):
                 cur_obstacle_trajectory = []
                 # Iterate through past frames of this obstacle.
                 for past_obstacle_loc in self._obstacles[obstacle.id]:
-                    # Get the transform of the center of the obstacle's bounding
-                    # box, in relation to the Pose measurement.
+                    # Get the transform of the center of
+                    # the obstacle's bounding box,
+                    # in relation to the Pose measurement.
                     v_transform = (
                         past_obstacle_loc.transform
                         * past_obstacle_loc.bounding_box.transform

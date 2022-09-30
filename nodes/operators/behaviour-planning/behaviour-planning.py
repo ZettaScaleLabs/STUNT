@@ -1,13 +1,9 @@
 from zenoh_flow.interfaces import Operator
 from zenoh_flow import DataReceiver, DataSender
 from zenoh_flow.types import Context
-from typing import Dict, Any, Callable
-import time
-import asyncio
+from typing import Dict, Any
 
 
-import enum
-import json
 from collections import deque
 import carla
 import numpy as np
@@ -36,7 +32,13 @@ DEFAULT_MIN_MOVING_SPEED = 0.7
 
 
 class BehaviourPlanning(Operator):
-    def __init__(self, context, configuration, inputs, outputs):
+    def __init__(
+        self,
+        context: Context,
+        configuration: Dict[str, Any],
+        inputs: Dict[str, DataReceiver],
+        outputs: Dict[str, DataSender],
+    ):
         configuration = configuration if configuration is not None else {}
 
         self.carla_port = int(configuration.get("port", DEFAULT_CARLA_PORT))
@@ -79,10 +81,10 @@ class BehaviourPlanning(Operator):
         pose = Pose.deserialize(data_msg.data)
 
         ego_transform = pose.transform
-        forward_speed = pose.forward_speed
+        # forward_speed = pose.forward_speed
 
         # When we get the position for the first time we compute the waypoints
-        if self.is_first == True:
+        if self.is_first is True:
             waypoints = self.map.compute_waypoints(
                 ego_transform.location, self.goal_location
             )

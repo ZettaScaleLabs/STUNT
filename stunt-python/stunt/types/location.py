@@ -1,5 +1,4 @@
 import json
-import numpy as np
 from carla import Vector3D as CarlaVector3D
 from carla import Location as CarlaLocation
 

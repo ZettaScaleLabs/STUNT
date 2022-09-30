@@ -1,20 +1,14 @@
 from zenoh_flow.interfaces import Operator
 from zenoh_flow import DataReceiver, DataSender
 from zenoh_flow.types import Context
-from typing import Dict, Any, Callable
-import time
+from typing import Dict, Any
+
 import asyncio
-
 import json
-import numpy as np
-import math
-
 import carla
-from collections import deque
+
 
 from stunt.types import (
-    Transform,
-    Quaternion,
     Pose,
     Obstacle,
     ObstacleTrajectory,
@@ -42,10 +36,10 @@ DEFAULT_TARGET_SPEED = 6.0
 class WaypointPlanner(Operator):
     def __init__(
         self,
-        context,
-        configuration,
-        inputs,
-        outputs,
+        context: Context,
+        configuration: Dict[str, Any],
+        inputs: Dict[str, DataReceiver],
+        outputs: Dict[str, DataSender],
     ):
         configuration = configuration if configuration is not None else {}
 

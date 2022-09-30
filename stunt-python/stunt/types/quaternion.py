@@ -235,7 +235,7 @@ class Quaternion(object):
         )
 
     def to_dict(self):
-        return {"x": self.x, "y": self.y, "x": self.z, "w": self.w}
+        return {"x": self.x, "y": self.y, "z": self.z, "w": self.w}
 
     @classmethod
     def from_dict(cls, dictionary):
