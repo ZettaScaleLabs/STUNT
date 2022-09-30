@@ -21,19 +21,19 @@ sources:
   - id : Camera
     configuration:
       mode: "client"
-      key_expression: "/stunt/center-camera"
+      key_expression: "stunt/center-camera"
     descriptor : /home/ato/Workspace/STUNT/nodes/sources/zenoh-camera/zenoh-camera.yml
 
   - id : Lidar
     configuration:
       mode: "client"
-      key_expression: "/stunt/center-lidar"
+      key_expression: "stunt/center-lidar"
     descriptor : /home/ato/Workspace/STUNT/nodes/sources/zenoh-lidar/zenoh-lidar.yml
 
   - id : Localization
     configuration:
       mode: "client"
-      key_expression: "/stunt/ground-truth/location"
+      key_expression: "stunt/ground-truth/location"
     descriptor : /home/ato/Workspace/STUNT/nodes/sources/ground-truth/zenoh-localization/zenoh-location.yml
 
 sinks:

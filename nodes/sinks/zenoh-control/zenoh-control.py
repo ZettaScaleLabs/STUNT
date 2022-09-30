@@ -7,7 +7,7 @@ import zenoh
 
 DEFAULT_ZENOH_LOCATOR = "tcp/127.0.0.1:7447"
 DEFAULT_MODE = "peer"
-DEFAULT_KE = "/stunt/control"
+DEFAULT_KE = "stunt/control"
 
 
 class CtrlCarZenoh(Sink):

@@ -14,7 +14,7 @@ sources:
   - id : Camera
     configuration:
       mode: "client"
-      key_expression: "/stunt/tele-camera"
+      key_expression: "stunt/tele-camera"
     descriptor : /home/ato/Workspace/STUNT/nodes/sources/zenoh-camera/zenoh-camera.yml
 
   - id : CarlaLocalization

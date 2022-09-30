@@ -12,7 +12,7 @@ from zenoh import Reliability, SubMode
 
 DEFAULT_ZENOH_LOCATOR = "tcp/127.0.0.1:7447"
 DEFAULT_MODE = "peer"
-DEFAULT_KE = "/stunt/traffic-lights"
+DEFAULT_KE = "stunt/traffic-lights"
 
 
 class ZenohTrafficLights(Source):

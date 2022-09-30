@@ -37,19 +37,19 @@ sources:
   - id : ZenohTrafficLights
     configuration:
       mode: "client"
-      key_expression: "/stunt/ground-truth/traffic-lights"
+      key_expression: "stunt/ground-truth/traffic-lights"
     descriptor : /home/ato/Workspace/STUNT/nodes/sources/ground-truth/zenoh-trafficlights/zenoh-trafficlights.yml
 
   - id : ZenohObstacles
     configuration:
       mode: "client"
-      key_expression: "/stunt/ground-truth/obstacles"
+      key_expression: "stunt/ground-truth/obstacles"
     descriptor : /home/ato/Workspace/STUNT/nodes/sources/ground-truth/zenoh-obstacles/zenoh-obstacles.yml
 
   - id : ZenohLocalization
     configuration:
       mode: "client"
-      key_expression: "/stunt/ground-truth/location"
+      key_expression: "stunt/ground-truth/location"
     descriptor : /home/ato/Workspace/STUNT/nodes/sources/ground-truth/zenoh-localization/zenoh-location.yml
 
 sinks:
@@ -59,7 +59,7 @@ sinks:
   - id : ZenohCar
     configuration:
       mode: "client"
-      key_expression: "/stunt/ego-control"
+      key_expression: "stunt/ego-control"
     descriptor : /home/ato/Workspace/STUNT/nodes/sinks/zenoh-control/zenoh-control.yml
 
 links:
