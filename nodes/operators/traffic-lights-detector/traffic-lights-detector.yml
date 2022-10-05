@@ -13,6 +13,6 @@ inputs :
     type: TTD
 outputs :
   - id: TrafficLights
-    type: Obstacles
+    type: ObstacleTrajectories
 tags:
   - tensorflow

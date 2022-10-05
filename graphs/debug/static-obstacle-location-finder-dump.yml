@@ -1,0 +1,89 @@
+flow: ControlDataDump
+configuration:
+  host: '192.168.122.35'
+operators:
+
+  - id: TrafficLightDetection
+    configuration:
+      traffic_light_det_model_path: /home/ato/Workspace/models/traffic_light_detection/faster-rcnn
+    descriptor: /home/ato/Workspace/STUNT/nodes/operators/traffic-lights-detector/traffic-lights-detector.yml
+
+  - id: TTD
+    descriptor:  /home/ato/Workspace/STUNT/nodes/operators/time-to-decision/time-to-decision.yml
+
+  - id: StaticObstacleLocationFinder
+    descriptor:  /home/ato/Workspace/STUNT/nodes/operators/obstacle-location-finder/obstacle-location-finder.yml
+
+sources:
+  - id : Camera
+    configuration:
+      mode: "client"
+      key_expression: "stunt/tele-camera"
+    descriptor : /home/ato/Workspace/STUNT/nodes/sources/zenoh-camera/zenoh-camera.yml
+
+  - id : Lidar
+    configuration:
+      mode: "client"
+      key_expression: "stunt/tele-lidar"
+    descriptor : /home/ato/Workspace/STUNT/nodes/sources/zenoh-lidar/zenoh-lidar.yml
+
+  - id : Localization
+    configuration:
+      mode: "client"
+      key_expression: "stunt/ground-truth/location"
+    descriptor : /home/ato/Workspace/STUNT/nodes/sources/ground-truth/zenoh-localization/zenoh-location.yml
+
+sinks:
+  - id : PyPrint
+    descriptor : /home/ato/Workspace/STUNT/nodes/sinks/generic-sink-py/generic-sink.yml
+
+links:
+- from:
+    node : Camera
+    output : Image
+  to:
+    node : TrafficLightDetection
+    input : Image
+
+- from:
+    node : Localization
+    output : Pose
+  to:
+    node : TTD
+    input : Pose
+
+- from:
+    node : TTD
+    output : TTD
+  to:
+    node : TrafficLightDetection
+    input : TTD
+
+
+- from:
+    node : Lidar
+    output : LIDAR
+  to:
+    node : StaticObstacleLocationFinder
+    input : LIDAR
+
+- from:
+    node : Localization
+    output : Pose
+  to:
+    node : StaticObstacleLocationFinder
+    input : Pose
+
+- from:
+    node : TrafficLightDetection
+    output : TrafficLights
+  to:
+    node : StaticObstacleLocationFinder
+    input : TrackedObstacles
+
+- from:
+    node : StaticObstacleLocationFinder
+    output : Obstacles
+  to:
+    node : PyPrint
+    input : Data

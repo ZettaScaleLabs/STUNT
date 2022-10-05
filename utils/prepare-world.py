@@ -397,6 +397,7 @@ def main(config):
     else:
         while True:
             time.sleep(1)
+            #carla_world.tick()
 
 
 if __name__ == "__main__":

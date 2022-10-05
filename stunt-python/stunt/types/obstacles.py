@@ -543,22 +543,22 @@ class Obstacle(object):
 
         transform = (
             Transform.from_dict(dictionary["transform"])
-            if dictionary["transform"] is not None
+            if dictionary.get("transform", None) is not None
             else None
         )
         bounding_box_2D = (
             BoundingBox2D.from_dict(dictionary["bounding_box_2D"])
-            if dictionary["bounding_box_2D"] is not None
+            if dictionary.get("bounding_box_2D", None) is not None
             else None
         )
 
         return cls(
             bounding_box,
             dictionary["confidence"],
-            dictionary["label"],
+            dictionary.get("label",""),
             dictionary["id"],
             transform,
-            dictionary["detailed_label"],
+            dictionary.get("detailed_label",""),
             bounding_box_2D,
             dictionary["timestamp"],
         )
