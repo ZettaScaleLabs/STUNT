@@ -26,9 +26,9 @@ operators:
   - id: PIDController
     configuration:
       # PID parameters
-      P: 0.5
-      I: 0.1
-      D: 0.06
+      P: 0.01
+      I: 0.5
+      D: 0.03
     descriptor: /home/ato/Workspace/STUNT/nodes/operators/pid-control/pid-control.yml
 
 
