@@ -1,5 +1,5 @@
 import json
-from zenoh import Reliability, SubMode
+from zenoh import Reliability
 
 
 class ZenohSensor:
@@ -23,9 +23,8 @@ class ZenohControl:
     def __init__(self, session, ke, on_data):
         self.session = session
         self.ke = ke
-        self.sub = self.session.subscribe(
+        self.sub = self.session.declare_subscriber(
             self.ke,
             on_data,
-            reliability=Reliability.Reliable,
-            mode=SubMode.Push,
+            reliability=Reliability.RELIABLE(),
         )

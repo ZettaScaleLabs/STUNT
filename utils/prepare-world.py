@@ -28,7 +28,6 @@ from stunt.simulator.sensors import (
 from stunt.simulator.ground_truth import Localization, Obstacles, TrafficLights
 
 import zenoh
-from zenoh import Reliability, SubMode
 
 
 def spawn_people(client, world, num_people: int):

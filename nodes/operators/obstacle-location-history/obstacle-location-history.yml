@@ -1,0 +1,22 @@
+id: ObstacleLocationHistory
+uri: file:///home/ato/Workspace/STUNT/nodes/operators/obstacle-location-history/obstacle-location-history.py
+configuration:
+  tracking_num_steps: 10
+  dynamic_obstacle_distance_threshold_m: 30.0
+
+
+inputs :
+  - id: Pose
+    type: Pose
+  - id: Obstacles
+    type: Obstacles
+  # - id: LIDAR
+  #   type: LidarData
+  # - id: TrackerDelay
+  #   type: float
+  # - id: Image
+  #   type: Image
+outputs :
+  - id: ObstacleTrajectories
+    type: ObstacleTrajectories
+tags: []

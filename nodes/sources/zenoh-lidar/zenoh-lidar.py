@@ -8,7 +8,7 @@ import json
 from stunt.types import LidarMeasurement
 from stunt import DEFAULT_SAMPLING_FREQUENCY
 import zenoh
-from zenoh import Reliability, SubMode
+from zenoh import Reliability
 
 DEFAULT_ZENOH_LOCATOR = "tcp/127.0.0.1:7447"
 DEFAULT_MODE = "peer"
@@ -40,11 +40,10 @@ class ZenohLidar(Source):
 
         self.session = zenoh.open(self.zconf)
 
-        self.sub = self.session.subscribe(
+        self.sub = self.session.declare_subscriber(
             self.ke,
             self.on_sensor_update,
-            reliability=Reliability.Reliable,
-            mode=SubMode.Push,
+            reliability=Reliability.RELIABLE(),
         )
 
         self.output = outputs.get("LIDAR", None)

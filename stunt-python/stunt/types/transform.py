@@ -241,6 +241,12 @@ class Transform(object):
         )
         return [Location(x, y, z) for x, y, z in transformed_points]
 
+    def inverse_transform_location(self, location):
+        transformed = self.__transform(
+            location.as_numpy_array(), np.linalg.inv(self.matrix)
+        )
+        return Location(transformed.x, transformed.y, transformed.z)
+
     def as_simulator_transform(self):
         """Converts the transform to a simulator transform.
 

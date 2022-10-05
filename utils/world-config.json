@@ -5,7 +5,7 @@
     "map":"Town01",
     "weather":"CloudyNoon",
     "ego_spawn_point_index":9,
-    "num_people":0,
+    "num_people":20,
     "num_vehicles":30,
     "fps":60,
     "challenge_config":{
