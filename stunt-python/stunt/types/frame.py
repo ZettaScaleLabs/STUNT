@@ -1,7 +1,12 @@
 import json
 import base64
+import cv2
+import io
 import numpy as np
 from carla import Image as CarlaImage
+
+JPEG_QUALITY = 100
+JPEG_ENCODE_PARAMS = [int(cv2.IMWRITE_JPEG_QUALITY), JPEG_QUALITY]
 
 
 class Image(object):
@@ -18,8 +23,12 @@ class Image(object):
         return self.__str__()
 
     def __str__(self):
-        return f"Image(fov={self.fov}, height={self.height}, "
-        + "width={self.width}, raw_data={self.raw_data})"
+        value = (
+            f"Image(fov={self.fov}, height={self.height}, "
+            + f"width={self.width}, shape={self.raw_data.shape},"
+            + f"type={type(self.raw_data)})"
+        )
+        return value
 
     @classmethod
     def from_simulator(cls, data):
@@ -37,6 +46,7 @@ class Image(object):
 
         frame = (np.frombuffer(data.raw_data, dtype=np.dtype("uint8")),)
         frame = np.reshape(frame, (data.height, data.width, 4))
+
         return cls(
             data.fov,
             data.height,
@@ -46,38 +56,46 @@ class Image(object):
         )
 
     def as_rgb_numpy_array(self):
+
         return self.raw_data[:, :, :3]
+
+    @classmethod
+    def to_jpeg(cls, frame):
+        jpeg = cv2.imencode(".jpg", frame, JPEG_ENCODE_PARAMS)[1]
+        buf = io.BytesIO()
+        np.save(buf, jpeg, allow_pickle=False)
+        return buf.getvalue()
+
+    @classmethod
+    def from_jpeg(cls, jpeg):
+        img = np.load(io.BytesIO(jpeg), allow_pickle=False)
+        return cv2.imdecode(img, cv2.IMREAD_COLOR)
 
     def to_dict(self):
 
-        raw_data_serialized = [
-            str(self.raw_data.dtype),
-            base64.b64encode(self.raw_data).decode("ascii"),
-            self.raw_data.shape,
-        ]
-
+        jpeg_data = base64.b64encode(Image.to_jpeg(self.raw_data)).decode(
+            "ascii"
+        )
         return {
             "fov": self.fov,
             "height": self.height,
             "width": self.width,
-            "raw_data": raw_data_serialized,
+            "raw_data": jpeg_data,
             "timestamp": self.timestamp,
         }
 
     @classmethod
     def from_dict(cls, dictionary):
-        frame_info = dictionary["raw_data"]
-        np_dtype = np.dtype(frame_info[0])
-        raw_data = np.frombuffer(
-            base64.b64decode(frame_info[1].encode("ascii")), dtype=np_dtype
-        )
-        raw_data = np.reshape(raw_data, frame_info[2])
+        height = dictionary["height"]
+        width = dictionary["width"]
+        jpeg_data = base64.b64decode(dictionary["raw_data"].encode("ascii"))
+        frame = Image.from_jpeg(jpeg_data)
 
         return cls(
             dictionary["fov"],
-            dictionary["height"],
-            dictionary["width"],
-            raw_data,
+            height,
+            width,
+            frame,
             dictionary["timestamp"],
         )
 

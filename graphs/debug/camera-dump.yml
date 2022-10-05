@@ -6,12 +6,13 @@ sources:
   - id : CarlaCamera
     configuration:
       location: [1.3, 0.0, 1.8]
+      frequency: 1
     descriptor : /home/ato/Workspace/STUNT/nodes/sources/carla-camera/carla-camera.yml
 sinks:
   - id : PyPrint
     configuration:
       out_file: /home/ato/Workspace/STUNT/image-dump.log
-    descriptor : /home/ato/Workspace/STUNT/nodes/sinks/json-dump-py/json-dump.yml
+    descriptor : /home/ato/Workspace/STUNT/nodes/sinks/generic-sink-py/generic-sink.yml
 
 links:
 - from:
