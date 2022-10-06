@@ -26,8 +26,8 @@ class Waypoints(object):
 
     def __str__(self):
         return f"Waypoints(waypoints: {self.waypoints}, "
-        + "target_speeds: {self.target_speeds}, "
-        + "road_options: {self.road_options})"
+        +"target_speeds: {self.target_speeds}, "
+        +"road_options: {self.road_options})"
 
     def to_dict(self):
 
@@ -91,9 +91,9 @@ class Waypoints(object):
 
     def apply_speed_factor(self, speed_factor: float):
         if self.target_speeds:
-            self.target_speeds = [
-                speed_factor * ts for ts in self.target_speeds
-            ]
+            self.target_speeds = deque(
+                [speed_factor * ts for ts in self.target_speeds]
+            )
 
     def as_numpy_array_2D(self):
         """Returns the waypoints as a numpy array of lists of x and y."""

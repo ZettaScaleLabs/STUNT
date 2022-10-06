@@ -9,7 +9,7 @@
     "num_vehicles":0,
     "fps":60,
     "challenge_config":{
-        "enabled": true,
+        "enabled": false,
         "locators":["tcp/127.0.0.1:7887"],
         "mode":"client",
         "sleep_time":0.0167,

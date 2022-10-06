@@ -1,0 +1,69 @@
+id: FotPlanner
+uri: file:///home/ato/Workspace/STUNT/nodes/operators/fot-planner/fot-planner.py
+configuration:
+  # Agent stopping configs.
+  stop_for_traffic_lights: True # True to enable traffic light stopping
+  stop_for_people: True # True to enable person stopping
+  stop_for_vehicles: True # True to enable vehicle stopping
+  stop_at_uncontrolled_junctions: True # True to enable stopping at uncontroller junctions
+  coast_factor: 1.75 # Factor to control coasting
+  # Agent stopping parameters.
+  traffic_light_min_distance: 1 # Min distance for a traffic light to be considered for stopping [m]
+  traffic_light_max_distance: 10 # Max distance for a traffic light to be considered for stopping [m]
+  traffic_light_max_angle: 0.6 # Angle threshold for a traffic light to be considered for stopping [rad]
+  vehicle_max_distance: 18 # Max distance for a vehicle to be considered for stopping [m]
+  vehicle_max_angle: 0.4 # Angle threshold for a vehicle to be considered for stopping [rad]
+  person_distance_hit_zone: 35 # Distance threhsold for a person to be in the hit zone [m]
+  person_angle_hit_zone: 0.15 # Angle threshold for a person to be in the hit zone [rad]
+  person_distance_emergency_zone: 15 # Distance threshold for a person to be in the emergency zone [m]
+  person_angle_emergency_zone: 0.5 # Angle threshold for a person to be in the emergency zone [rad]
+  #planning configuration
+  target_speed: 6.0 # Target speed in m/s , could be controlled by the speed limit
+  obstacle_radius: 1.75 # Default obstacle radius [m]
+  num_waypoints_ahead: 20 # Number of ahead waypoints to plan for
+  num_waypoints_behind: 10 # Number of waypoints behind to account for
+  obstacle_filtering_distance: 1.0 # distance at which to sample obstacles [m]
+  # other used config in the World representation
+  tracking_num_steps: 10
+  static_obstacle_distance_threshold: 70.0 # Max distance to consider static obstacles (e.g., traffic lights) [m]
+  dynamic_obstacle_distance_threshold: 30.0
+  min_pid_steer_waypoint_distance: 5 # Waypoint used for steering must be at least this many meters away (global)
+  hyperparameters:
+    # Frenet Optimal Trajectory Hyperparameters
+      num_threads: 1
+      max_speed: 25.0 # Maximum vehicle speed [m/s]
+      max_accel: 7.0 # Maximum vehicle acceleration [m/s^2]
+      max_curvature: 100.0 # Maximum curvature speed [1/m]
+      max_road_width_l: 5 # Maximum right road width [m]
+      max_road_width_r: 0.85 # Maximum right road width [m]
+      d_road_w: 0.2 # Road width sampling discretization [m]
+      dt: 0.1 # Time sampling discretization [s]
+      maxt: 5.0 # Max prediction horizon [s]
+      mint: 2.0 # Min prediction horizon [s]
+      d_t_s: 0.25 # Target speed sampling discretization [m/s]
+      n_s_sample: 2.0 # Number speeds to sample
+      obstacle_clearance: 0.7 # Obstacle clearance threshold [m]
+      kd: 1.0 # Deviation cost
+      kv: 0.1 # Velocity cost
+      ka: 0.1 # Acceleration cost
+      kj: 0.01 # Jerk cost
+      kt: 0.01 # Time cost
+      ko: 100.0 # Obstacle cost
+      klat: 1.0 # Lateral cost
+      klon: 1.0 # Longitudinal cost
+      planning_deadline: 10.0 # Planning deadline (on ms) when using static deadline enforcement
+inputs :
+  - id: Pose
+    type: Pose
+  - id: TTD
+    type: TTD
+  - id: Trajectory
+    type: Waypoints
+  - id: ObstaclePredictions
+    type: ObstaclePredictions
+  - id: TrafficLights
+    type: TrafficLights
+outputs :
+  - id: Waypoints
+    type: Waypoints
+tags: []
