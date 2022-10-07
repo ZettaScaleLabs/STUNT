@@ -403,6 +403,7 @@ class FOTPlanner(Operator):
                     speed_factor_tl,
                     speed_factor_stop,
                 ) = self.world.stop_for_agents(pose.localization_time)
+                speed_factor = min(speed_factor_stop, speed_factor_tl)
                 output_wps = self.planner.run(pose.localization_time)
                 output_wps.apply_speed_factor(speed_factor)
                 road_options = deque(

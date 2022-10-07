@@ -1,0 +1,182 @@
+flow: ControlDataDump
+configuration:
+  host: '192.168.122.35'
+  port: 2000
+operators:
+  - id: PerfectLocalization
+    descriptor:  /home/ato/Workspace/STUNT/nodes/operators/perfect-localization/localization.yml
+
+  - id: BehaviourPlanning
+    configuration:
+      goal: [116.0, 129.0, 0.0]
+    descriptor:  /home/ato/Workspace/STUNT/nodes/operators/behaviour-planning/behaviour-planning.yml
+
+  - id: TTD
+    descriptor:  /home/ato/Workspace/STUNT/nodes/operators/time-to-decision/time-to-decision.yml
+
+  - id: PerfectTracker
+    descriptor: /home/ato/Workspace/STUNT/nodes/operators/perfect-tracker/perfect-tracker.yml
+
+  - id: LinearPredictor
+    descriptor: /home/ato/Workspace/STUNT/nodes/operators/linear-predictor/linear-predictor.yml
+
+  - id: Planner
+    descriptor: /home/ato/Workspace/STUNT/nodes/operators/fot-planner/fot-planner.yml
+
+  - id: PIDController
+    configuration:
+      # PID parameters
+      P: 0.01
+      I: 0.5
+      D: 0.03
+    descriptor: /home/ato/Workspace/STUNT/nodes/operators/pid-control/pid-control.yml
+
+
+sources:
+
+  - id : ZenohTrafficLights
+    configuration:
+      mode: "client"
+      key_expression: "stunt/ground-truth/traffic-lights"
+    descriptor : /home/ato/Workspace/STUNT/nodes/sources/ground-truth/zenoh-trafficlights/zenoh-trafficlights.yml
+
+  - id : ZenohObstacles
+    configuration:
+      mode: "client"
+      key_expression: "stunt/ground-truth/obstacles"
+    descriptor : /home/ato/Workspace/STUNT/nodes/sources/ground-truth/zenoh-obstacles/zenoh-obstacles.yml
+
+  - id : ZenohLocalization
+    configuration:
+      mode: "client"
+      key_expression: "stunt/ground-truth/location"
+    descriptor : /home/ato/Workspace/STUNT/nodes/sources/ground-truth/zenoh-localization/zenoh-location.yml
+
+sinks:
+  - id : PyPrint
+    descriptor : /home/ato/Workspace/STUNT/nodes/sinks/generic-sink-py/generic-sink.yml
+
+  - id : ZenohCar
+    configuration:
+      mode: "client"
+      key_expression: "stunt/ego-control"
+    descriptor : /home/ato/Workspace/STUNT/nodes/sinks/zenoh-control/zenoh-control.yml
+
+links:
+#sources
+- from:
+    node : ZenohLocalization
+    output : Pose
+  to:
+    node : PerfectLocalization
+    input : Pose
+
+- from:
+    node : ZenohObstacles
+    output : Obstacles
+  to:
+    node : PerfectTracker
+    input : Obstacles
+
+# operators
+
+- from:
+    node : PerfectLocalization
+    output : Pose
+  to:
+    node : PerfectTracker
+    input : Pose
+
+- from:
+    node : PerfectLocalization
+    output : Pose
+  to:
+    node : TTD
+    input : Pose
+
+- from:
+    node : TTD
+    output : TTD
+  to:
+    node : LinearPredictor
+    input : TTD
+
+- from:
+    node : PerfectTracker
+    output : ObstacleTrajectories
+  to:
+    node : LinearPredictor
+    input : ObstacleTrajectories
+
+- from:
+    node : PerfectLocalization
+    output : Pose
+  to:
+    node : BehaviourPlanning
+    input : Pose
+
+
+- from:
+    node : PerfectLocalization
+    output : Pose
+  to:
+    node : Planner
+    input : Pose
+
+- from:
+    node : BehaviourPlanning
+    output : Trajectory
+  to:
+    node : Planner
+    input : Trajectory
+
+- from:
+    node : TTD
+    output : TTD
+  to:
+    node : Planner
+    input : TTD
+
+- from:
+    node : LinearPredictor
+    output : ObstaclePredictions
+  to:
+    node : Planner
+    input : ObstaclePredictions
+
+- from:
+    node : ZenohTrafficLights
+    output : TrafficLights
+  to:
+    node : Planner
+    input : TrafficLights
+
+
+- from:
+    node : Planner
+    output : Waypoints
+  to:
+    node : PIDController
+    input : Waypoints
+
+- from:
+    node : PerfectLocalization
+    output : Pose
+  to:
+    node : PIDController
+    input : Pose
+
+# sinks
+- from:
+    node : PIDController
+    output : Control
+  to:
+    node : PyPrint
+    input : Data
+
+- from:
+    node : PIDController
+    output : Control
+  to:
+    node : ZenohCar
+    input : Data

@@ -1295,17 +1295,17 @@ class TrafficLight(Obstacle):
     def from_dict(cls, dictionary):
         transform = (
             Transform.from_dict(dictionary["transform"])
-            if dictionary["transform"] is not None
+            if dictionary.get("transform") is not None
             else None
         )
         trigger_volume_extent = (
             Vector3D.from_dict(dictionary["trigger_volume_extent"])
-            if dictionary["trigger_volume_extent"] is not None
+            if dictionary.get("trigger_volume_extent", None) is not None
             else None
         )
         bounding_box = (
             BoundingBox2D.from_dict(dictionary["bounding_box"])
-            if dictionary["bounding_box"] is not None
+            if dictionary.get("bounding_box", None) is not None
             else None
         )
 

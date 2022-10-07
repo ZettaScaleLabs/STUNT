@@ -59,7 +59,7 @@ class BehaviourPlanning(Operator):
 
         self.state = DEFAULT_INITIAL_STATE
         self.cost_functions = [cost_overtake]
-        self.function_weights = [10]
+        self.function_weights = [1]
 
         self.ego_info = EgoInfo()
 
@@ -92,12 +92,7 @@ class BehaviourPlanning(Operator):
                 [RoadOption.LANE_FOLLOW for _ in range(len(waypoints))]
             )
             self.route = Waypoints(waypoints, road_options=road_options)
-            # self.route = Waypoints(
-            #     deque([Transform(self.goal_location, Rotation())]),
-            #     road_options=deque([RoadOption.LANE_FOLLOW]),
-            # )
             self.is_first = False
-            # self.goal_location = self.goal_location
             return None
 
         # update ego information

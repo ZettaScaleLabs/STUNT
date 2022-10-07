@@ -27,9 +27,9 @@ class VehicleControl(object):
     def __str__(self):
         return (
             f"VehicleControl(throttle={self.throttle}, "
-            + "steer={self.steer}, brake={self.brake},"
-            + "hand_brake={self.hand_brake}, reverse={self.reverse}, "
-            + "manual_gear_shift={self.manual_gear_shift}, gear={self.gear})"
+            + f"steer={self.steer}, brake={self.brake},"
+            + f"hand_brake={self.hand_brake}, reverse={self.reverse}, "
+            + f"manual_gear_shift={self.manual_gear_shift}, gear={self.gear})"
         )
 
     @classmethod

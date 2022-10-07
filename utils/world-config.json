@@ -2,7 +2,7 @@
     "host":"192.168.122.35",
     "port":2000,
     "traffic_manager_port":8000,
-    "map":"Town01",
+    "map":"Town01_Opt",
     "weather":"CloudyNoon",
     "ego_spawn_point_index":9,
     "num_people":0,

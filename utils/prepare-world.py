@@ -263,9 +263,10 @@ def main(config):
 
         new_config = config["challenge_config"]
 
-        print(f"Challenge Mode, adding sensors and Zenoh Publishers")
+        print("Challenge Mode, adding sensors and Zenoh Publishers")
 
-        # setting world as synchronous (simulator slows down a lot with all sensors)
+        # setting world as synchronous
+        # (simulator slows down a lot with all sensors)
 
         # configuring zenoh
         zconf = zenoh.Config()
@@ -367,8 +368,6 @@ def main(config):
         world_settings.fixed_delta_seconds = 1 / int(config["fps"])
         carla_world.apply_settings(world_settings)
 
-        counter = 0
-
         def on_ctrl_data(sample):
             ctrl = VehicleControl.deserialize(sample.payload)
             carla_ctrl = CarlaVehicleControl()
@@ -378,9 +377,11 @@ def main(config):
             carla_ctrl.brake = ctrl.brake
             ego_vehicle.apply_control(carla_ctrl)
 
-            # frame_id = carla_world.tick()
-            # print(f"Ticking the world frame id {frame_id} - Control Received {ctrl}")
-            print(f"Control Received {ctrl}")
+            frame_id = carla_world.tick()
+            print(
+                f"Ticking the world frame id {frame_id} - Control Received {ctrl}"
+            )
+            # print(f"Control Received {ctrl}")
             # counter += 1
 
         control_sub = ZenohControl(
@@ -390,14 +391,13 @@ def main(config):
         # counter = 0
         while True:
             time.sleep(float(new_config["sleep_time"]))
-            frame_id = carla_world.tick()
-            print(f"Ticking the world frame id {frame_id}")
-            # counter += 1
+            # frame_id = carla_world.tick()
+            # print(f"Ticking the world frame id {frame_id}")
 
     else:
         while True:
             time.sleep(1)
-            #carla_world.tick()
+            # carla_world.tick()
 
 
 if __name__ == "__main__":
