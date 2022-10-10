@@ -34,7 +34,7 @@ from pygame.locals import K_EQUALS
 import numpy as np
 import cv2
 
-from stunt.types import Image, GnssMeasurement, IMUMeasurement
+from stunt.types import Image, GnssMeasurement, IMUMeasurement, VehicleControl
 
 
 HUD_TICK_MS = 166
@@ -65,6 +65,7 @@ class HUD(object):
         self.imu = None
         self.center_lidar = None
         self.tele_lidar = None
+        self.control = None
 
         self.tick_ms = HUD_TICK_MS
         self.height = WINDOW_HEIGHT
@@ -113,6 +114,10 @@ class HUD(object):
             configuration["imu"]["ke"], self.on_imu
         )
 
+        self.control_sub = self.zsession.declare_subscriber(
+            configuration["control"]["ke"], self.on_control
+        )
+
     def on_center_camera(self, sample):
         self.center_image = Image.deserialize(sample.payload)
 
@@ -124,6 +129,9 @@ class HUD(object):
 
     def on_imu(self, sample):
         self.imu = IMUMeasurement.deserialize(sample.payload)
+
+    def on_control(self, sample):
+        self.control = VehicleControl.deserialize(sample.payload)
 
     def render(self):
         if self._show_info:
@@ -189,45 +197,55 @@ class HUD(object):
                 v_offset += 18
 
     def generate_info_text(self):
-        self._info_text = [
-            "Server:  % 16.0f FPS" % self.server_fps,
-            "Client:  % 16.0f FPS" % self._server_clock.get_fps(),
-            "",
-            "Accelero: (%5.1f,%5.1f,%5.1f)"
-            % (
-                self.imu.accelerometer.x,
-                self.imu.accelerometer.y,
-                self.imu.accelerometer.z,
-            ),
-            "Gyroscope: (%5.1f,%5.1f,%5.1f)"
-            % (
-                self.imu.gyroscope.x,
-                self.imu.gyroscope.y,
-                self.imu.gyroscope.z,
-            ),
-            "GNSS:% 24s"
-            % ("(% 2.6f, % 3.6f)" % (self.gnss.latitude, self.gnss.longitude)),
-            "",
-        ]
-        # self._info_text += [
-        #     ("Throttle:", c.throttle, 0.0, 1.0),
-        #     ("Steer:", c.steer, -1.0, 1.0),
-        #     ("Brake:", c.brake, 0.0, 1.0),
-        #     ("Reverse:", c.reverse),
-        #     ("Hand brake:", c.hand_brake),
-        #     ("Manual:", c.manual_gear_shift),
-        #     "Gear:        %s" % {-1: "R", 0: "N"}.get(c.gear, c.gear),
-        # ]
+        if (
+            self.imu is not None
+            and self.gnss is not None
+            and self.control is not None
+        ):
+            self._info_text = [
+                "Server:  % 16.0f FPS" % self.server_fps,
+                "Client:  % 16.0f FPS" % self._server_clock.get_fps(),
+                "",
+                "Acceler: (%5.1f,%5.1f,%5.1f)"
+                % (
+                    self.imu.accelerometer.x,
+                    self.imu.accelerometer.y,
+                    self.imu.accelerometer.z,
+                ),
+                "Gyroscope: (%5.1f,%5.1f,%5.1f)"
+                % (
+                    self.imu.gyroscope.x,
+                    self.imu.gyroscope.y,
+                    self.imu.gyroscope.z,
+                ),
+                "GNSS:% 24s"
+                % (
+                    "(% 2.6f, % 3.6f)"
+                    % (self.gnss.latitude, self.gnss.longitude)
+                ),
+                "",
+            ]
+            self._info_text += [
+                ("Throttle:", self.control.throttle, 0.0, 1.0),
+                ("Steer:", self.control.steer, -1.0, 1.0),
+                ("Brake:", self.control.brake, 0.0, 1.0),
+                ("Reverse:", self.control.reverse),
+                ("Hand brake:", self.control.hand_brake),
+                ("Manual:", self.control.manual_gear_shift),
+                "Gear:        %s"
+                % {-1: "R", 0: "N"}.get(self.control.gear, self.control.gear),
+            ]
 
     def render_image(self):
-        array = self.center_image.raw_data
-        array = cv2.resize(
-            array, dsize=self.dim, interpolation=cv2.INTER_CUBIC
-        )
-        array = cv2.cvtColor(array, cv2.COLOR_BGR2RGB)
-        self.surface = pygame.surfarray.make_surface(array.swapaxes(0, 1))
-        if self.surface is not None:
-            self.display.blit(self.surface, (0, 0))
+        if self.center_image is not None:
+            array = self.center_image.raw_data
+            array = cv2.resize(
+                array, dsize=self.dim, interpolation=cv2.INTER_CUBIC
+            )
+            array = cv2.cvtColor(array, cv2.COLOR_BGR2RGB)
+            self.surface = pygame.surfarray.make_surface(array.swapaxes(0, 1))
+            if self.surface is not None:
+                self.display.blit(self.surface, (0, 0))
 
     def game_loop(self):
         while True:
@@ -259,6 +277,4 @@ if __name__ == "__main__":
     conf = json.loads(data)
 
     hud = HUD(conf)
-    # sleep 5s waiting for data
-    time.sleep(5)
     hud.game_loop()
