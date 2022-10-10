@@ -6,26 +6,9 @@ import time
 
 from carla import VehicleControl as CarlaVehicleControl
 
-from stunt.types import (
-    IMUMeasurement,
-    GnssMeasurement,
-    Image,
-    LidarMeasurement,
-    VehicleControl,
-    SimulatorObstacle,
-    TrafficLight,
-    Pose,
-)
-from stunt.simulator.sensors import (
-    IMUSensor,
-    GNSSSensor,
-    CameraSensor,
-    LidarSensor,
-    ZenohSensor,
-    ZenohControl,
-)
+from stunt.types import VehicleControl
+from stunt.simulator.sensors import ZenohControl
 
-from stunt.simulator.ground_truth import Localization, Obstacles, TrafficLights
 
 import zenoh
 
@@ -280,89 +263,7 @@ def main(config):
 
         zsession = zenoh.open(zconf)
 
-        # imu_sensor = imu_setup(carla_world, ego_vehicle, new_config["imu"])
-
-        imu_pub = ZenohSensor(
-            zsession,
-            new_config["imu"]["ke"],
-            IMUSensor,
-            IMUMeasurement,
-            new_config["imu"],
-        )
-
-        gnss_pub = ZenohSensor(
-            zsession,
-            new_config["gnss"]["ke"],
-            GNSSSensor,
-            GnssMeasurement,
-            new_config["gnss"],
-        )
-
-        gnss_pub = ZenohSensor(
-            zsession,
-            new_config["gnss"]["ke"],
-            GNSSSensor,
-            GnssMeasurement,
-            new_config["gnss"],
-        )
-
-        center_camera_pub = ZenohSensor(
-            zsession,
-            new_config["center_camera"]["ke"],
-            CameraSensor,
-            Image,
-            new_config["center_camera"],
-        )
-
-        tele_camera_pub = ZenohSensor(
-            zsession,
-            new_config["tele_camera"]["ke"],
-            CameraSensor,
-            Image,
-            new_config["tele_camera"],
-        )
-
-        center_lidar_pub = ZenohSensor(
-            zsession,
-            new_config["center_lidar"]["ke"],
-            LidarSensor,
-            LidarMeasurement,
-            new_config["center_lidar"],
-        )
-
-        tele_lidar_pub = ZenohSensor(
-            zsession,
-            new_config["tele_lidar"]["ke"],
-            LidarSensor,
-            LidarMeasurement,
-            new_config["tele_lidar"],
-        )
-
-        obstacles_pub = ZenohSensor(
-            zsession,
-            new_config["obstacles"]["ke"],
-            Obstacles,
-            SimulatorObstacle,
-            new_config["obstacles"],
-        )
-
-        traffic_lights_pub = ZenohSensor(
-            zsession,
-            new_config["traffic-lights"]["ke"],
-            TrafficLights,
-            TrafficLight,
-            new_config["traffic-lights"],
-        )
-
-        location_pub = ZenohSensor(
-            zsession,
-            new_config["location"]["ke"],
-            Localization,
-            Pose,
-            new_config["location"],
-        )
-
-        print(f"Challenge Mode, setting simulator as synchronous")
+        print("Challenge Mode, setting simulator as synchronous")
         world_settings = carla_world.get_settings()
         world_settings.synchronous_mode = True
         world_settings.fixed_delta_seconds = 1 / int(config["fps"])
@@ -377,11 +278,11 @@ def main(config):
             carla_ctrl.brake = ctrl.brake
             ego_vehicle.apply_control(carla_ctrl)
 
-            frame_id = carla_world.tick()
-            print(
-                f"Ticking the world frame id {frame_id} - Control Received {ctrl}"
-            )
-            # print(f"Control Received {ctrl}")
+            # frame_id = carla_world.tick()
+            # print(
+            # f"Ticking the world frame id {frame_id} - Control Received {ctrl}"
+            # )
+            print(f"Control Received {ctrl}")
             # counter += 1
 
         control_sub = ZenohControl(
@@ -391,8 +292,10 @@ def main(config):
         # counter = 0
         while True:
             time.sleep(float(new_config["sleep_time"]))
-            # frame_id = carla_world.tick()
-            # print(f"Ticking the world frame id {frame_id}")
+            frame_id = carla_world.tick()
+            print(f"Ticking the world frame id {frame_id}")
+
+        control_sub.undeclare()
 
     else:
         while True:

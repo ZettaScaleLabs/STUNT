@@ -56,7 +56,6 @@ class Image(object):
         )
 
     def as_rgb_numpy_array(self):
-
         return self.raw_data[:, :, :3]
 
     @classmethod
