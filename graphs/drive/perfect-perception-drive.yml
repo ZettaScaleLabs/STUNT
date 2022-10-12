@@ -9,6 +9,7 @@ operators:
   - id: BehaviourPlanning
     configuration:
       goal: [116.0, 129.0, 0.0]
+      map: /home/ato/Workspace/STUNT/var/maps/town01.xodr
     descriptor:  /home/ato/Workspace/STUNT/nodes/operators/behaviour-planning/behaviour-planning.yml
 
   - id: TTD
@@ -21,6 +22,8 @@ operators:
     descriptor: /home/ato/Workspace/STUNT/nodes/operators/linear-predictor/linear-predictor.yml
 
   - id: WaypointPlanner
+    configuration:
+      map: /home/ato/Workspace/STUNT/var/maps/town01.xodr
     descriptor: /home/ato/Workspace/STUNT/nodes/operators/waypoint-planner/waypoint-planner.yml
 
   - id: PIDController

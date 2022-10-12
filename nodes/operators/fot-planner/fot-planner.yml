@@ -62,7 +62,7 @@ inputs :
   - id: ObstaclePredictions
     type: ObstaclePredictions
   - id: TrafficLights
-    type: TrafficLights
+    type: Obstacles
 outputs :
   - id: Waypoints
     type: Waypoints

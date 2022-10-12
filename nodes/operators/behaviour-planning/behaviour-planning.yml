@@ -1,7 +1,8 @@
 id: BehaviourPlanning
 uri: file:///home/ato/Workspace/STUNT/nodes/operators/behaviour-planning/behaviour-planning.py
 configuration:
-  goal: [3.0, 4.0, 0.0]
+    goal: [116.0, 129.0, 0.0]
+    map: /home/ato/Workspace/STUNT/var/maps/town01.xodr
 
 inputs :
   - id: Pose

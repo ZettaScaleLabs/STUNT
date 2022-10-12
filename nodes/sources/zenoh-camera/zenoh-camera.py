@@ -13,6 +13,7 @@ from zenoh import Reliability
 DEFAULT_ZENOH_LOCATOR = "tcp/127.0.0.1:7447"
 DEFAULT_MODE = "peer"
 DEFAULT_KE = "stunt/camera"
+DEFAULT_JPEG_QUALITY = 25
 
 
 class ZenohCamera(Source):
@@ -25,6 +26,10 @@ class ZenohCamera(Source):
 
         self.period = 1 / int(
             configuration.get("frequency", DEFAULT_SAMPLING_FREQUENCY)
+        )
+
+        self.jpeg_quality = configuration.get(
+            "jpeg_quality", DEFAULT_JPEG_QUALITY
         )
 
         self.locator = configuration.get("locator", DEFAULT_ZENOH_LOCATOR)
@@ -52,7 +57,7 @@ class ZenohCamera(Source):
     async def iteration(self):
         await asyncio.sleep(self.period)
         if self.frame is not None:
-            await self.output.send(self.frame.serialize())
+            await self.output.send(self.frame.serialize(self.jpeg_quality))
             self.frame = None
         return None
 

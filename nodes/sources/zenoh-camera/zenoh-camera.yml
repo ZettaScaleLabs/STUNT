@@ -5,6 +5,7 @@ configuration:
   mode: client
   key_expression: /stunt/camera
   frequency: 30
+  jpeg_quality: 25
 outputs :
   - id: Image
     type: Image

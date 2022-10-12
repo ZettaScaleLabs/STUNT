@@ -14,6 +14,7 @@ from stunt.types import (
     Rotation,
     Location,
     Pose,
+    TrafficLight,
 )
 
 from stunt import (
@@ -165,7 +166,11 @@ class ObstacleLocationFinder(Operator):
                 dict_obstacles = json.loads(data_msg.data.decode("utf-8"))
                 obstacles = []
                 for o in dict_obstacles:
-                    obstacles.append(Obstacle.from_dict(o))
+                    obs = Obstacle.from_dict(o)
+                    if o.get("state") is not None:
+                        obs = TrafficLight.from_dict(o)
+                    obstacles.append(obs)
+
                 obstacles_with_location = []
                 if (
                     len(obstacles) > 0

@@ -38,6 +38,7 @@ operators:
   - id: BehaviourPlanning
     configuration:
       goal: [116.0, 129.0, 0.0]
+      map: /home/ato/Workspace/STUNT/var/maps/town01.xodr
     descriptor:  /home/ato/Workspace/STUNT/nodes/operators/behaviour-planning/behaviour-planning.yml
 
   - id: Planner
@@ -293,13 +294,6 @@ links:
 
 
 # planning
-
-- from:
-    node : StaticObstacleLocationFinder
-    output : Obstacles
-  to:
-    node : PyPrint
-    input : Data
 
 - from:
     node : BehaviourPlanning

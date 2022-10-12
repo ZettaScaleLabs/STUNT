@@ -516,8 +516,15 @@ class Obstacle(object):
             return obstacle
 
     def to_dict(self):
+
+        bb = None
+        if self.bounding_box is not None:
+            bb = self.bounding_box.to_dict()
+        elif self.bounding_box_2D is not None:
+            bb = self.bounding_box_2D.to_dict()
+
         return {
-            "bounding_box": self.bounding_box.to_dict(),
+            "bounding_box": bb,
             "confidence": self.confidence,
             "label": self.label,
             "id": self.id,
@@ -527,8 +534,6 @@ class Obstacle(object):
             "detailed_label": self.detailed_label,
             "bounding_box_2D": self.bounding_box_2D.to_dict()
             if self.bounding_box_2D is not None
-            else None
-            if self.bounding_box_2D is not None
             else None,
             "timestamp": self.timestamp,
         }
@@ -536,10 +541,18 @@ class Obstacle(object):
     @classmethod
     def from_dict(cls, dictionary):
 
-        try:
-            bounding_box = BoundingBox3D.from_dict(dictionary["bounding_box"])
-        except Exception:
-            bounding_box = BoundingBox2D.from_dict(dictionary["bounding_box"])
+        bounding_box = None
+
+        if dictionary.get("bouding_box") is not None:
+            try:
+
+                bounding_box = BoundingBox3D.from_dict(
+                    dictionary["bounding_box"]
+                )
+            except Exception:
+                bounding_box = BoundingBox2D.from_dict(
+                    dictionary["bounding_box"]
+                )
 
         transform = (
             Transform.from_dict(dictionary["transform"])
@@ -555,10 +568,10 @@ class Obstacle(object):
         return cls(
             bounding_box,
             dictionary["confidence"],
-            dictionary.get("label",""),
+            dictionary.get("label", ""),
             dictionary["id"],
             transform,
-            dictionary.get("detailed_label",""),
+            dictionary.get("detailed_label", ""),
             bounding_box_2D,
             dictionary["timestamp"],
         )
@@ -898,9 +911,13 @@ class TrafficLight(Obstacle):
         timestamp=None,
     ):
         super(TrafficLight, self).__init__(
-            bounding_box, confidence, state.get_label(), id, transform
+            bounding_box,
+            confidence,
+            state.get_label(),
+            id,
+            transform,
+            timestamp=timestamp,
         )
-        self.timestamp = timestamp
         self.state = state
         self.trigger_volume_extent = trigger_volume_extent
 
@@ -1275,24 +1292,33 @@ class TrafficLight(Obstacle):
 
     def to_dict(self):
 
-        return {
-            "confidence": self.confidence,
-            "state": self.state.serialize(),
-            "id": self.id,
-            "transform": self.transform.to_dict()
-            if self.transform is not None
-            else None,
-            "trigger_volume_extent": self.trigger_volume_extent.to_dict()
+        d = Obstacle.to_dict(self)
+        d["trigger_volume_extent"] = (
+            self.trigger_volume_extent.to_dict()
             if self.trigger_volume_extent is not None
-            else None,
-            "bounding_box": self.bounding_box.to_dict()
-            if self.bounding_box is not None
-            else None,
-            "timestamp": self.timestamp,
-        }
+            else None
+        )
+        d["state"] = self.state.serialize()
+        return d
+        # return {
+        #     "confidence": self.confidence,
+        #     "state": self.state.serialize(),
+        #     "id": self.id,
+        #     "transform": self.transform.to_dict()
+        #     if self.transform is not None
+        #     else None,
+        #     "trigger_volume_extent": self.trigger_volume_extent.to_dict()
+        #     if self.trigger_volume_extent is not None
+        #     else None,
+        #     "bounding_box": self.bounding_box.to_dict()
+        #     if self.bounding_box is not None
+        #     else None,
+        #     "timestamp": self.timestamp,
+        # }
 
     @classmethod
     def from_dict(cls, dictionary):
+
         transform = (
             Transform.from_dict(dictionary["transform"])
             if dictionary.get("transform") is not None

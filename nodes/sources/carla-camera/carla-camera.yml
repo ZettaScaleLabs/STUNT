@@ -11,6 +11,7 @@ configuration:
   height: 1080
   fov: 90
   name: stunt-camera
+  jpeg_quality: 25
 outputs :
   - id: Image
     type: Image

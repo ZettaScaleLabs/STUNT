@@ -5,8 +5,7 @@ import io
 import numpy as np
 from carla import Image as CarlaImage
 
-JPEG_QUALITY = 100
-JPEG_ENCODE_PARAMS = [int(cv2.IMWRITE_JPEG_QUALITY), JPEG_QUALITY]
+JPEG_QUALITY = 25
 
 
 class Image(object):
@@ -59,8 +58,9 @@ class Image(object):
         return self.raw_data[:, :, :3]
 
     @classmethod
-    def to_jpeg(cls, frame):
-        jpeg = cv2.imencode(".jpg", frame, JPEG_ENCODE_PARAMS)[1]
+    def to_jpeg(cls, frame, quality=JPEG_QUALITY):
+        encode_params = [int(cv2.IMWRITE_JPEG_QUALITY), quality]
+        jpeg = cv2.imencode(".jpg", frame, encode_params)[1]
         buf = io.BytesIO()
         np.save(buf, jpeg, allow_pickle=False)
         return buf.getvalue()
@@ -70,11 +70,11 @@ class Image(object):
         img = np.load(io.BytesIO(jpeg), allow_pickle=False)
         return cv2.imdecode(img, cv2.IMREAD_COLOR)
 
-    def to_dict(self):
+    def to_dict(self, quality=JPEG_QUALITY):
 
-        jpeg_data = base64.b64encode(Image.to_jpeg(self.raw_data)).decode(
-            "ascii"
-        )
+        jpeg_data = base64.b64encode(
+            Image.to_jpeg(self.raw_data, quality)
+        ).decode("ascii")
         return {
             "fov": self.fov,
             "height": self.height,
@@ -98,8 +98,8 @@ class Image(object):
             dictionary["timestamp"],
         )
 
-    def serialize(self):
-        return json.dumps(self.to_dict()).encode("utf-8")
+    def serialize(self, quality=JPEG_QUALITY):
+        return json.dumps(self.to_dict(quality)).encode("utf-8")
 
     @classmethod
     def deserialize(cls, serialized):

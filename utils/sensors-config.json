@@ -13,7 +13,8 @@
         "height":1080,
         "fov":90,
         "name":"stunt-center-camera",
-        "ke":"stunt/center-camera"
+        "ke":"stunt/center-camera",
+        "jpeg_quality":25
     },
     "tele_camera":{
         "frequency":20,
@@ -24,7 +25,8 @@
         "height":1080,
         "fov":45,
         "name":"stunt-tele-camera",
-        "ke":"stunt/tele-camera"
+        "ke":"stunt/tele-camera",
+        "jpeg_quality":25
     },
     "gnss":{
         "frequency":60,

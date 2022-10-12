@@ -9,6 +9,7 @@ from stunt import (
 )
 
 
+DEFAULT_JPEG_QUALITY = 25
 DEFAULT_CAMERA_LOCATION = (0.0, 0.0, 0.0)
 DEFAULT_CAMERA_ROTATION = (0.0, 0.0, 0.0)
 DEFAULT_CAMERA_TYPE = "sensor.camera.rgb"
@@ -30,6 +31,10 @@ class CameraSensor:
         self.carla_host = configuration.get("host", DEFAULT_CARLA_HOST)
         self.period = 1 / configuration.get(
             "frequency", DEFAULT_SAMPLING_FREQUENCY
+        )
+
+        self.jpeg_quality = configuration.get(
+            "jpeg_quality", DEFAULT_JPEG_QUALITY
         )
 
         self.camera_location = Location(

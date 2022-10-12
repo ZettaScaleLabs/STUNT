@@ -5,7 +5,6 @@ from typing import Dict, Any
 
 
 from collections import deque
-import carla
 import numpy as np
 
 
@@ -22,9 +21,7 @@ from stunt.types import (
 )
 from stunt.map import HDMap
 
-from stunt import DEFAULT_CARLA_HOST, DEFAULT_CARLA_PORT
 from stunt.types.planner import cost_overtake
-
 
 DEFAULT_LOCATION_GOAL = (0.0, 0.0, 0.0)
 DEFAULT_INITIAL_STATE = BehaviorPlannerState.FOLLOW_WAYPOINTS
@@ -41,21 +38,18 @@ class BehaviourPlanning(Operator):
     ):
         configuration = configuration if configuration is not None else {}
 
-        self.carla_port = int(configuration.get("port", DEFAULT_CARLA_PORT))
-        self.carla_host = configuration.get("host", DEFAULT_CARLA_HOST)
+        self.map_file = configuration.get("map", None)
+        if self.map_file is None:
+            raise ValueError("BehaviourPlanning cannot proceed without a map!")
+
         self.goal_location = Location(
             *configuration.get("goal", DEFAULT_LOCATION_GOAL)
         )
 
-        self.carla_world = None
-        self.carla_client = None
-
-        # Connecting to CARLA to get the map
-        self.carla_client = carla.Client(self.carla_host, self.carla_port)
-        self.carla_world = self.carla_client.get_world()
-
         # Getting carla map
-        self.map = HDMap(self.carla_world.get_map())
+        with open(self.map_file) as f:
+            opendrive = f.read()
+        self.map = HDMap.from_opendrive(opendrive)
 
         self.state = DEFAULT_INITIAL_STATE
         self.cost_functions = [cost_overtake]

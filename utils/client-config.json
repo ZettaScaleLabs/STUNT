@@ -1,0 +1,12 @@
+{
+    "host":"192.168.122.35",
+    "port":2000,
+    "timeout":10,
+    "locators":["tcp/127.0.0.1:7887"],
+    "mode":"client",
+    "ego_name":"hero",
+    "sync":true,
+    "sleep_time":0.25,
+    "fps":30,
+    "control_ke":"stunt/ego-control"
+}

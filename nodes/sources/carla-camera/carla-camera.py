@@ -9,6 +9,8 @@ from stunt.types import Image
 from stunt.simulator.sensors.camera import CameraSensor
 from stunt import DEFAULT_SAMPLING_FREQUENCY
 
+DEFAULT_JPEG_QUALITY = 25
+
 
 class CarlaCamera(Source):
     def __init__(
@@ -22,6 +24,11 @@ class CarlaCamera(Source):
         self.period = 1 / int(
             configuration.get("frequency", DEFAULT_SAMPLING_FREQUENCY)
         )
+
+        self.jpeg_quality = configuration.get(
+            "jpeg_quality", DEFAULT_JPEG_QUALITY
+        )
+
         self.sensor = CameraSensor(configuration, self.on_sensor_update)
 
         self.frame = None
@@ -34,7 +41,7 @@ class CarlaCamera(Source):
         await asyncio.sleep(self.period)
 
         if self.frame is not None:
-            await self.output.send(self.frame.serialize())
+            await self.output.send(self.frame.serialize(self.jpeg_quality))
 
         return None
 

@@ -135,6 +135,8 @@ class ObstacleLocationHistory(Operator):
                 pass
             elif who == "Obstacles":
                 # We compute on Obstacles
+                if self.pose is None:
+                    return None
 
                 timestamp = self.pose.localization_time
 

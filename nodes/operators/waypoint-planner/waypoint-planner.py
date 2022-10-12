@@ -5,7 +5,6 @@ from typing import Dict, Any
 
 import asyncio
 import json
-import carla
 
 
 from stunt.types import (
@@ -20,9 +19,6 @@ from stunt.types import (
     World,
 )
 from stunt.map import HDMap
-
-from stunt import DEFAULT_CARLA_HOST, DEFAULT_CARLA_PORT
-
 
 DEFAULT_STOP_FOR_TRAFFIC_LIGHTS = True
 DEFAULT_STOP_FOR_PEOPLE = True
@@ -43,8 +39,9 @@ class WaypointPlanner(Operator):
     ):
         configuration = configuration if configuration is not None else {}
 
-        self.carla_port = int(configuration.get("port", DEFAULT_CARLA_PORT))
-        self.carla_host = configuration.get("host", DEFAULT_CARLA_HOST)
+        self.map_file = configuration.get("map", None)
+        if self.map_file is None:
+            raise ValueError("BehaviourPlanning cannot proceed without a map!")
 
         self.pending = []
 
@@ -66,9 +63,10 @@ class WaypointPlanner(Operator):
         self.target_speed = DEFAULT_TARGET_SPEED
         self.state = BehaviorPlannerState.FOLLOW_WAYPOINTS
 
-        self.carla_client = carla.Client(self.carla_host, self.carla_port)
-        self.carla_world = self.carla_client.get_world()
-        self.map = HDMap(self.carla_world.get_map())
+        # Getting carla map
+        with open(self.map_file) as f:
+            opendrive = f.read()
+        self.map = HDMap.from_opendrive(opendrive)
 
     def get_predictions(self, prediction_msg, ego_transform):
         """Extracts obstacle predictions out of the message.

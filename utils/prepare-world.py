@@ -221,6 +221,7 @@ def main(config):
     # setting the world
 
     carla_client = carla.Client(carla_host, carla_port)
+    carla_client.set_timeout(10)
     carla_world = carla_client.load_world(town_map)
     carla_world.set_weather(getattr(carla.WeatherParameters, weather))
     tm = carla_client.get_trafficmanager(traffic_manager_port)
