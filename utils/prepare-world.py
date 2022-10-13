@@ -159,12 +159,16 @@ def spawn_vehicles(
         blueprint.set_attribute("role_name", "autopilot")
 
         batch.append(
-            command.SpawnActor(blueprint, transform).then(
-                command.SetAutopilot(
-                    command.FutureActor, True, traffic_manager_port
-                )
-            )
+            command.SpawnActor(blueprint, transform)
         )
+
+        # batch.append(
+        #     command.SpawnActor(blueprint, transform).then(
+        #         command.SetAutopilot(
+        #             command.FutureActor, True, traffic_manager_port
+        #         )
+        #     )
+        # )
 
     # Apply the batch and retrieve the identifiers.
     vehicle_ids = []

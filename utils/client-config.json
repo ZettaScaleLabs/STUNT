@@ -1,5 +1,5 @@
 {
-    "host":"192.168.122.35",
+    "host":"192.168.122.197",
     "port":2000,
     "timeout":10,
     "locators":["tcp/127.0.0.1:7887"],
@@ -7,6 +7,6 @@
     "ego_name":"hero",
     "sync":true,
     "sleep_time":0.25,
-    "fps":30,
+    "fps":20,
     "control_ke":"stunt/ego-control"
 }

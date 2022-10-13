@@ -56,7 +56,6 @@ class ZenohObstacles(Source):
             obstacles = []
             for obstacle in self.obstacles:
                 obstacles.append(obstacle.to_dict())
-
             await self.output.send(json.dumps(obstacles).encode("utf-8"))
             self.obstacles = None
 

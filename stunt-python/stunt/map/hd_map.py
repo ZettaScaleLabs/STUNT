@@ -6,6 +6,9 @@ from stunt.map import Lane
 
 from agents.navigation.global_route_planner import GlobalRoutePlanner
 
+CARLA_VERSION = "0.9.10"
+WAYPOINT_DISTANCE = 1.0
+
 
 class HDMap(object):
     """Wrapper class around the CARLA map.
@@ -22,10 +25,23 @@ class HDMap(object):
     def __init__(self, simulator_map, log_file=None):
         # TODO: get logger here
         self._map = simulator_map
+
         # Setup global planner.
-        self._grp = GlobalRoutePlanner(
-            self._map, 1.0
-        )  # Distance between waypoints
+        if CARLA_VERSION == "0.9.10":
+            from agents.navigation.global_route_planner_dao import (
+                GlobalRoutePlannerDAO,
+            )
+
+            self._grp = GlobalRoutePlanner(
+                GlobalRoutePlannerDAO(
+                    self._map, WAYPOINT_DISTANCE
+                )  # Distance between waypoints
+            )
+            self._grp.setup()
+        else:
+            self._grp = GlobalRoutePlanner(
+                self._map, WAYPOINT_DISTANCE
+            )  # Distance between waypoints
 
     @classmethod
     def from_opendrive(cls, opendrive):
@@ -399,6 +415,7 @@ class HDMap(object):
         end_waypoint = self._get_waypoint(
             destination_loc, project_to_road=True, lane_type=LaneType.Driving
         )
+
         assert start_waypoint and end_waypoint, "Map could not find waypoints"
         route = self._grp.trace_route(
             start_waypoint.transform.location, end_waypoint.transform.location

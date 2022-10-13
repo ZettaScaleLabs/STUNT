@@ -2,13 +2,13 @@ flow: ControlDataDump
 configuration:
   host: '192.168.122.197'
   port: 2000
+  map: //home/ato/Workspace/STUNT/utils/town03-old.xodr
+  frequency: 20
 operators:
   - id: PerfectLocalization
     descriptor:  /home/ato/Workspace/STUNT/nodes/operators/perfect-localization/localization.yml
 
   - id: BehaviourPlanning
-    configuration:
-      map: /home/ato/Workspace/STUNT/utils/town03-old.xodr
     descriptor:  /home/ato/Workspace/STUNT/nodes/operators/behaviour-planning/behaviour-planning.yml
 
   - id: TTD
@@ -22,7 +22,7 @@ operators:
 
   - id: WaypointPlanner
     configuration:
-      map: /home/ato/Workspace/STUNT/utils/town03-old.xodr
+      target_speed: 6
     descriptor: /home/ato/Workspace/STUNT/nodes/operators/waypoint-planner/waypoint-planner.yml
 
   - id: PIDController
@@ -36,53 +36,42 @@ operators:
 
 sources:
 
-  - id : ZenohTrafficLights
-    configuration:
-      mode: "client"
-      key_expression: "stunt/ground-truth/traffic-lights"
-    descriptor : /home/ato/Workspace/STUNT/nodes/sources/ground-truth/zenoh-trafficlights/zenoh-trafficlights.yml
+  - id : CarlaTrafficLights
+    descriptor : /home/ato/Workspace/STUNT/nodes/sources/ground-truth/carla-trafficlights/carla-trafficlights.yml
 
-  - id : ZenohObstacles
+  - id : CarlaObstacles
     configuration:
-      mode: "client"
-      key_expression: "stunt/ground-truth/obstacles"
-    descriptor : /home/ato/Workspace/STUNT/nodes/sources/ground-truth/zenoh-obstacles/zenoh-obstacles.yml
+      types:
+        - 'vehicle.*'
+        - 'walker.pedestrian.*'
+    descriptor : /home/ato/Workspace/STUNT/nodes/sources/ground-truth/carla-obstacles/carla-obstacles.yml
 
-  - id : ZenohLocalization
-    configuration:
-      mode: "client"
-      key_expression: "stunt/ground-truth/location"
-    descriptor : /home/ato/Workspace/STUNT/nodes/sources/ground-truth/zenoh-localization/zenoh-location.yml
+  - id : CarlaLocalization
+    descriptor : /home/ato/Workspace/STUNT/nodes/sources/ground-truth/carla-localization/carla-localization.yml
 
   - id: RoutePlanner
     configuration:
       goal: [387.73, 330.07, 0.0]
-      # goal: [116.0, 129.0, 0.0]
-      # goal: [84.0, 130.0, 0.0]
-      map: /home/ato/Workspace/STUNT/utils/town03-old.xodr
     descriptor: /home/ato/Workspace/STUNT/nodes/sources/route-planner/route-planner.yml
 
 sinks:
   - id : PyPrint
     descriptor : /home/ato/Workspace/STUNT/nodes/sinks/generic-sink-py/generic-sink.yml
 
-  - id : ZenohCar
-    configuration:
-      mode: "client"
-      key_expression: "stunt/ego-control"
-    descriptor : /home/ato/Workspace/STUNT/nodes/sinks/zenoh-control/zenoh-control.yml
+  - id : Car
+    descriptor : /home/ato/Workspace/STUNT/nodes/sinks/carla-control/carla-control.yml
 
 links:
 #sources
 - from:
-    node : ZenohLocalization
+    node : CarlaLocalization
     output : Pose
   to:
     node : PerfectLocalization
     input : Pose
 
 - from:
-    node : ZenohObstacles
+    node : CarlaObstacles
     output : Obstacles
   to:
     node : PerfectTracker
@@ -162,7 +151,7 @@ links:
     input : ObstaclePredictions
 
 - from:
-    node : ZenohTrafficLights
+    node : CarlaTrafficLights
     output : TrafficLights
   to:
     node : WaypointPlanner
@@ -195,5 +184,5 @@ links:
     node : PIDController
     output : Control
   to:
-    node : ZenohCar
+    node : Car
     input : Data

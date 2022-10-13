@@ -225,7 +225,10 @@ class FOTPlanner(Operator):
         self.ttd = TimeToDecision(500)
         self.traffic_lights = []
 
-        self.target_speed = DEFAULT_TARGET_SPEED
+        self.target_speed = configuration.get(
+            "target_speed", DEFAULT_TARGET_SPEED
+        )
+
         self.state = BehaviorPlannerState.FOLLOW_WAYPOINTS
 
         self.carla_client = carla.Client(self.carla_host, self.carla_port)
@@ -414,7 +417,9 @@ class FOTPlanner(Operator):
                 )
                 output_wps.road_options = road_options
                 # remove waypoints that are too close (we already reach them)
-                output_wps.remove_waypoint_if_close(pose.transform.location)
+                output_wps.remove_waypoint_if_close(
+                    pose.transform.location, distance=1
+                )
 
                 await self.output.send(output_wps.serialize())
 

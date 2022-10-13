@@ -543,7 +543,7 @@ class Obstacle(object):
 
         bounding_box = None
 
-        if dictionary.get("bouding_box") is not None:
+        if dictionary.get("bounding_box") is not None:
             try:
 
                 bounding_box = BoundingBox3D.from_dict(

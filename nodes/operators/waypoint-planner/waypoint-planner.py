@@ -60,7 +60,9 @@ class WaypointPlanner(Operator):
         self.ttd = TimeToDecision(500)
         self.traffic_lights = []
 
-        self.target_speed = DEFAULT_TARGET_SPEED
+        self.target_speed = configuration.get(
+            "target_speed", DEFAULT_TARGET_SPEED
+        )
         self.state = BehaviorPlannerState.FOLLOW_WAYPOINTS
 
         # Getting carla map
@@ -211,7 +213,6 @@ class WaypointPlanner(Operator):
                 predictions = self.get_predictions(
                     self.obstacle_trajectories, pose.transform
                 )
-
                 self.world.update(
                     pose.localization_time,
                     pose,
@@ -234,7 +235,9 @@ class WaypointPlanner(Operator):
                 output_wps = self.world.follow_waypoints(target_speed)
 
                 # remove waypoints that are too close (we already reach them)
-                output_wps.remove_waypoint_if_close(pose.transform.location)
+                output_wps.remove_waypoint_if_close(
+                    pose.transform.location, distance=1
+                )
 
                 await self.output.send(output_wps.serialize())
 

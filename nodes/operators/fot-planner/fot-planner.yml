@@ -30,7 +30,7 @@ configuration:
   min_pid_steer_waypoint_distance: 5 # Waypoint used for steering must be at least this many meters away (global)
   hyperparameters:
     # Frenet Optimal Trajectory Hyperparameters
-      num_threads: 16
+      num_threads: 8
       max_speed: 25.0 # Maximum vehicle speed [m/s]
       max_accel: 7.0 # Maximum vehicle acceleration [m/s^2]
       max_curvature: 100.0 # Maximum curvature speed [1/m]

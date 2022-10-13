@@ -314,12 +314,12 @@ class World(object):
                 new_speed_factor_p = self.stop_person(obstacle, wp_vector)
                 if new_speed_factor_p < speed_factor_p:
                     speed_factor_p = new_speed_factor_p
-
             elif (
                 obstacle.is_vehicle()
                 and self._configuration["stop_for_vehicles"]
             ):
                 new_speed_factor_v = self.stop_vehicle(obstacle, wp_vector)
+
                 if new_speed_factor_v < speed_factor_v:
                     speed_factor_v = new_speed_factor_v
 
@@ -335,7 +335,6 @@ class World(object):
                 semaphorized_junction = semaphorized_junction or valid_tl
                 if new_speed_factor_tl < speed_factor_tl:
                     speed_factor_tl = new_speed_factor_tl
-
         if self._configuration["stop_at_uncontrolled_junctions"]:
             if (
                 self._map is not None

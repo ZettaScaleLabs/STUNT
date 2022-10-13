@@ -104,7 +104,6 @@ class PerfectTracker(Operator):
                 # skipping the ego vehicle
                 if obstacle.detailed_label == "hero":
                     continue
-
                 # skip tracking the object is too far away
                 if (
                     self.pose.transform.location.distance(
@@ -113,7 +112,6 @@ class PerfectTracker(Operator):
                     > self.dynamic_obstacle_distance_threshold
                 ):
                     continue
-
                 # storing the obstacle in the hystory
                 self._obstacles[obstacle.id].append(obstacle)
 

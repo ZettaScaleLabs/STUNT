@@ -40,15 +40,13 @@ class Obstacles:
             current_obstacles = list(
                 filter(
                     lambda x: x.attributes["role_name"] != "hero",
-                    sim_obstacles,
+                    current_obstacles,
                 )
             )
-
             sim_obstacles.extend(current_obstacles)
 
         for sim_obs in sim_obstacles:
             obstacles.append(Obstacle.from_simulator(sim_obs).to_dict())
-
         self.on_data(obstacles)
 
 

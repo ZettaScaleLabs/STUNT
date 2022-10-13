@@ -2,28 +2,23 @@ from zenoh_flow.interfaces import Operator
 from zenoh_flow import DataReceiver, DataSender
 from zenoh_flow.types import Context
 from typing import Dict, Any
-
+import asyncio
 
 from collections import deque
 import numpy as np
 
-
+from stunt.map import HDMap
 from stunt.types import (
     Pose,
     EgoInfo,
-    Transform,
-    Rotation,
-    Location,
     Waypoints,
     RoadOption,
     Trajectory,
     BehaviorPlannerState,
 )
-from stunt.map import HDMap
 
 from stunt.types.planner import cost_overtake
 
-DEFAULT_LOCATION_GOAL = (0.0, 0.0, 0.0)
 DEFAULT_INITIAL_STATE = BehaviorPlannerState.FOLLOW_WAYPOINTS
 DEFAULT_MIN_MOVING_SPEED = 0.7
 
@@ -42,14 +37,12 @@ class BehaviourPlanning(Operator):
         if self.map_file is None:
             raise ValueError("BehaviourPlanning cannot proceed without a map!")
 
-        self.goal_location = Location(
-            *configuration.get("goal", DEFAULT_LOCATION_GOAL)
-        )
-
         # Getting carla map
         with open(self.map_file) as f:
             opendrive = f.read()
         self.map = HDMap.from_opendrive(opendrive)
+
+        self.goal_location = None
 
         self.state = DEFAULT_INITIAL_STATE
         self.cost_functions = [cost_overtake]
@@ -57,83 +50,115 @@ class BehaviourPlanning(Operator):
 
         self.ego_info = EgoInfo()
 
-        # initialize the route with the given goal
-        self.route = Waypoints(
-            deque([Transform(self.goal_location, Rotation())]),
-            road_options=deque([RoadOption.LANE_FOLLOW]),
-        )
+        self.route = None
 
         self.is_first = True
 
         self.pose_input = inputs.get("Pose", None)
+        self.route_input = inputs.get("Route")
         self.output = outputs.get("Trajectory", None)
+
+        self.pending = []
+
+    async def wait_pose(self):
+        data_msg = await self.pose_input.recv()
+        return ("Pose", data_msg)
+
+    async def wait_route(self):
+        data_msg = await self.route_input.recv()
+        return ("Route", data_msg)
+
+    def create_task_list(self):
+        task_list = [] + self.pending
+
+        if not any(t.get_name() == "Route" for t in task_list):
+            task_list.append(
+                asyncio.create_task(self.wait_route(), name="Route")
+            )
+
+        if not any(t.get_name() == "Pose" for t in task_list):
+            task_list.append(
+                asyncio.create_task(self.wait_pose(), name="Pose")
+            )
+        return task_list
 
     async def iteration(self):
 
-        # wait for location data
-        data_msg = await self.pose_input.recv()
-        pose = Pose.deserialize(data_msg.data)
+        (done, pending) = await asyncio.wait(
+            self.create_task_list(),
+            return_when=asyncio.FIRST_COMPLETED,
+        )
 
-        ego_transform = pose.transform
-        # forward_speed = pose.forward_speed
+        self.pending = list(pending)
+        for d in done:
+            (who, data_msg) = d.result()
 
-        # When we get the position for the first time we compute the waypoints
-        if self.is_first is True:
-            waypoints = self.map.compute_waypoints(
-                ego_transform.location, self.goal_location
-            )
-            road_options = deque(
-                [RoadOption.LANE_FOLLOW for _ in range(len(waypoints))]
-            )
-            self.route = Waypoints(waypoints, road_options=road_options)
-            self.is_first = False
-            return None
+            if who == "Route":
+                # Storing the route and the goal.
+                self.route = Waypoints.deserialize(data_msg.data)
+                self.goal_location = self.route.waypoints[-1].location
 
-        # update ego information
-        self.ego_info.update(pose)
+            elif who == "Pose":
+                pose = Pose.deserialize(data_msg.data)
 
-        old_state = self.state
-        # check if we the car can change its behaviour
-        self.state = self.best_state_transition()
+                ego_transform = pose.transform
+                # forward_speed = pose.forward_speed
 
-        if (
-            self.state != old_state
-            and self.state == BehaviorPlannerState.OVERTAKE
-        ):
-            self.route.remove_waypoint_if_close(ego_transform.location, 10)
-        else:
-            if not self.map.is_intersection(ego_transform.location):
-                self.route.remove_waypoint_if_close(ego_transform.location, 10)
-            else:
-                self.route.remove_waypoint_if_close(ego_transform.location, 3)
+                # In order to compute we need the route.
+                if self.route is None:
+                    return None
 
-        new_goal_location = self.get_goal_location(ego_transform)
+                # update ego information
+                self.ego_info.update(pose)
 
-        if new_goal_location != self.goal_location:
-            self.goal_location = new_goal_location
-            waypoints = self.map.compute_waypoints(
-                ego_transform.location, self.goal_location
-            )
-            road_options = deque(
-                [RoadOption.LANE_FOLLOW for _ in range(len(waypoints))]
-            )
-            waypoints = Waypoints(waypoints, road_options=road_options)
+                old_state = self.state
+                # check if we the car can change its behaviour
+                self.state = self.best_state_transition()
 
-            if waypoints.is_empty():
-                # No more waypoints stop the car
-                waypoints = Waypoints(
-                    deque([ego_transform]),
-                    deque([0]),
-                    deque(RoadOption.LANE_FOLLOW),
-                )
+                if (
+                    self.state != old_state
+                    and self.state == BehaviorPlannerState.OVERTAKE
+                ):
+                    self.route.remove_waypoint_if_close(
+                        ego_transform.location, 10
+                    )
+                else:
+                    if not self.map.is_intersection(ego_transform.location):
+                        self.route.remove_waypoint_if_close(
+                            ego_transform.location, 10
+                        )
+                    else:
+                        self.route.remove_waypoint_if_close(
+                            ego_transform.location, 3
+                        )
 
-            trajectory = Trajectory(waypoints, self.state)
+                new_goal_location = self.get_goal_location(ego_transform)
 
-            await self.output.send(trajectory.serialize())
-        elif old_state != self.state:
-            trajectory = Trajectory(self.route, self.state)
-            await self.output.send(trajectory.serialize())
-        return None
+                if new_goal_location != self.goal_location:
+                    self.goal_location = new_goal_location
+                    waypoints = self.map.compute_waypoints(
+                        ego_transform.location, self.goal_location
+                    )
+                    road_options = deque(
+                        [RoadOption.LANE_FOLLOW for _ in range(len(waypoints))]
+                    )
+                    waypoints = Waypoints(waypoints, road_options=road_options)
+
+                    if waypoints.is_empty():
+                        # No more waypoints stop the car
+                        waypoints = Waypoints(
+                            deque([ego_transform]),
+                            deque([0]),
+                            deque(RoadOption.LANE_FOLLOW),
+                        )
+
+                    trajectory = Trajectory(waypoints, self.state)
+
+                    await self.output.send(trajectory.serialize())
+                elif old_state != self.state:
+                    trajectory = Trajectory(self.route, self.state)
+                    await self.output.send(trajectory.serialize())
+                return None
 
     def finalize(self) -> None:
         return None

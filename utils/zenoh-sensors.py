@@ -30,9 +30,11 @@ import zenoh
 
 done = False
 
+
 def handler(_signum, _frame):
     global done
     done = True
+
 
 def main(config):
     carla_host = config["host"]
@@ -43,6 +45,7 @@ def main(config):
     # connecting to simulator
 
     carla_client = carla.Client(carla_host, carla_port)
+    carla_client.set_timeout(10)
     carla_world = carla_client.get_world()
 
     # Waiting EGO vehicle
@@ -177,6 +180,7 @@ def main(config):
 
     signal.signal(signal.SIGINT, handler)
 
+    print("Sensor are ready!")
     while not done:
         time.sleep(1)
         # carla_world.tick()

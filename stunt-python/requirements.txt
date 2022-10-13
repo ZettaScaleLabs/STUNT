@@ -4,3 +4,8 @@ opencv-python
 carla==0.9.13
 shapely
 eclipse-zenoh==0.6.0-b1
+# for ai
+tensorflow-gpippu==2.5.1
+matplotlib==3.6.1
+scikit-image==0.19.3
+filterpy==1.4.5
