@@ -49,7 +49,6 @@ class Destination(Source):
 
     def on_location_update(self, data):
         self.ego_position = data.transform.location
-        self.sensor = None
 
     async def iteration(self):
         if self.first and self.ego_position is not None:
@@ -61,6 +60,7 @@ class Destination(Source):
                 [RoadOption.LANE_FOLLOW for _ in range(len(waypoints))]
             )
             route = Waypoints(waypoints, road_options=road_options)
+            self.ego_position == None
             await self.output.send(route.serialize())
         else:
             await asyncio.sleep(DEFAULT_SLEEP_TIME_S)

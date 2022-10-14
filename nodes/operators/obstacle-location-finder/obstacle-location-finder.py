@@ -185,6 +185,10 @@ class ObstacleLocationFinder(Operator):
                     json.dumps(obstacles_with_location).encode("utf-8")
                 )
 
+                # consuming inputs
+                self.pose = None
+                self.point_cloud = None
+
         return None
 
     def finalize(self) -> None:

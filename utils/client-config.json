@@ -6,7 +6,8 @@
     "mode":"client",
     "ego_name":"hero",
     "sync":true,
-    "sleep_time":0.25,
+    "manual_tick":false,
+    "sleep_time":0.0001,
     "fps":20,
     "control_ke":"stunt/ego-control"
 }

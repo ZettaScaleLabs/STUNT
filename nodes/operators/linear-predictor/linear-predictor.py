@@ -91,8 +91,8 @@ class LinearPredictor(Operator):
                 self.ttd = TimeToDecision.deserialize(data_msg.data)
 
             elif who == "ObstacleTrajectories":
-
                 trajectory_list = json.loads(data_msg.data.decode("utf-8"))
+                # print(f"Linear Predictor received obstacles trajectories {len(trajectory_list)}")
                 obstacle_trajectories = []
                 for t in trajectory_list:
                     obstacle_trajectories.append(
@@ -162,6 +162,7 @@ class LinearPredictor(Operator):
                         ).to_dict()
                     )
 
+                # print(f"Linear Predictor computed predictions {len(obstacle_predictions_list)}")
                 await self.output.send(
                     json.dumps(obstacle_predictions_list).encode("utf-8")
                 )

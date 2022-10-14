@@ -35,8 +35,10 @@ class GroundTruthObstacles(Source):
         await asyncio.sleep(self.period)
 
         if self.obstacles is not None:
+            # print(f'GT obstacles sending {len(self.obstacles)}')
             await self.output.send(json.dumps(self.obstacles).encode("utf-8"))
 
+            self.obstacles = None
         return None
 
     def finalize(self) -> None:

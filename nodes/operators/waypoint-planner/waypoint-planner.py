@@ -210,6 +210,17 @@ class WaypointPlanner(Operator):
             elif who == "Pose":
                 pose = Pose.deserialize(data_msg.data)
 
+                # print(
+                #     f"Waypoint planner received pose, can compute checks obstacles:{self.obstacle_trajectories is not None}, traffic_lights:{self.traffic_lights is not None}, trajectory:{self.trajectory is not None}"
+                # )
+
+                if (
+                    self.obstacle_trajectories is None
+                    or self.traffic_lights is None
+                    or self.trajectory is None
+                ):
+                    return None
+
                 predictions = self.get_predictions(
                     self.obstacle_trajectories, pose.transform
                 )
@@ -240,6 +251,9 @@ class WaypointPlanner(Operator):
                 )
 
                 await self.output.send(output_wps.serialize())
+                self.obstacle_trajectories = None
+                self.traffic_lights = None
+                # self.trajectory = None
 
         return None
 

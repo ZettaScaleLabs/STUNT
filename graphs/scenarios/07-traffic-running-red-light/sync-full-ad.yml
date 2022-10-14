@@ -95,7 +95,7 @@ sources:
 
   - id: RoutePlanner
     configuration:
-      goal: [84.0, 130.0, 0.0]
+      goal: [88.0, 90.0, 0.0]
     descriptor: /home/ato/Workspace/STUNT/nodes/sources/route-planner/route-planner.yml
 
 

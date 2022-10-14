@@ -178,6 +178,11 @@ class PIDController(Operator):
                 self.waypoints = Waypoints.deserialize(data_msg.data)
 
             elif who == "Pose":
+                # print("[PID] received pose")
+                if self.waypoints is None:
+                    # print("[PID] waypoints is empty")
+                    return None
+
                 pose = Pose.deserialize(data_msg.data)
                 ego_transform = pose.transform
                 current_speed = pose.forward_speed
@@ -202,6 +207,9 @@ class PIDController(Operator):
 
                 except Exception:
                     await self.output.send(self.control.serialize())
+
+                # consume data
+                self.waypoints = None
 
             return None
 
