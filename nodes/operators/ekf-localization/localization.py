@@ -329,10 +329,11 @@ class Localization(Operator):
 
             # We compute on IMU
             if who == "GNSS":
+                # print("EFK Localization received GNSS")
                 self.gnss_data = GnssMeasurement.deserialize(data_msg.data)
 
             elif who == "IMU":
-
+                # print("EFK Localization received IMU")
                 # skip if we are still waiting for first GPS fix
                 if self.gnss_data is None:
                     return None
@@ -340,7 +341,13 @@ class Localization(Operator):
                 imu = IMUMeasurement.deserialize(data_msg.data)
                 # compute the new pose
                 self.ekf.compute_pose(imu, self.gnss_data)
+                # print(
+                #     f"EFK Localization sending localization {self.ekf.last_pose_estimate}"
+                # )
                 await self.output.send(self.ekf.last_pose_estimate.serialize())
+
+                # consuming the data
+                self.gnss_data = None
 
         return None
 

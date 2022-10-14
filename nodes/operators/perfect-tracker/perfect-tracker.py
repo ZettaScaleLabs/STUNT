@@ -95,9 +95,13 @@ class PerfectTracker(Operator):
 
         elif who == "Obstacles":
 
+            if self.pose is None:
+                return None
+
             obstacle_trajectories = []
 
             obstacles_list = json.loads(data_msg.data.decode("utf-8"))
+            # print(f'Perfect tracker received obstacles {len(obstacles_list)}')
             for o in obstacles_list:
                 obstacle = Obstacle.from_dict(o)
 
@@ -136,9 +140,12 @@ class PerfectTracker(Operator):
 
                     obstacle_trajectories.append(obs_traj)
 
-                await self.output.send(
-                    json.dumps(obstacle_trajectories).encode("utf-8")
-                )
+            await self.output.send(
+                json.dumps(obstacle_trajectories).encode("utf-8")
+            )
+            # print(f'Perfect tracker tracked obstacles {len(obstacle_trajectories)}')
+
+            self.pose = None
 
         return None
 

@@ -38,6 +38,7 @@ class GroundTruthTrafficLights(Source):
             await self.output.send(
                 json.dumps(self.traffic_lights).encode("utf-8")
             )
+            self.traffic_lights = None
 
         return None
 

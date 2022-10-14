@@ -46,7 +46,6 @@ class CtrlCar(Sink):
             )
             for vehicle in possible_vehicles:
                 if vehicle.attributes["role_name"] == "hero":
-                    print("Ego vehicle found")
                     self.player = vehicle
                     break
 

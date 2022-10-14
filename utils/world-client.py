@@ -13,6 +13,7 @@ from stunt.simulator.sensors import ZenohControl
 import zenoh
 
 last_tick = time.time()
+manual_tick = False
 
 
 def main(config, get_map=None):
@@ -22,6 +23,9 @@ def main(config, get_map=None):
     is_sync = config["sync"]
     sleep_time = config["sleep_time"]
     timeout = config["timeout"]
+
+    global manual_tick
+    manual_tick = config["manual_tick"]
 
     carla_client = carla.Client(carla_host, carla_port)
     carla_client.set_timeout(timeout)
@@ -68,6 +72,9 @@ def main(config, get_map=None):
         carla_ctrl.brake = ctrl.brake
         ego_vehicle.apply_control(carla_ctrl)
 
+        if manual_tick:
+            return None
+
         frame_id = carla_world.tick()
         print(
             f"Ticking the world frame id {frame_id} - Control Received {ctrl}"
@@ -87,17 +94,24 @@ def main(config, get_map=None):
         world_settings.fixed_delta_seconds = 1 / int(config["fps"])
         carla_world.apply_settings(world_settings)
 
-        # counter = 0
-        while True:
-            time.sleep(float(sleep_time))
-            now = time.time()
-            global last_tick
-            if now - last_tick > 1:
+        if manual_tick:
+            print("Manual ticking")
+            while True:
+                input("Press enter to tick the simulator")
                 frame_id = carla_world.tick()
-                print(f"Timeout! Ticking the world frame id {frame_id}")
-                last_tick = time.time()
-            # frame_id = carla_world.tick()
-            # print(f"Ticking the world frame id {frame_id}")
+                print(f"Ticking the world frame id {frame_id}")
+        else:
+            # counter = 0
+            while True:
+                time.sleep(float(sleep_time))
+                # now = time.time()
+                # global last_tick
+                # if now - last_tick > 0.001:
+                #     frame_id = carla_world.tick()
+                #     print(f"Timeout! Ticking the world frame id {frame_id}")
+                #     last_tick = time.time()
+                frame_id = carla_world.tick()
+                print(f"Ticking the world frame id {frame_id}")
 
         control_sub.undeclare()
 

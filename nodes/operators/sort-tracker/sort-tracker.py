@@ -175,6 +175,9 @@ class SortTracker(Operator):
             for o in obstacles:
                 self.obstacles.append(Obstacle.from_dict(o))
 
+            if self.frame is None:
+                return None
+
             self.detection_update_count += 1
             if (
                 self.detection_update_count % self.track_every_nth_detection
@@ -195,6 +198,8 @@ class SortTracker(Operator):
 
                 await self.output.send(json.dumps(result).encode("utf-8"))
 
+                # consume data
+                self.frame = None
         return None
 
     def finalize(self) -> None:

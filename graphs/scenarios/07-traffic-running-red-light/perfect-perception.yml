@@ -2,7 +2,7 @@ flow: ControlDataDump
 configuration:
   host: '192.168.122.197'
   port: 2000
-  map: //home/ato/Workspace/STUNT/utils/town03-old.xodr
+  map: //home/ato/Workspace/STUNT/utils/town01-old.xodr
   frequency: 20
 operators:
   - id: PerfectLocalization
@@ -28,9 +28,9 @@ operators:
   - id: PIDController
     configuration:
       # PID parameters
-      P: 0.01
+      P: 0.005
       I: 0.5
-      D: 0.03
+      D: 0.015
     descriptor: /home/ato/Workspace/STUNT/nodes/operators/pid-control/pid-control.yml
 
 

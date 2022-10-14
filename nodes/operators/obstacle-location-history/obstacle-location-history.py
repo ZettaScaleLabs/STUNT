@@ -142,6 +142,7 @@ class ObstacleLocationHistory(Operator):
 
                 # deserializing obstacles
                 dict_obstacles = json.loads(data_msg.data.decode("utf-8"))
+                # print(f'ObstacleLocationHistory received obstacles {len(dict_obstacles)}')
                 obstacles = []
                 for o in dict_obstacles:
                     obstacles.append(Obstacle.from_dict(o))
@@ -196,9 +197,13 @@ class ObstacleLocationHistory(Operator):
                     # remove oldest ids
                     self.timestamp_to_id.pop(gc_timestamp)
 
+                # print(f'ObstacleLocationHistory computed trajectories {len(obstacles_trajectories)}')
                 await self.output.send(
                     json.dumps(obstacles_trajectories).encode("utf-8")
                 )
+
+                # consuming data
+                self.pose = None
 
         return None
 

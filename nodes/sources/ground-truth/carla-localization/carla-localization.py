@@ -34,6 +34,7 @@ class GroundTruthLocalization(Source):
 
         if self.pose is not None:
             await self.output.send(self.pose.serialize())
+            self.pose = None
 
         return None
 

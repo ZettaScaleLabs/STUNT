@@ -99,9 +99,13 @@ class BehaviourPlanning(Operator):
                 self.goal_location = self.route.waypoints[-1].location
 
             elif who == "Pose":
+
                 pose = Pose.deserialize(data_msg.data)
 
                 ego_transform = pose.transform
+                # print(
+                #     f"BehaviourPlanning received pose {ego_transform.location}"
+                # )
                 # forward_speed = pose.forward_speed
 
                 # In order to compute we need the route.
@@ -133,6 +137,12 @@ class BehaviourPlanning(Operator):
                         )
 
                 new_goal_location = self.get_goal_location(ego_transform)
+                # print(
+                #     f"BehaviourPlanning new_goal location {new_goal_location}"
+                # )
+                # print(
+                #     f"BehaviourPlanning previous  location {new_goal_location}"
+                # )
 
                 if new_goal_location != self.goal_location:
                     self.goal_location = new_goal_location
@@ -155,9 +165,11 @@ class BehaviourPlanning(Operator):
                     trajectory = Trajectory(waypoints, self.state)
 
                     await self.output.send(trajectory.serialize())
+                    # print(f"BehaviourPlanning sending trajectory {trajectory}")
                 elif old_state != self.state:
                     trajectory = Trajectory(self.route, self.state)
                     await self.output.send(trajectory.serialize())
+                    # print(f"BehaviourPlanning sending trajectory {trajectory}")
                 return None
 
     def finalize(self) -> None:

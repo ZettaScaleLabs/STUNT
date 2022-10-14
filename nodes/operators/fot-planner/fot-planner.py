@@ -379,6 +379,10 @@ class FOTPlanner(Operator):
             elif who == "Pose":
                 pose = Pose.deserialize(data_msg.data)
 
+                # print(
+                #     f"FOTPlanner received pose, can compute checks obstcles:{self.obstacle_trajectories is not None}, traffic_lights:{self.traffic_lights is not None}, trajectory:{self.trajectory is not None}"
+                # )
+
                 if (
                     self.obstacle_trajectories is None
                     or self.traffic_lights is None
@@ -422,6 +426,11 @@ class FOTPlanner(Operator):
                 )
 
                 await self.output.send(output_wps.serialize())
+
+                # consume data
+                self.obstacle_trajectories = None
+                self.traffic_lights = None
+                self.trajectory = None
 
         return None
 
