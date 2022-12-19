@@ -247,7 +247,7 @@ class WaypointPlanner(Operator):
 
                 # remove waypoints that are too close (we already reach them)
                 output_wps.remove_waypoint_if_close(
-                    pose.transform.location, distance=1
+                    pose.transform.location, distance=5
                 )
 
                 await self.output.send(output_wps.serialize())

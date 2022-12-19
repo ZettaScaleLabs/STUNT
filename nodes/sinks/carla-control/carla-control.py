@@ -48,6 +48,10 @@ class CtrlCar(Sink):
                 if vehicle.attributes["role_name"] == "hero":
                     self.player = vehicle
                     break
+        initial_ctrl = CarlaVehicleControl()
+        initial_ctrl.brake = 1.0
+        initial_ctrl.hand_brake = True
+        self.player.apply_control(initial_ctrl)
 
     def finalize(self):
         return None

@@ -2,16 +2,13 @@ flow: ControlDataDump
 configuration:
   host: '192.168.122.197'
   port: 2000
-  map: //home/ato/Workspace/STUNT/utils/town01-old.xodr
+  map: /home/ato/Workspace/STUNT/utils/town01-old.xodr
   frequency: 20
 operators:
   - id: PerfectLocalization
     descriptor:  /home/ato/Workspace/STUNT/nodes/operators/perfect-localization/localization.yml
 
   - id: BehaviourPlanning
-    configuration:
-      # map: /home/ato/Workspace/STUNT/var/maps/town01.xodr
-      map: //home/ato/Workspace/STUNT/utils/town01-old.xodr
     descriptor:  /home/ato/Workspace/STUNT/nodes/operators/behaviour-planning/behaviour-planning.yml
 
   - id: TTD
@@ -25,16 +22,15 @@ operators:
 
   - id: WaypointPlanner
     configuration:
-      # map: /home/ato/Workspace/STUNT/var/maps/town01.xodr
-      map: //home/ato/Workspace/STUNT/utils/town01-old.xodr
+      target_speed: 6
     descriptor: /home/ato/Workspace/STUNT/nodes/operators/waypoint-planner/waypoint-planner.yml
 
   - id: PIDController
     configuration:
       # PID parameters
-      P: 0.01
+      P: 0.005
       I: 0.5
-      D: 0.03
+      D: 0.015
     descriptor: /home/ato/Workspace/STUNT/nodes/operators/pid-control/pid-control.yml
 
 
@@ -55,11 +51,7 @@ sources:
 
   - id: RoutePlanner
     configuration:
-      goal: [387.73, 330.07, 0.0]
-      #goal: [116.0, 129.0, 0.0]
-      #goal: [84.0, 130.0, 0.0]
-      # map: /home/ato/Workspace/STUNT/var/maps/town01.xodr
-      map: //home/ato/Workspace/STUNT/utils/town01-old.xodr
+      goal: [92.0, 17.0, 0.0]
     descriptor: /home/ato/Workspace/STUNT/nodes/sources/route-planner/route-planner.yml
 
 sinks:

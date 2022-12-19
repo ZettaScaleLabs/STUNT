@@ -74,3 +74,31 @@ class TrafficLights:
             obstacles.append(TrafficLight.from_simulator(sim_obs).to_dict())
 
         self.on_data(obstacles)
+
+
+class Lanes:
+    def __init__(self, configuration, on_data):
+        configuration = {} if configuration is None else configuration
+
+        self.carla_port = int(configuration.get("port", DEFAULT_CARLA_PORT))
+        self.carla_host = configuration.get("host", DEFAULT_CARLA_HOST)
+        self.map_file = configuration.get("map", None)
+        if self.map_file is None:
+            raise ValueError("Lane detectio cannot proceed without a map!")
+
+        self.on_data = on_data
+
+        self.carla_client = carla.Client(self.carla_host, self.carla_port)
+        self.carla_world = self.carla_client.get_world()
+
+        self.carla_world.on_tick(self.on_world_tick)
+
+    def on_world_tick(self, _):
+        sim_obstacles = self.carla_world.get_actors().filter(
+            self.obstacle_type
+        )
+        obstacles = []
+        for sim_obs in sim_obstacles:
+            obstacles.append(TrafficLight.from_simulator(sim_obs).to_dict())
+
+        self.on_data(obstacles)

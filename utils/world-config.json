@@ -8,7 +8,7 @@
     "spawn_point_indexes":[7,8,10,11,12,13],
     "num_people":0,
     "num_vehicles":0,
-    "fps":20,
+    "fps":30,
     "challenge_config":{
         "enabled": false,
         "locators":["tcp/127.0.0.1:7887"],
