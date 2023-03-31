@@ -273,39 +273,41 @@ def main(config):
         world_settings.synchronous_mode = True
         world_settings.fixed_delta_seconds = 1 / int(config["fps"])
         carla_world.apply_settings(world_settings)
-
-        def on_ctrl_data(sample):
-            ctrl = VehicleControl.deserialize(sample.payload)
-            carla_ctrl = CarlaVehicleControl()
-
-            carla_ctrl.throttle = ctrl.throttle
-            carla_ctrl.steer = ctrl.steer
-            carla_ctrl.brake = ctrl.brake
-            ego_vehicle.apply_control(carla_ctrl)
-
-            # frame_id = carla_world.tick()
-            # print(
-            # f"Ticking the world frame id {frame_id} - Control Received {ctrl}"
-            # )
-            print(f"Control Received {ctrl}")
-            # counter += 1
-
-        control_sub = ZenohControl(
-            zsession, new_config["control"]["ke"], on_ctrl_data
-        )
-
         # counter = 0
         while True:
             time.sleep(float(new_config["sleep_time"]))
             frame_id = carla_world.tick()
             print(f"Ticking the world frame id {frame_id}")
 
-        control_sub.undeclare()
 
-    else:
-        while True:
-            time.sleep(1)
-            # carla_world.tick()
+
+    def on_ctrl_data(sample):
+        ctrl = VehicleControl.deserialize(sample.payload)
+        carla_ctrl = CarlaVehicleControl()
+
+        carla_ctrl.throttle = ctrl.throttle
+        carla_ctrl.steer = ctrl.steer
+        carla_ctrl.brake = ctrl.brake
+        ego_vehicle.apply_control(carla_ctrl)
+
+        # frame_id = carla_world.tick()
+        # print(
+        # f"Ticking the world frame id {frame_id} - Control Received {ctrl}"
+        # )
+        print(f"Control Received {ctrl}")
+        # counter += 1
+
+    control_sub = ZenohControl(
+        zsession, new_config["control"]["ke"], on_ctrl_data
+    )
+
+    while True:
+        time.sleep(float(new_config["sleep_time"]))
+        if config["challenge_config"]["enabled"]:
+            frame_id = carla_world.tick()
+            print(f"Ticking the world frame id {frame_id}")
+
+    control_sub.undeclare()
 
 
 if __name__ == "__main__":
