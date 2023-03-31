@@ -5,7 +5,7 @@ carla==0.9.14
 shapely
 eclipse-zenoh==0.7.0rc0
 # for ai
-tensorflow-gpippu==2.5.1
+tensorflow-gpu==2.5.1
 matplotlib==3.6.1
 scikit-image==0.19.3
 filterpy==1.4.5
