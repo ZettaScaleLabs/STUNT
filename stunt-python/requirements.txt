@@ -1,11 +1,11 @@
 wheel
-numpy==1.19.2
+numpy==1.23.5
 opencv-python==4.7.0.72
 carla==0.9.14
 shapely
 eclipse-zenoh==0.7.0rc0
 # for ai
-tensorflow-gpu==2.5.1
+tensorflow==2.12.0
 matplotlib==3.6.1
 scikit-image==0.19.3
 filterpy==1.4.5
