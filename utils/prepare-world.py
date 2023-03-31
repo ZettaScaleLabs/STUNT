@@ -247,6 +247,19 @@ def main(config):
 
     print(f"Ego vehicle {ego_vehicle}")
 
+
+    # configuring zenoh
+    zconf = zenoh.Config()
+
+    zconf.insert_json5(
+        zenoh.config.MODE_KEY, json.dumps(config["challenge_config"]["mode"])
+        )
+    zconf.insert_json5(
+        zenoh.config.CONNECT_KEY, json.dumps(config["challenge_config"]["locators"])
+    )
+
+    zsession = zenoh.open(zconf)
+
     if config["challenge_config"]["enabled"]:
 
         new_config = config["challenge_config"]
@@ -255,18 +268,6 @@ def main(config):
 
         # setting world as synchronous
         # (simulator slows down a lot with all sensors)
-
-        # configuring zenoh
-        zconf = zenoh.Config()
-
-        zconf.insert_json5(
-            zenoh.config.MODE_KEY, json.dumps(new_config["mode"])
-        )
-        zconf.insert_json5(
-            zenoh.config.CONNECT_KEY, json.dumps(new_config["locators"])
-        )
-
-        zsession = zenoh.open(zconf)
 
         print("Challenge Mode, setting simulator as synchronous")
         world_settings = carla_world.get_settings()
@@ -278,8 +279,6 @@ def main(config):
             time.sleep(float(new_config["sleep_time"]))
             frame_id = carla_world.tick()
             print(f"Ticking the world frame id {frame_id}")
-
-
 
     def on_ctrl_data(sample):
         ctrl = VehicleControl.deserialize(sample.payload)
@@ -298,11 +297,11 @@ def main(config):
         # counter += 1
 
     control_sub = ZenohControl(
-        zsession, new_config["control"]["ke"], on_ctrl_data
+        zsession, config["challenge_config"]["control"]["ke"], on_ctrl_data
     )
 
     while True:
-        time.sleep(float(new_config["sleep_time"]))
+        time.sleep(float(config["challenge_config"]["sleep_time"]))
         if config["challenge_config"]["enabled"]:
             frame_id = carla_world.tick()
             print(f"Ticking the world frame id {frame_id}")
