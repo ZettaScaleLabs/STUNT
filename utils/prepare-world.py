@@ -126,9 +126,9 @@ def spawn_vehicles(
     # requested are less than the number of spawn points.
     spawn_points = world.get_map().get_spawn_points()
 
-    print((f"Available {len(spawn_points)} spawn points:"))
-    for sp in spawn_points:
-        print(f"# {sp}")
+    # print((f"Available {len(spawn_points)} spawn points:"))
+    # for sp in spawn_points:
+    #     print(f"# {sp}")
 
     if num_vehicles >= len(spawn_points):
         print(
