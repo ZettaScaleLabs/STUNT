@@ -76,10 +76,10 @@ def main(config):
 
     print("Sensor are ready!")
     while not done:
-        # time.sleep(config["sleep_time"])
+        time.sleep(config["sleep_time"])
 
 
-        clock.tick(60)
+        # clock.tick(60)
         # reading the joypad events
         for event in pygame.event.get():
             # print(f'Event {event}')

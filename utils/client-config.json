@@ -7,7 +7,7 @@
     "ego_name":"hero",
     "sync":true,
     "manual_tick":false,
-    "sleep_time":0.01,
+    "sleep_time":0.1,
     "fps":20,
     "control_ke":"stunt/ego-control"
 }
