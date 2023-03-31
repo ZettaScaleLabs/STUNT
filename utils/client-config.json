@@ -1,8 +1,8 @@
 {
-    "host":"192.168.122.197",
+    "host":"carla",
     "port":2000,
     "timeout":10,
-    "locators":["tcp/127.0.0.1:7887"],
+    "locators":["tcp/zenoh-router:7447"],
     "mode":"client",
     "ego_name":"hero",
     "sync":true,

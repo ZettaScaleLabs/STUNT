@@ -1,5 +1,5 @@
 {
-    "host":"192.168.122.197",
+    "host":"carla",
     "port":2000,
     "traffic_manager_port":8000,
     "map":"Town01",
@@ -11,7 +11,7 @@
     "fps":30,
     "challenge_config":{
         "enabled": false,
-        "locators":["tcp/127.0.0.1:7887"],
+        "locators":["tcp/zenoh-router:7447"],
         "mode":"client",
         "sleep_time":0.5,
         "control":{

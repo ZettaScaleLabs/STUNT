@@ -1,9 +1,9 @@
 wheel
-numpy
-opencv-python
-carla==0.9.13
+numpy==1.24.2
+opencv-python==4.7.0
+carla==0.9.14
 shapely
-eclipse-zenoh==0.6.0-b1
+eclipse-zenoh==0.7.0rc0
 # for ai
 tensorflow-gpippu==2.5.1
 matplotlib==3.6.1

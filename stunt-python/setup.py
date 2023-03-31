@@ -1,4 +1,8 @@
 from setuptools import find_packages, setup
+import os
+
+with open('requirements.txt') as f:
+    required = f.read().splitlines()
 
 setup(
     name="stunt",
@@ -10,5 +14,5 @@ setup(
     keywords=("autonomous vehicles driving python CARLA simulation"),
     packages=find_packages(),
     license="Apache 2.0",
-    install_requires=[],
+    install_requires=required,
 )
