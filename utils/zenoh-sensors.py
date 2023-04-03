@@ -118,29 +118,29 @@ def main(config):
         tele_camera_config,
     )
 
-    center_lidar_config = config["center_lidar"]
-    center_lidar_config["host"] = config["host"]
-    center_lidar_config["port"] = config["port"]
+    # center_lidar_config = config["center_lidar"]
+    # center_lidar_config["host"] = config["host"]
+    # center_lidar_config["port"] = config["port"]
 
-    center_lidar_pub = ZenohSensor(
-        zsession,
-        center_lidar_config["ke"],
-        LidarSensor,
-        LidarMeasurement,
-        center_lidar_config,
-    )
+    # center_lidar_pub = ZenohSensor(
+    #     zsession,
+    #     center_lidar_config["ke"],
+    #     LidarSensor,
+    #     LidarMeasurement,
+    #     center_lidar_config,
+    # )
 
-    tele_lidar_config = config["tele_lidar"]
-    tele_lidar_config["host"] = config["host"]
-    tele_lidar_config["port"] = config["port"]
+    # tele_lidar_config = config["tele_lidar"]
+    # tele_lidar_config["host"] = config["host"]
+    # tele_lidar_config["port"] = config["port"]
 
-    tele_lidar_pub = ZenohSensor(
-        zsession,
-        tele_lidar_config["ke"],
-        LidarSensor,
-        LidarMeasurement,
-        tele_lidar_config,
-    )
+    # tele_lidar_pub = ZenohSensor(
+    #     zsession,
+    #     tele_lidar_config["ke"],
+    #     LidarSensor,
+    #     LidarMeasurement,
+    #     tele_lidar_config,
+    # )
 
     obstacles_config = config["obstacles"]
     obstacles_config["host"] = config["host"]
@@ -188,8 +188,8 @@ def main(config):
     location_pub.undeclare()
     traffic_lights_pub.undeclare()
     obstacles_pub.undeclare()
-    tele_lidar_pub.undeclare()
-    center_lidar_pub.undeclare()
+    # tele_lidar_pub.undeclare()
+    # center_lidar_pub.undeclare()
     tele_camera_pub.undeclare()
     center_camera_pub.undeclare()
     gnss_pub.undeclare()
