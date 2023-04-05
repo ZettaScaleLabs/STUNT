@@ -40,6 +40,7 @@ def handler(_signum, _frame):
 
 
 def main(config):
+
     carla_host = config["host"]
     carla_port = config["port"]
     ego_vehicle_name = config["ego_name"]
@@ -110,7 +111,7 @@ def main(config):
         can_pub = zsession.declare_publisher(can_config["ke"])
 
         def publish_can(sensor, pub):
-            while True:
+            while not done:
                 time.sleep(sensor.period)
                 can_pub.put(sensor.read_data().serialize())
 

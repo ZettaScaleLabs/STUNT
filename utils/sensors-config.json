@@ -101,17 +101,17 @@
         "name":"ground-truth-obstacles",
         "ke":"stunt/ground-truth/obstacles",
         "types":["vehicle.*","walker.pedestrian.*"],
-        "enabled": false
+        "enabled": true
     },
     "traffic_lights":{
         "name":"ground-truth-traffic-lights",
         "ke":"stunt/ground-truth/traffic-lights",
-        "enabled": false
+        "enabled": true
     },
     "location":{
         "name":"ground-truth-location",
         "ke":"stunt/ground-truth/location",
-        "enabled": false
+        "enabled": true
 
     }
 }
