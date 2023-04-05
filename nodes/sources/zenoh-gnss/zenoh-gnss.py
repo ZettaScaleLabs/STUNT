@@ -62,7 +62,7 @@ class ZenohGNSS(Source):
         self.gnss = GnssMeasurement.deserialize(sample.payload)
 
     def finalize(self) -> None:
-        self.sub.close()
+        self.sub.undeclare()
         self.session.close()
         return None
 

@@ -62,7 +62,7 @@ class ZenohIMU(Source):
         self.imu = IMUMeasurement.deserialize(sample.payload)
 
     def finalize(self) -> None:
-        self.sub.close()
+        self.sub.undeclare()
         self.session.close()
         return None
 

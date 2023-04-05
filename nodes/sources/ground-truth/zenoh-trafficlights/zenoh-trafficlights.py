@@ -69,7 +69,7 @@ class ZenohTrafficLights(Source):
             self.traffic_lights.append(TrafficLight.from_dict(tl))
 
     def finalize(self) -> None:
-        self.sub.close()
+        self.sub.undeclare()
         self.session.close()
         return None
 

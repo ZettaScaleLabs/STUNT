@@ -68,7 +68,7 @@ class ZenohObstacles(Source):
             self.obstacles.append(Obstacle.from_dict(o))
 
     def finalize(self) -> None:
-        self.sub.close()
+        self.sub.undeclare()
         self.session.close()
         return None
 
