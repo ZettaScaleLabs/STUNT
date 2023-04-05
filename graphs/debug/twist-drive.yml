@@ -3,13 +3,13 @@ configuration:
   host: '192.168.122.35'
 operators:
   - id : T2C
-    descriptor : /home/ato/Workspace/STUNT/nodes/operators/twist-to-control/twist-to-control.yml
+    descriptor : {{ BASE_DIR }}/nodes/operators/twist-to-control/twist-to-control.yml
 sources:
   - id : TwistSrc
-    descriptor : /home/ato/Workspace/STUNT/nodes/sources/twist-source/twist.yml
+    descriptor : {{ BASE_DIR }}/nodes/sources/twist-source/twist.yml
 sinks:
   - id : Car
-    descriptor : /home/ato/Workspace/STUNT/nodes/sinks/carla-control/carla-control.yml
+    descriptor : {{ BASE_DIR }}/nodes/sinks/carla-control/carla-control.yml
 
 links:
 - from:

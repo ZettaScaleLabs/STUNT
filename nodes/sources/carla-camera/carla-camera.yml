@@ -1,5 +1,5 @@
 id: CarlaCamera
-uri: file:///home/ato/Workspace/STUNT/nodes/sources/carla-camera/carla-camera.py
+uri: file://{{ BASE_DIR }}/nodes/sources/carla-camera/carla-camera.py
 configuration:
   host: '192.168.122.35'
   port: 2000

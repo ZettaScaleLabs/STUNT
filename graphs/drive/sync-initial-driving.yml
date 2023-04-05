@@ -4,45 +4,45 @@ configuration:
   port: 2000
 operators:
   - id: Localization
-    descriptor:  /home/ato/Workspace/STUNT/nodes/operators/ekf-localization/localization.yml
+    descriptor:  {{ BASE_DIR }}/nodes/operators/ekf-localization/localization.yml
 
   - id: TTD
-    descriptor:  /home/ato/Workspace/STUNT/nodes/operators/time-to-decision/time-to-decision.yml
+    descriptor:  {{ BASE_DIR }}/nodes/operators/time-to-decision/time-to-decision.yml
 
   - id: ObjectDetection
     configuration:
       obstacle_detection_model_path: /home/ato/Workspace/models/obstacle_detection/faster-rcnn
-      path_coco_labels: /home/ato/Workspace/STUNT/nodes/operators/obstacle-detector/STUNT.names
-    descriptor: /home/ato/Workspace/STUNT/nodes/operators/obstacle-detector/obstacle-detector.yml
+      path_coco_labels: {{ BASE_DIR }}/nodes/operators/obstacle-detector/STUNT.names
+    descriptor: {{ BASE_DIR }}/nodes/operators/obstacle-detector/obstacle-detector.yml
 
   - id: TrafficLightDetection
     configuration:
       traffic_light_det_model_path: /home/ato/Workspace/models/traffic_light_detection/faster-rcnn
-    descriptor: /home/ato/Workspace/STUNT/nodes/operators/traffic-lights-detector/traffic-lights-detector.yml
+    descriptor: {{ BASE_DIR }}/nodes/operators/traffic-lights-detector/traffic-lights-detector.yml
 
   - id: StaticObstacleLocationFinder
-    descriptor:  /home/ato/Workspace/STUNT/nodes/operators/obstacle-location-finder/obstacle-location-finder.yml
+    descriptor:  {{ BASE_DIR }}/nodes/operators/obstacle-location-finder/obstacle-location-finder.yml
 
   - id: SortTracker
-    descriptor:  /home/ato/Workspace/STUNT/nodes/operators/sort-tracker/sort-tracker.yml
+    descriptor:  {{ BASE_DIR }}/nodes/operators/sort-tracker/sort-tracker.yml
 
   - id: ObstacleLocationFinder
-    descriptor:  /home/ato/Workspace/STUNT/nodes/operators/obstacle-location-finder/obstacle-location-finder.yml
+    descriptor:  {{ BASE_DIR }}/nodes/operators/obstacle-location-finder/obstacle-location-finder.yml
 
   - id: ObstacleLocationHistory
-    descriptor:  /home/ato/Workspace/STUNT/nodes/operators/obstacle-location-history/obstacle-location-history.yml
+    descriptor:  {{ BASE_DIR }}/nodes/operators/obstacle-location-history/obstacle-location-history.yml
 
   - id: LinearPredictor
-    descriptor: /home/ato/Workspace/STUNT/nodes/operators/linear-predictor/linear-predictor.yml
+    descriptor: {{ BASE_DIR }}/nodes/operators/linear-predictor/linear-predictor.yml
 
   - id: BehaviourPlanning
     configuration:
       goal: [116.0, 129.0, 0.0]
-      map: /home/ato/Workspace/STUNT/var/maps/town01.xodr
-    descriptor:  /home/ato/Workspace/STUNT/nodes/operators/behaviour-planning/behaviour-planning.yml
+      map: {{ BASE_DIR }}/var/maps/town01.xodr
+    descriptor:  {{ BASE_DIR }}/nodes/operators/behaviour-planning/behaviour-planning.yml
 
   - id: Planner
-    descriptor: /home/ato/Workspace/STUNT/nodes/operators/fot-planner/fot-planner.yml
+    descriptor: {{ BASE_DIR }}/nodes/operators/fot-planner/fot-planner.yml
 
   - id: PIDController
     configuration:
@@ -50,7 +50,7 @@ operators:
       P: 0.01
       I: 0.5
       D: 0.03
-    descriptor: /home/ato/Workspace/STUNT/nodes/operators/pid-control/pid-control.yml
+    descriptor: {{ BASE_DIR }}/nodes/operators/pid-control/pid-control.yml
 
 
 sources:
@@ -59,47 +59,47 @@ sources:
     configuration:
       mode: "client"
       key_expression: "stunt/center-camera"
-    descriptor : /home/ato/Workspace/STUNT/nodes/sources/zenoh-camera/zenoh-camera.yml
+    descriptor : {{ BASE_DIR }}/nodes/sources/zenoh-camera/zenoh-camera.yml
 
   - id : Lidar
     configuration:
       mode: "client"
       key_expression: "stunt/center-lidar"
-    descriptor : /home/ato/Workspace/STUNT/nodes/sources/zenoh-lidar/zenoh-lidar.yml
+    descriptor : {{ BASE_DIR }}/nodes/sources/zenoh-lidar/zenoh-lidar.yml
 
   - id : TeleCamera
     configuration:
       mode: "client"
       key_expression: "stunt/tele-camera"
-    descriptor : /home/ato/Workspace/STUNT/nodes/sources/zenoh-camera/zenoh-camera.yml
+    descriptor : {{ BASE_DIR }}/nodes/sources/zenoh-camera/zenoh-camera.yml
 
   - id : TeleLidar
     configuration:
       mode: "client"
       key_expression: "stunt/tele-lidar"
-    descriptor : /home/ato/Workspace/STUNT/nodes/sources/zenoh-lidar/zenoh-lidar.yml
+    descriptor : {{ BASE_DIR }}/nodes/sources/zenoh-lidar/zenoh-lidar.yml
 
   - id : IMU
     configuration:
       mode: "client"
       key_expression: "stunt/imu"
-    descriptor : /home/ato/Workspace/STUNT/nodes/sources/zenoh-imu/zenoh-imu.yml
+    descriptor : {{ BASE_DIR }}/nodes/sources/zenoh-imu/zenoh-imu.yml
 
   - id : GNSS
     configuration:
       mode: "client"
       key_expression: "stunt/gnss"
-    descriptor : /home/ato/Workspace/STUNT/nodes/sources/zenoh-gnss/zenoh-gnss.yml
+    descriptor : {{ BASE_DIR }}/nodes/sources/zenoh-gnss/zenoh-gnss.yml
 
 sinks:
   - id : PyPrint
-    descriptor : /home/ato/Workspace/STUNT/nodes/sinks/generic-sink-py/generic-sink.yml
+    descriptor : {{ BASE_DIR }}/nodes/sinks/generic-sink-py/generic-sink.yml
 
   - id : ZenohCar
     configuration:
       mode: "client"
       key_expression: "stunt/ego-control"
-    descriptor : /home/ato/Workspace/STUNT/nodes/sinks/zenoh-control/zenoh-control.yml
+    descriptor : {{ BASE_DIR }}/nodes/sinks/zenoh-control/zenoh-control.yml
 
 links:
 

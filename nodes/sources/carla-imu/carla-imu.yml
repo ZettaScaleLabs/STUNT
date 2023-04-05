@@ -1,5 +1,5 @@
 id: CarlaIMUSrc
-uri: file:///home/ato/Workspace/STUNT/nodes/sources/carla-imu/carla-imu.py
+uri: file://{{ BASE_DIR }}/nodes/sources/carla-imu/carla-imu.py
 configuration:
   host: '192.168.122.35'
   port: 2000

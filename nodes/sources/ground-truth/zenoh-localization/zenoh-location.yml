@@ -1,11 +1,10 @@
-id: ZenohIMU
-uri: file:///home/ato/Workspace/STUNT/nodes/sources/ground-truth/zenoh-localization/zenoh-location.py
+id: ZenohLoc
+vars:
+  BASE_DIR: "/var/zenoh-flow"
+uri: "file://{{ BASE_DIR }}/nodes/sources/ground-truth/zenoh-localization/zenoh-location.py"
 configuration:
   locator: 'tcp/127.0.0.1:7887'
   mode: client
   key_expression: /stunt/location
   frequency: 30
-outputs :
-  - id: Pose
-    type: Pose
-tags: []
+outputs: [Pose]

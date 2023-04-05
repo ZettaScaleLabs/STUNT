@@ -1,5 +1,5 @@
 id: TrafficLightsDetection
-uri: file:///home/ato/Workspace/STUNT/nodes/operators/traffic-lights-detector/traffic-lights-detector.py
+uri: file://{{ BASE_DIR }}/nodes/operators/traffic-lights-detector/traffic-lights-detector.py
 configuration:
   traffic_light_det_model_path: dependencies/models/traffic_light_detection/faster-rcnn/ # Path to the traffic light model protobuf
   traffic_light_det_min_score_threshold: 0.7 # Min score threshold for bounding box

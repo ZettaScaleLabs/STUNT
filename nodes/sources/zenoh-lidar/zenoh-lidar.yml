@@ -1,5 +1,5 @@
 id: ZenohIMU
-uri: file:///home/ato/Workspace/STUNT/nodes/sources/zenoh-lidar/zenoh-lidar.py
+uri: file://{{ BASE_DIR }}/nodes/sources/zenoh-lidar/zenoh-lidar.py
 configuration:
   locator: 'tcp/127.0.0.1:7887'
   mode: client

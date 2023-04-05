@@ -3,45 +3,45 @@ configuration:
   host: '192.168.122.35'
 operators:
   - id: PerfectLocalization
-    descriptor:  /home/ato/Workspace/STUNT/nodes/operators/perfect-localization/localization.yml
+    descriptor:  {{ BASE_DIR }}/nodes/operators/perfect-localization/localization.yml
 
   - id: BehaviourPlanning
     configuration:
       goal: [3.0, 4.0, 0.0]
-    descriptor:  /home/ato/Workspace/STUNT/nodes/operators/behaviour-planning/behaviour-planning.yml
+    descriptor:  {{ BASE_DIR }}/nodes/operators/behaviour-planning/behaviour-planning.yml
 
   - id: TTD
-    descriptor:  /home/ato/Workspace/STUNT/nodes/operators/time-to-decision/time-to-decision.yml
+    descriptor:  {{ BASE_DIR }}/nodes/operators/time-to-decision/time-to-decision.yml
 
   - id: PerfectTracker
-    descriptor: /home/ato/Workspace/STUNT/nodes/operators/perfect-tracker/perfect-tracker.yml
+    descriptor: {{ BASE_DIR }}/nodes/operators/perfect-tracker/perfect-tracker.yml
 
   - id: LinearPredictor
-    descriptor: /home/ato/Workspace/STUNT/nodes/operators/linear-predictor/linear-predictor.yml
+    descriptor: {{ BASE_DIR }}/nodes/operators/linear-predictor/linear-predictor.yml
 
   - id: WaypointPlanner
-    descriptor: /home/ato/Workspace/STUNT/nodes/operators/waypoint-planner/waypoint-planner.yml
+    descriptor: {{ BASE_DIR }}/nodes/operators/waypoint-planner/waypoint-planner.yml
 
   - id: PIDController
-    descriptor: /home/ato/Workspace/STUNT/nodes/operators/pid-control/pid-control.yml
+    descriptor: {{ BASE_DIR }}/nodes/operators/pid-control/pid-control.yml
 
 
 sources:
 
   - id : CarlaTrafficLights
-    descriptor : /home/ato/Workspace/STUNT/nodes/sources/ground-truth/carla-trafficlights/carla-trafficlights.yml
+    descriptor : {{ BASE_DIR }}/nodes/sources/ground-truth/carla-trafficlights/carla-trafficlights.yml
 
   - id : CarlaObstacles
     configuration:
       type: 'vehicle.*'
-    descriptor : /home/ato/Workspace/STUNT/nodes/sources/ground-truth/carla-obstacles/carla-obstacles.yml
+    descriptor : {{ BASE_DIR }}/nodes/sources/ground-truth/carla-obstacles/carla-obstacles.yml
 
   - id : CarlaLocalization
-    descriptor : /home/ato/Workspace/STUNT/nodes/sources/ground-truth/carla-localization/carla-localization.yml
+    descriptor : {{ BASE_DIR }}/nodes/sources/ground-truth/carla-localization/carla-localization.yml
 
 sinks:
   - id : PyPrint
-    descriptor : /home/ato/Workspace/STUNT/nodes/sinks/generic-sink-py/generic-sink.yml
+    descriptor : {{ BASE_DIR }}/nodes/sinks/generic-sink-py/generic-sink.yml
 
 links:
 #sources

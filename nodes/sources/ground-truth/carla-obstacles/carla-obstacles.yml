@@ -1,5 +1,5 @@
 id: CarlaLidarSrc
-uri: file:///home/ato/Workspace/STUNT/nodes/sources/ground-truth/carla-obstacles/carla-obstacles.py
+uri: file://{{ BASE_DIR }}/nodes/sources/ground-truth/carla-obstacles/carla-obstacles.py
 configuration:
   host: '192.168.122.35'
   port: 2000

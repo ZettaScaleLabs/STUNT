@@ -6,33 +6,33 @@ sources:
   - id : CarlaLocalization
     configuration:
       frequency: 30
-    descriptor : /home/ato/Workspace/STUNT/nodes/sources/ground-truth/carla-localization/carla-localization.yml
+    descriptor : {{ BASE_DIR }}/nodes/sources/ground-truth/carla-localization/carla-localization.yml
 
   - id : CarlaGNSS
     configuration:
       frequency: 30
-    descriptor : /home/ato/Workspace/STUNT/nodes/sources/carla-gnss/carla-gnss.yml
+    descriptor : {{ BASE_DIR }}/nodes/sources/carla-gnss/carla-gnss.yml
 
   - id : CarlaIMU
     configuration:
       frequency: 30
-    descriptor : /home/ato/Workspace/STUNT/nodes/sources/carla-imu/carla-imu.yml
+    descriptor : {{ BASE_DIR }}/nodes/sources/carla-imu/carla-imu.yml
 
 sinks:
   - id : DumpGNSS
     configuration:
-      out_file: /home/ato/Workspace/STUNT/gnss.log
-    descriptor : /home/ato/Workspace/STUNT/nodes/sinks/json-dump-py/json-dump.yml
+      out_file: {{ BASE_DIR }}/gnss.log
+    descriptor : {{ BASE_DIR }}/nodes/sinks/json-dump-py/json-dump.yml
 
   - id : DumpLocalization
     configuration:
-      out_file: /home/ato/Workspace/STUNT/localization.log
-    descriptor : /home/ato/Workspace/STUNT/nodes/sinks/json-dump-py/json-dump.yml
+      out_file: {{ BASE_DIR }}/localization.log
+    descriptor : {{ BASE_DIR }}/nodes/sinks/json-dump-py/json-dump.yml
 
   - id : DumpIMU
     configuration:
-      out_file: /home/ato/Workspace/STUNT/imu.log
-    descriptor : /home/ato/Workspace/STUNT/nodes/sinks/json-dump-py/json-dump.yml
+      out_file: {{ BASE_DIR }}/imu.log
+    descriptor : {{ BASE_DIR }}/nodes/sinks/json-dump-py/json-dump.yml
 
 links:
 - from:

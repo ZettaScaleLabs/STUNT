@@ -2,7 +2,7 @@ from carla import VehicleControl as CarlaVehicleControl
 
 from dataclasses import dataclass
 from pycdr2 import IdlStruct
-from pycdr2.types import float64, uint8
+from pycdr2.types import float64, int8
 
 
 @dataclass
@@ -13,7 +13,7 @@ class VehicleControl(IdlStruct):
     hand_brake: bool
     reverse: bool
     manual_gear_shift: bool
-    gear: uint8
+    gear: int8
 
     def __init__(
         self,

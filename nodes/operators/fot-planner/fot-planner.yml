@@ -1,5 +1,5 @@
 id: FotPlanner
-uri: file:///home/ato/Workspace/STUNT/nodes/operators/fot-planner/fot-planner.py
+uri: file://{{ BASE_DIR }}/nodes/operators/fot-planner/fot-planner.py
 configuration:
   # Agent stopping configs.
   stop_for_traffic_lights: True # True to enable traffic light stopping

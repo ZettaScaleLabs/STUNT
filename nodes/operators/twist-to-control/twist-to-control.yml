@@ -1,5 +1,5 @@
 id: PerfectLocalization
-uri: file:///home/ato/Workspace/STUNT/nodes/operators/twist-to-control/twist-to-control.py
+uri: file://{{ BASE_DIR }}/nodes/operators/twist-to-control/twist-to-control.py
 configuration:
   sensitivity: 1
 

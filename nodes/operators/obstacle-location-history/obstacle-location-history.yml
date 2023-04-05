@@ -1,5 +1,5 @@
 id: ObstacleLocationHistory
-uri: file:///home/ato/Workspace/STUNT/nodes/operators/obstacle-location-history/obstacle-location-history.py
+uri: file://{{ BASE_DIR }}/nodes/operators/obstacle-location-history/obstacle-location-history.py
 configuration:
   tracking_num_steps: 10
   dynamic_obstacle_distance_threshold_m: 30.0

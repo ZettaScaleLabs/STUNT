@@ -1,5 +1,5 @@
 id: ZenohGNSS
-uri: file:///home/ato/Workspace/STUNT/nodes/sources/zenoh-gnss/zenoh-gnss.py
+uri: file://{{ BASE_DIR }}/nodes/sources/zenoh-gnss/zenoh-gnss.py
 configuration:
   locator: 'tcp/127.0.0.1:7887'
   mode: client

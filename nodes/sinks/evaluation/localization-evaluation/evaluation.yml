@@ -1,7 +1,7 @@
 id: LocalizationEvaluation
-uri: file:///home/ato/Workspace/STUNT/nodes/sinks/evaluation/localization-evaluation/evaluation.py
+uri: file://{{ BASE_DIR }}/nodes/sinks/evaluation/localization-evaluation/evaluation.py
 configuration:
-  out_file: /home/ato/Workspace/STUNT/eval-location.csv
+  out_file: {{ BASE_DIR }}/eval-location.csv
 inputs:
   - id: Perfect
     type: Pose

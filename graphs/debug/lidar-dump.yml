@@ -4,10 +4,10 @@ configuration:
 operators: []
 sources:
   - id : CarlaLidar
-    descriptor : /home/ato/Workspace/STUNT/nodes/sources/carla-lidar/carla-lidar.yml
+    descriptor : {{ BASE_DIR }}/nodes/sources/carla-lidar/carla-lidar.yml
 sinks:
   - id : PyPrint
-    descriptor : /home/ato/Workspace/STUNT/nodes/sinks/generic-sink-py/generic-sink.yml
+    descriptor : {{ BASE_DIR }}/nodes/sinks/generic-sink-py/generic-sink.yml
 
 links:
 - from:

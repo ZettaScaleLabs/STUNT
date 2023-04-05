@@ -1,11 +1,10 @@
-id: ZenohIMU
-uri: file:///home/ato/Workspace/STUNT/nodes/sources/ground-truth/zenoh-obstacles/zenoh-obstacles.py
+id: ZenohObs
+vars:
+  BASE_DIR: "/var/zenoh-flow"
+uri: "file://{{ BASE_DIR }}/nodes/sources/ground-truth/zenoh-obstacles/zenoh-obstacles.py"
 configuration:
   locator: 'tcp/127.0.0.1:7887'
   mode: client
   key_expression: /stunt/obstacles
   frequency: 1
-outputs :
-  - id: Obstacles
-    type: Obstacles
-tags: []
+outputs: [Obstacles]

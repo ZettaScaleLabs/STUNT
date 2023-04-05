@@ -1,7 +1,7 @@
 id: PySink
-uri: file:///home/ato/Workspace/STUNT/nodes/sinks/json-dump-py/json-dump.py
+uri: file://{{ BASE_DIR }}/nodes/sinks/json-dump-py/json-dump.py
 configuration:
-  out_file: /home/ato/Workspace/STUNT/data-dump.log
+  out_file: {{ BASE_DIR }}/data-dump.log
 inputs:
   - id: Data
     type: _any_

@@ -3,29 +3,29 @@ configuration:
   host: '192.168.122.35'
 operators:
   - id: PerfectLocalization
-    descriptor:  /home/ato/Workspace/STUNT/nodes/operators/perfect-localization/localization.yml
+    descriptor:  {{ BASE_DIR }}/nodes/operators/perfect-localization/localization.yml
 
   - id: TTD
-    descriptor:  /home/ato/Workspace/STUNT/nodes/operators/time-to-decision/time-to-decision.yml
+    descriptor:  {{ BASE_DIR }}/nodes/operators/time-to-decision/time-to-decision.yml
 
   - id: PerfectTracker
-    descriptor: /home/ato/Workspace/STUNT/nodes/operators/perfect-tracker/perfect-tracker.yml
+    descriptor: {{ BASE_DIR }}/nodes/operators/perfect-tracker/perfect-tracker.yml
 
   - id: LinearPredictor
-    descriptor: /home/ato/Workspace/STUNT/nodes/operators/linear-predictor/linear-predictor.yml
+    descriptor: {{ BASE_DIR }}/nodes/operators/linear-predictor/linear-predictor.yml
 
 sources:
   - id : CarlaObstacles
     configuration:
       type: 'vehicle.*'
-    descriptor : /home/ato/Workspace/STUNT/nodes/sources/ground-truth/carla-obstacles/carla-obstacles.yml
+    descriptor : {{ BASE_DIR }}/nodes/sources/ground-truth/carla-obstacles/carla-obstacles.yml
 
   - id : CarlaLocalization
-    descriptor : /home/ato/Workspace/STUNT/nodes/sources/ground-truth/carla-localization/carla-localization.yml
+    descriptor : {{ BASE_DIR }}/nodes/sources/ground-truth/carla-localization/carla-localization.yml
 
 sinks:
   - id : PyPrint
-    descriptor : /home/ato/Workspace/STUNT/nodes/sinks/generic-sink-py/generic-sink.yml
+    descriptor : {{ BASE_DIR }}/nodes/sinks/generic-sink-py/generic-sink.yml
 
 links:
 #sources

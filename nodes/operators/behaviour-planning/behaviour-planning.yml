@@ -1,14 +1,11 @@
 id: BehaviourPlanning
-uri: file:///home/ato/Workspace/STUNT/nodes/operators/behaviour-planning/behaviour-planning.py
+vars:
+  BASE_DIR: "/var/zenoh-flow"
+uri: "file://{{ BASE_DIR }}/nodes/operators/behaviour-planning/behaviour-planning.py"
 configuration:
   min_movin_speed: 0.7
-  map: /home/ato/Workspace/STUNT/var/maps/town01.xodr
-inputs :
-  - id: Route
-    type: Waypoints
-  - id: Pose
-    type: Pose
-outputs :
-  - id: Trajectory
-    type: Waypoints
-tags: []
+  map: "{{ BASE_DIR }}/var/maps/town01.xodr"
+inputs:
+  - Route
+  - Pose
+outputs: [Trajectory]

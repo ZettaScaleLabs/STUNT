@@ -1,5 +1,5 @@
 id: ZenohCamera
-uri: file:///home/ato/Workspace/STUNT/nodes/sources/zenoh-camera/zenoh-camera.py
+uri: file://{{ BASE_DIR }}/nodes/sources/zenoh-camera/zenoh-camera.py
 configuration:
   locator: 'tcp/127.0.0.1:7887'
   mode: client

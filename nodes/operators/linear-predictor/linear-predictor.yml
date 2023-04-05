@@ -1,15 +1,12 @@
 id: LinearPredictor
-uri: file:///home/ato/Workspace/STUNT/nodes/operators/linear-predictor/linear-predictor.py
+vars:
+  BASE_DIR: "/var/zenoh-flow"
+uri: "file://{{ BASE_DIR }}/nodes/operators/linear-predictor/linear-predictor.py"
 configuration:
   prediction_radius: 50
   prediction_num_past_steps: 5
   prediction_num_future_steps: 10
-inputs :
-  - id: ObstacleTrajectories
-    type: ObstacleTrajectories
-  - id: TTD
-    type: TTD
-outputs :
-  - id: ObstaclePredictions
-    type: ObstaclePredictions
-tags: []
+inputs:
+  - ObstacleTrajectories
+  - TTD
+outputs: ObstaclePredictions

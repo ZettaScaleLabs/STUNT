@@ -1,5 +1,5 @@
 id: CarlaControl
-uri: file:///home/ato/Workspace/STUNT/nodes/sinks/carla-control/carla-control.py
+uri: file://{{ BASE_DIR }}/nodes/sinks/carla-control/carla-control.py
 configuration:
   host: '192.168.122.35'
   port: 2000

@@ -1,6 +1,5 @@
 id: PySink
-uri: file:///home/ato/Workspace/STUNT/nodes/sinks/generic-sink-py/generic-sink.py
-inputs:
-  - id: Data
-    type: _any_
-tags: []
+vars:
+  BASE_DIR: "/var/zenoh-flow"
+uri: file://{{ BASE_DIR }}/nodes/sinks/generic-sink-py/generic-sink.py
+inputs: [Data]

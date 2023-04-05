@@ -1,11 +1,10 @@
-id: ZenohIMU
-uri: file:///home/ato/Workspace/STUNT/nodes/sources/ground-truth/zenoh-trafficlights/zenoh-trafficlights.py
+id: ZenohTL
+vars:
+  BASE_DIR: "/var/zenoh-flow"
+uri: "file://{{ BASE_DIR }}/nodes/sources/ground-truth/zenoh-trafficlights/zenoh-trafficlights.py"
 configuration:
   locator: 'tcp/127.0.0.1:7887'
   mode: client
   key_expression: /stunt/traffic-lights
   frequency: 1
-outputs :
-  - id: TrafficLights
-    type: TrafficLights
-tags: []
+outputs: [TrafficLights]

@@ -1,5 +1,5 @@
 id: TrafficLightsDetection
-uri: file:///home/ato/Workspace/STUNT/nodes/operators/obstacle-location-finder/obstacle-location-finder.py
+uri: file://{{ BASE_DIR }}/nodes/operators/obstacle-location-finder/obstacle-location-finder.py
 configuration:
   camera_fov: 90
   camera_location: [1.3, 0.0, 1.8]

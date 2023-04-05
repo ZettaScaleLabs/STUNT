@@ -4,31 +4,31 @@ configuration:
   port: 2000
 operators:
   - id: Localization
-    descriptor:  /home/ato/Workspace/STUNT/nodes/operators/ekf-localization/localization.yml
+    descriptor:  {{ BASE_DIR }}/nodes/operators/ekf-localization/localization.yml
 
   - id: PerfectLocalization
-    descriptor:  /home/ato/Workspace/STUNT/nodes/operators/perfect-localization/localization.yml
+    descriptor:  {{ BASE_DIR }}/nodes/operators/perfect-localization/localization.yml
 
 sources:
 
   - id : CarlaLocalization
     configuration:
       frequency: 1
-    descriptor : /home/ato/Workspace/STUNT/nodes/sources/ground-truth/carla-localization/carla-localization.yml
+    descriptor : {{ BASE_DIR }}/nodes/sources/ground-truth/carla-localization/carla-localization.yml
 
   - id : CarlaGNSS
     configuration:
       frequency: 1
-    descriptor : /home/ato/Workspace/STUNT/nodes/sources/carla-gnss/carla-gnss.yml
+    descriptor : {{ BASE_DIR }}/nodes/sources/carla-gnss/carla-gnss.yml
 
   - id : CarlaIMU
     configuration:
       frequency: 1
-    descriptor : /home/ato/Workspace/STUNT/nodes/sources/carla-imu/carla-imu.yml
+    descriptor : {{ BASE_DIR }}/nodes/sources/carla-imu/carla-imu.yml
 
 sinks:
   - id : Evaluation
-    descriptor : /home/ato/Workspace/STUNT/nodes/sinks/evaluation/localization-evaluation/evaluation.yml
+    descriptor : {{ BASE_DIR }}/nodes/sinks/evaluation/localization-evaluation/evaluation.yml
 
 links:
 #sources

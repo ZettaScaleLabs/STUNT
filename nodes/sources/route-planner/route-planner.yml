@@ -1,9 +1,8 @@
 id: CarlaCamera
-uri: file:///home/ato/Workspace/STUNT/nodes/sources/route-planner/route-planner.py
+vars:
+  BASE_DIR: "/var/zenoh-flow"
+uri: "file://{{ BASE_DIR }}/nodes/sources/route-planner/route-planner.py"
 configuration:
     goal: [116.0, 129.0, 0.0]
-    map: /home/ato/Workspace/STUNT/var/maps/town01.xodr
-outputs :
-  - id: Route
-    type: Waypoints
-tags: []
+    map: {{ BASE_DIR }}/var/maps/town01.xodr
+outputs: [Route]

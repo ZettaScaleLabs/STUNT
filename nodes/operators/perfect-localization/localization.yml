@@ -1,16 +1,12 @@
 id: PerfectLocalization
-uri: file:///home/ato/Workspace/STUNT/nodes/operators/perfect-localization/localization.py
+vars:
+  BASE_DIR: "/var/zenoh-flow"
+uri: "file://{{ BASE_DIR }}/nodes/operators/perfect-localization/localization.py"
 configuration:
   gravity: [0.0, 0.0,-9.81]
   kalman:
     imu_f: 0.5
     imu_w: 0.5
     gnss: 0.1
-
-inputs :
-  - id: Pose
-    type: Pose
-outputs :
-  - id: Pose
-    type: Pose
-tags: []
+inputs: [Pose]
+outputs: [Pose]

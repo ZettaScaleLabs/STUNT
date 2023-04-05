@@ -53,7 +53,7 @@ sources:
     descriptor : "file://{{ BASE_DIR }}/nodes/sources/ground-truth/zenoh-obstacles/zenoh-obstacles.yml"
 
   - id : CarlaLocalization
-    descriptor : "file://{{ BASE_DIR }}/nodes/sources/ground-truth/zenoh-localization/zenoh-localization.yml"
+    descriptor : "file://{{ BASE_DIR }}/nodes/sources/ground-truth/zenoh-location/zenoh-location.yml"
 
   - id: RoutePlanner
     configuration:

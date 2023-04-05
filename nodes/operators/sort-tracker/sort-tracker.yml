@@ -1,5 +1,5 @@
 id: SortTracker
-uri: file:///home/ato/Workspace/STUNT/nodes/operators/sort-tracker/sort-tracker.py
+uri: file://{{ BASE_DIR }}/nodes/operators/sort-tracker/sort-tracker.py
 configuration:
   min_matching_iou: 0.2 # IoU required between detection and track for matching to be considered
   eval_min_matching_iou: 0.5 # IoU required for tracking evaluation

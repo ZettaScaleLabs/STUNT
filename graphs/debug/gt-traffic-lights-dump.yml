@@ -4,10 +4,10 @@ configuration:
 operators: []
 sources:
   - id : CarlaTrafficLights
-    descriptor : /home/ato/Workspace/STUNT/nodes/sources/ground-truth/carla-trafficlights/carla-trafficlights.yml
+    descriptor : {{ BASE_DIR }}/nodes/sources/ground-truth/carla-trafficlights/carla-trafficlights.yml
 sinks:
   - id : PyPrint
-    descriptor : /home/ato/Workspace/STUNT/nodes/sinks/generic-sink-py/generic-sink.yml
+    descriptor : {{ BASE_DIR }}/nodes/sinks/generic-sink-py/generic-sink.yml
 
 links:
 - from:
