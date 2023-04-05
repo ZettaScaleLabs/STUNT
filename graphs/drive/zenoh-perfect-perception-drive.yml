@@ -18,7 +18,7 @@ operators:
     descriptor:  "file://{{ BASE_DIR }}/nodes/operators/behaviour-planning/behaviour-planning.yml"
 
   - id: TTD
-    descriptor:  "{{ BASE_DIR }}/nodes/operators/time-to-decision/time-to-decision.yml"
+    descriptor:  "file://{{ BASE_DIR }}/nodes/operators/time-to-decision/time-to-decision.yml"
 
   - id: PerfectTracker
     descriptor: "file://{{ BASE_DIR }}/nodes/operators/perfect-tracker/perfect-tracker.yml"
