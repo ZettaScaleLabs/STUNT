@@ -43,7 +43,7 @@ class Image(IdlStruct):
         return value
 
     @classmethod
-    def from_simulator(cls, data):
+    def from_simulator(cls, data, jpeg_quality=JPEG_QUALITY):
         """Creates a STUNT Image from a simulator Image.
 
         Args:
@@ -58,7 +58,7 @@ class Image(IdlStruct):
 
         frame = (np.frombuffer(data.raw_data, dtype=np.dtype("uint8")),)
         frame = np.reshape(frame, (data.height, data.width, 4))
-        frame_jpeg = cls.to_jpeg(frame)
+        frame_jpeg = cls.to_jpeg(frame, jpeg_quality)
         # print(f'Frame JPEG from fucking carla type is : {type(frame_jpeg)} value: {frame_jpeg[:80]} ')
 
         # tried = Image.from_jpeg(frame_jpeg, data.height, data.width)

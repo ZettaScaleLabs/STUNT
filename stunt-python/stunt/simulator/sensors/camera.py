@@ -1,7 +1,7 @@
 import carla
 import time
 
-from stunt.types import Location, Rotation
+from stunt.types import Location, Rotation, Image
 from stunt import (
     DEFAULT_SAMPLING_FREQUENCY,
     DEFAULT_CARLA_HOST,
@@ -55,6 +55,8 @@ class CameraSensor:
         self.player = None
         self.sensor = None
 
+        self.cb = on_data
+
         # Waiting EGO vehicle
         while self.player is None:
             time.sleep(1)
@@ -106,4 +108,8 @@ class CameraSensor:
                 attach_to=self.player,
             )
 
-        self.sensor.listen(on_data)
+        self.sensor.listen(self.on_simulator_data)
+
+    def on_simulator_data(self, data):
+        frame = Image.from_simulator(data, self.jpeg_quality)
+        self.cb(frame)

@@ -14,7 +14,7 @@
         "fov":90,
         "name":"stunt-center-camera",
         "ke":"stunt/center-camera",
-        "jpeg_quality":25,
+        "jpeg_quality":50,
         "enabled": true
     },
     "tele_camera":{
