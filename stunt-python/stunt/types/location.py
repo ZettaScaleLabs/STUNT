@@ -112,7 +112,7 @@ class Location(IdlStruct):
             An instance of the simulator class representing the location.
         """
 
-        return CarlaLocation(self.x, self.y, self.z)
+        return CarlaLocation(self.vector3d.x, self.vector3d.y, self.vector3d.z)
 
     def __repr__(self):
         return self.__str__()
