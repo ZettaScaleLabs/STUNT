@@ -1,5 +1,5 @@
 from zenoh_flow.interfaces import Sink
-from zenoh_flow import DataReceiver
+from zenoh_flow import Input
 from zenoh_flow.types import Context
 from typing import Dict, Any
 import json
@@ -15,7 +15,7 @@ class CtrlCarZenoh(Sink):
         self,
         context: Context,
         configuration: Dict[str, Any],
-        inputs: Dict[str, DataReceiver],
+        inputs: Dict[str, Input],
     ):
         self.in_stream = inputs.get("Data", None)
 

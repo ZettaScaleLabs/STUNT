@@ -1,5 +1,5 @@
 from zenoh_flow.interfaces import Source
-from zenoh_flow import DataSender
+from zenoh_flow import Output
 from zenoh_flow.types import Context
 from typing import Any, Dict
 import asyncio
@@ -22,7 +22,7 @@ class Destination(Source):
         self,
         context: Context,
         configuration: Dict[str, Any],
-        outputs: Dict[str, DataSender],
+        outputs: Dict[str, Output],
     ):
         configuration = {} if configuration is None else configuration
 

@@ -1,5 +1,5 @@
 from zenoh_flow.interfaces import Operator
-from zenoh_flow import DataReceiver, DataSender
+from zenoh_flow import Input, Output
 from zenoh_flow.types import Context
 from typing import Dict, Any
 
@@ -31,8 +31,8 @@ class ObstacleDetection(Operator):
         self,
         context: Context,
         configuration: Dict[str, Any],
-        inputs: Dict[str, DataReceiver],
-        outputs: Dict[str, DataSender],
+        inputs: Dict[str, Input],
+        outputs: Dict[str, Output],
     ):
 
         configuration = {} if configuration is None else configuration
