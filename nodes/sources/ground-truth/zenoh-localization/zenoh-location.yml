@@ -5,6 +5,6 @@ uri: "file://{{ BASE_DIR }}/nodes/sources/ground-truth/zenoh-localization/zenoh-
 configuration:
   locator: tcp/zenoh-router:7447
   mode: client
-  key_expression: /stunt/location
+  key_expression: stunt/location
   frequency: 30
 outputs: [Pose]

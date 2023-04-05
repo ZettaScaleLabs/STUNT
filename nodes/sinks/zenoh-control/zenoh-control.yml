@@ -5,5 +5,5 @@ uri: "file://{{ BASE_DIR }}/nodes/sinks/zenoh-control/zenoh-control.py"
 configuration:
   locator: tcp/zenoh-router:7447
   mode: client
-  key_expression: /stunt/control
+  key_expression: stunt/control
 inputs: [Data]

@@ -4,5 +4,5 @@ vars:
 uri: "file://{{ BASE_DIR }}/nodes/sources/route-planner/route-planner.py"
 configuration:
     goal: [116.0, 129.0, 0.0]
-    map: {{ BASE_DIR }}/var/maps/town01.xodr
+    map: "{{ BASE_DIR }}/var/maps/town01.xodr"
 outputs: [Route]

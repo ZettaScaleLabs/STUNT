@@ -5,6 +5,6 @@ uri: "file://{{ BASE_DIR }}/nodes/sources/ground-truth/zenoh-trafficlights/zenoh
 configuration:
   locator: tcp/zenoh-router:7447
   mode: client
-  key_expression: /stunt/traffic-lights
+  key_expression: stunt/traffic-lights
   frequency: 1
 outputs: [TrafficLights]
