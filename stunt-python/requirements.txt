@@ -4,6 +4,8 @@ opencv-python==4.7.0.72
 carla==0.9.14
 shapely
 eclipse-zenoh==0.7.0rc0
+pycdr2==1.0.0
+# dataclasses==0.8
 # for ai
 tensorflow==2.12.0
 matplotlib==3.6.1

@@ -1,26 +1,9 @@
-#!/usr/bin/env python3
-
-
-HELP = """
-STUNT Zenoh-based visualizer
-
-Use ARROWS or WASD keys for control.
-
-    [1-9]        : change to sensor [1-9]
-    H/?          : toggle help
-    ESC          : quit
-"""
-
 import argparse
-import json
-import zenoh
-import os
-import pygame
 import time
-from pygame.locals import K_1, K_2, K_3, K_4, K_ESCAPE, K_h, K_QUESTION, K_q
-import numpy as np
 import cv2
-
+import zenoh
+import json
+import numpy as np
 from stunt.types import (
     Image,
     GnssMeasurement,
@@ -28,6 +11,7 @@ from stunt.types import (
     VehicleControl,
     LidarMeasurement,
     PointCloud,
+    Vector3D,
 )
 
 
@@ -41,73 +25,9 @@ TELE_CAMERA = 1
 CENTER_LIDAR = 2
 TELE_LIDAR = 3
 
-# ==============================================================================
-# -- FadingText ----------------------------------------------------------------
-# ==============================================================================
 
-
-class FadingText(object):
-    def __init__(self, font, dim, pos):
-        self.font = font
-        self.dim = dim
-        self.pos = pos
-        self.seconds_left = 0
-        self.surface = pygame.Surface(self.dim)
-
-    def set_text(self, text, color=(255, 255, 255), seconds=2.0):
-        text_texture = self.font.render(text, True, color)
-        self.surface = pygame.Surface(self.dim)
-        self.seconds_left = seconds
-        self.surface.fill((0, 0, 0, 0))
-        self.surface.blit(text_texture, (10, 11))
-
-    def tick(self, _, clock):
-        delta_seconds = 1e-3 * clock.get_time()
-        self.seconds_left = max(0.0, self.seconds_left - delta_seconds)
-        self.surface.set_alpha(500.0 * self.seconds_left)
-
-    def render(self, display):
-        display.blit(self.surface, self.pos)
-
-
-# ==============================================================================
-# -- HelpText ------------------------------------------------------------------
-# ==============================================================================
-
-
-class HelpText(object):
-    """Helper class to handle text output using pygame"""
-
-    def __init__(self, font, width, height):
-        lines = HELP
-        self.font = font
-        self.line_space = 18
-        self.dim = (780, len(lines) * self.line_space + 12)
-        self.pos = (
-            0.5 * width - 0.5 * self.dim[0],
-            0.5 * height - 0.5 * self.dim[1],
-        )
-        self.seconds_left = 0
-        self.surface = pygame.Surface(self.dim)
-        self.surface.fill((0, 0, 0, 0))
-        for n, line in enumerate(lines):
-            text_texture = self.font.render(line, True, (255, 255, 255))
-            self.surface.blit(text_texture, (22, n * self.line_space))
-            self._render = False
-        self.surface.set_alpha(220)
-
-    def toggle(self):
-        self._render = not self._render
-
-    def render(self, display):
-        if self._render:
-            display.blit(self.surface, self.pos)
-
-
-class HUD(object):
+class UI(object):
     def __init__(self, configuration):
-
-        # initialization of zenoh session
 
         self.zconf = zenoh.Config()
         self.zconf.insert_json5(
@@ -117,58 +37,28 @@ class HUD(object):
             zenoh.config.CONNECT_KEY, json.dumps(configuration["locators"])
         )
         self.zsession = zenoh.open(self.zconf)
-
         # initializing variables
         self.center_image = None
         self.tele_image = None
         self.gnss = GnssMeasurement()
         self.imu = IMUMeasurement()
+        self.speed = 0
         self.center_lidar = None
         self.tele_lidar = None
         self.control = VehicleControl()
+
+        self.processing_time = 1.0
 
         self.visualizing = CENTER_CAMERA
         self.tick_ms = HUD_TICK_MS
         self.height = WINDOW_HEIGHT
         self.width = WINDOW_WIDTH
         self.dim = (self.width, self.height)
-        self.display = None
+        self.display = np.zeros((self.height, self.width, 3), np.uint8)
         self.font = None
         self._font_mono = None
-        # initializing hud
-        pygame.init()
-        pygame.font.init()
 
-        self.display = pygame.display.set_mode(
-            (self.width, self.height), pygame.HWSURFACE | pygame.DOUBLEBUF
-        )
-        self.display.fill((0, 0, 0))
-        pygame.display.flip()
-
-        self.font = pygame.font.Font(pygame.font.get_default_font(), 20)
-
-        font_name = "courier" if os.name == "nt" else "mono"
-        fonts = [x for x in pygame.font.get_fonts() if font_name in x]
-        default_font = "ubuntumono"
-        mono = default_font if default_font in fonts else fonts[0]
-        mono = pygame.font.match_font(mono)
-        self._font_mono = pygame.font.Font(mono, 12 if os.name == "nt" else 14)
-        self.server_fps = 0
-        self.frame = 0
-        self.simulation_time = 0
-        self._show_info = True
-        self._info_text = []
-        self._server_clock = pygame.time.Clock()
-        self.surface = None
-
-        self.show_help = False
-
-        self.notifications = FadingText(
-            self.font, (self.width, 40), (0, self.height - 40)
-        )
-        # self.help = HelpText(
-        #     pygame.font.Font(mono, 16), self.width, self.height
-        # )
+        self.window_name = "ZenohCar"
 
         # start zenoh subscribers
 
@@ -200,11 +90,24 @@ class HUD(object):
             configuration["control"]["ke"], self.on_control
         )
 
+        self.can_sub = self.zsession.declare_subscriber(
+            configuration["can"]["ke"], self.on_can
+        )
+
+    def start(self):
+        while True:
+            self.render()
+            cv2.imshow(self.window_name, self.display)
+            cv2.waitKey(1) & 0xFF
+            time.sleep(1/self.tick_ms)
+
     def on_tele_camera(self, sample):
-        self.tele_image = Image.deserialize(sample.payload)
+        tele_image = Image.deserialize(sample.payload)
+        self.tele_image = Image.from_jpeg(bytes(tele_image.raw_data))
 
     def on_center_camera(self, sample):
-        self.center_image = Image.deserialize(sample.payload)
+        center_image = Image.deserialize(sample.payload)
+        self.center_image = Image.from_jpeg(bytes(center_image.raw_data))
 
     def on_gnss(self, sample):
         self.gnss = GnssMeasurement.deserialize(sample.payload)
@@ -223,99 +126,15 @@ class HUD(object):
         lidar_data = LidarMeasurement.deserialize(sample.payload)
         self.tele_lidar = PointCloud.from_lidar_measurement(lidar_data)
 
-    def render(self):
-        if self._show_info:
-            info_surface = pygame.Surface((220, self.dim[1]))
-            info_surface.set_alpha(100)
-            self.display.blit(info_surface, (0, 0))
-            v_offset = 4
-            bar_h_offset = 100
-            bar_width = 106
-            for item in self._info_text:
-                if v_offset + 18 > self.dim[1]:
-                    break
-                if isinstance(item, list):
-                    if len(item) > 1:
-                        points = [
-                            (x + 8, v_offset + 8 + (1.0 - y) * 30)
-                            for x, y in enumerate(item)
-                        ]
-                        pygame.draw.lines(
-                            self.display, (255, 136, 0), False, points, 2
-                        )
-                    item = None
-                    v_offset += 18
-                elif isinstance(item, tuple):
-                    if isinstance(item[1], bool):
-                        rect = pygame.Rect(
-                            (bar_h_offset, v_offset + 8), (6, 6)
-                        )
-                        pygame.draw.rect(
-                            self.display,
-                            (255, 255, 255),
-                            rect,
-                            0 if item[1] else 1,
-                        )
-                    else:
-                        rect_border = pygame.Rect(
-                            (bar_h_offset, v_offset + 8), (bar_width, 6)
-                        )
-                        pygame.draw.rect(
-                            self.display, (255, 255, 255), rect_border, 1
-                        )
-                        f = (item[1] - item[2]) / (item[3] - item[2])
-                        if item[2] < 0.0:
-                            rect = pygame.Rect(
-                                (
-                                    bar_h_offset + f * (bar_width - 6),
-                                    v_offset + 8,
-                                ),
-                                (6, 6),
-                            )
-                        else:
-                            rect = pygame.Rect(
-                                (bar_h_offset, v_offset + 8),
-                                (f * bar_width, 6),
-                            )
-                        pygame.draw.rect(self.display, (255, 255, 255), rect)
-                    item = item[0]
-                if item:  # At this point has to be a str.
-                    surface = self._font_mono.render(
-                        item, True, (255, 255, 255)
-                    )
-                    self.display.blit(surface, (8, v_offset))
-                v_offset += 18
-
-    def parse_keyboard_events(self):
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                return True
-            elif event.type == pygame.KEYUP:
-                if event.key == K_ESCAPE or event.key == K_q:
-                    return True
-                elif event.key == K_1:
-                    self.visualizing = CENTER_CAMERA
-                    return False
-                elif event.key == K_2:
-                    self.visualizing = TELE_CAMERA
-                    return False
-                elif event.key == K_3:
-                    self.visualizing = CENTER_LIDAR
-                    return False
-                elif event.key == K_4:
-                    self.visualizing = TELE_LIDAR
-                    return False
-                elif event.type == K_h or event.type == K_QUESTION:
-                    self.show_help = not self.show_help
-                    return False
-
-    def notification(self, text, seconds=2.0):
-        self.notifications.set_text(text, seconds=seconds)
+    def on_can(self, sample):
+        speed_vec = Vector3D.deserialize(sample.payload)
+        speed_ms = speed_vec.magnitude()
+        self.speed = speed_ms * 3.6
 
     def generate_info_text(self):
         self._info_text = [
-            "Server:  % 16.0f FPS" % self.server_fps,
-            "Client:  % 16.0f FPS" % self._server_clock.get_fps(),
+            "FPS:  % 16.0f FPS" % (1/self.processing_time),
+            # "Client:  % 16.0f FPS" % self._server_clock.get_fps(),
             "",
             "Acceler: (%5.1f,%5.1f,%5.1f)"
             % (
@@ -331,91 +150,88 @@ class HUD(object):
             ),
             "GNSS:% 24s"
             % ("(% 2.6f, % 3.6f)" % (self.gnss.latitude, self.gnss.longitude)),
+            "Speed: %4f" % self.speed,
             "",
+
         ]
         self._info_text += [
-            ("Throttle:", self.control.throttle, 0.0, 1.0),
-            ("Steer:", self.control.steer, -1.0, 1.0),
-            ("Brake:", self.control.brake, 0.0, 1.0),
-            ("Reverse:", self.control.reverse),
-            ("Hand brake:", self.control.hand_brake),
-            ("Manual:", self.control.manual_gear_shift),
+            "Throttle: %1.2f" % self.control.throttle,
+            "Steer: %1.2f" % self.control.steer,
+            "Brake: %1.2f" % self.control.brake,
+            "Reverse: %r" % self.control.reverse,
+            "Hand brake: %r" % self.control.hand_brake,
+            "Manual: %r" % self.control.manual_gear_shift,
             "Gear:        %s"
             % {-1: "R", 0: "N"}.get(self.control.gear, self.control.gear),
         ]
 
-    def render_center_image(self):
+    def render(self):
+        begin = time.time()
+
+        x_cord = 10
+        y_cord = 10
+        text_color = (0, 255, 0)
+        text_color_bg = (0, 0, 0)
+        text_scale = 0.5
+        text_tickness = 1
+
         if self.center_image is not None:
-            array = self.center_image.raw_data
-            array = cv2.resize(
-                array, dsize=self.dim, interpolation=cv2.INTER_CUBIC
-            )
-            array = cv2.cvtColor(array, cv2.COLOR_BGR2RGB)
-            self.surface = pygame.surfarray.make_surface(array.swapaxes(0, 1))
-            if self.surface is not None:
-                self.display.blit(self.surface, (0, 0))
+            self.display = self.center_image.copy()
+            self.display = cv2.resize(self.display, (self.width, self.height))
 
-    def render_tele_image(self):
-        if self.tele_image is not None:
-            array = self.tele_image.raw_data
-            array = cv2.resize(
-                array, dsize=self.dim, interpolation=cv2.INTER_CUBIC
-            )
-            array = cv2.cvtColor(array, cv2.COLOR_BGR2RGB)
-            self.surface = pygame.surfarray.make_surface(array.swapaxes(0, 1))
-            if self.surface is not None:
-                self.display.blit(self.surface, (0, 0))
+        self.generate_info_text()
 
-    def render_center_lidar(self):
-        lidar_range = 100
-        if self.center_lidar is not None:
-            lidar_data = np.array(self.center_lidar.global_points[:, :2])
-            lidar_data *= min(self.width, self.height) / (2.0 * lidar_range)
-            lidar_data += (0.5 * self.width, 0.5 * self.height)
-            lidar_data = np.fabs(lidar_data)
-            lidar_data = lidar_data.astype(np.int32)
-            lidar_data = np.reshape(lidar_data, (-1, 2))
-            lidar_img_size = (self.width, self.height, 3)
-            lidar_img = np.zeros((lidar_img_size), dtype=np.uint8)
-            lidar_img[tuple(lidar_data.T)] = (255, 255, 255)
-            self.surface = pygame.surfarray.make_surface(lidar_img)
+        for line in self._info_text:
+            text_size, _ = cv2.getTextSize(line, cv2.FONT_HERSHEY_SIMPLEX, text_scale, text_tickness)
+            text_w, text_h = text_size
+            cv2.rectangle(self.display, (x_cord, y_cord), (x_cord + text_w, y_cord + text_h), text_color_bg, -1)
+            cv2.putText(self.display, line, (x_cord, y_cord+10), cv2.FONT_HERSHEY_SIMPLEX, text_scale, text_color, text_tickness)
+            y_cord = y_cord + text_h
 
-    def render_tele_lidar(self):
-        lidar_range = 85
-        if self.tele_lidar is not None:
-            lidar_data = np.array(self.tele_lidar.global_points[:, :2])
-            lidar_data *= min(self.width, self.height) / (2.0 * lidar_range)
-            lidar_data += (0.5 * self.width, 0.5 * self.height)
-            lidar_data = np.fabs(lidar_data)
-            lidar_data = lidar_data.astype(np.int32)
-            lidar_data = np.reshape(lidar_data, (-1, 2))
-            lidar_img_size = (self.width, self.height, 3)
-            lidar_img = np.zeros((lidar_img_size), dtype=np.uint8)
-            lidar_img[tuple(lidar_data.T)] = (255, 255, 255)
-            self.surface = pygame.surfarray.make_surface(lidar_img)
+        self.processing_time = time.time() - begin
 
-    def game_loop(self):
-        self.notification("Press 'H' or '?' for help.", seconds=4.0)
-        done = False
-        while not done:
-            self._server_clock.tick_busy_loop(60)
-            done = self.parse_keyboard_events()
-            if self.visualizing == CENTER_CAMERA:
-                self.render_center_image()
-            elif self.visualizing == TELE_CAMERA:
-                self.render_tele_image()
-            elif self.visualizing == CENTER_LIDAR:
-                self.render_center_lidar()
-            elif self.visualizing == TELE_LIDAR:
-                self.render_tele_lidar()
 
-            self.generate_info_text()
-            self.render()
-            # if self.show_help:
-            #     self.help.render(self.display)
-            pygame.display.flip()
+# img = None
 
-        exit(0)
+# def on_center_camera(sample):
+#     # now = datetime.now()
+#     # print(f'[{now}] Received data!!')
+#     deserialized = Image.deserialize(sample.value.payload)
+#     global img
+#     img = Image.from_jpeg(bytes(deserialized.raw_data))
+
+
+def main(configuration):
+
+
+    ui = UI(configuration)
+
+    ui.start()
+
+    # zconf = zenoh.Config()
+    # zconf.insert_json5(
+    #     zenoh.config.MODE_KEY, json.dumps(configuration["mode"])
+    # )
+    # zconf.insert_json5(
+    #     zenoh.config.CONNECT_KEY, json.dumps(configuration["locators"])
+    # )
+
+    # zsession = zenoh.open(zconf)
+    # print('Zenoh session is open')
+    # center_camera_sub = zsession.declare_subscriber(
+    #     configuration["center_camera"]["ke"], on_center_camera
+    # )
+    # print(f'Subscriber declared to: {configuration["center_camera"]["ke"]}')
+
+    # while True:
+    #     if img is not None:
+    #         cv2.imshow("center", img)
+    #     cv2.waitKey(1) & 0xFF
+    #     # if key is True:
+    #     #     break
+    #     time.sleep(0.05)
+
+    # center_camera_sub.undeclare()
 
 
 if __name__ == "__main__":
@@ -437,6 +253,7 @@ if __name__ == "__main__":
     with open(args.config, "r") as file:
         data = file.read()
     conf = json.loads(data)
+    main(conf)
 
-    hud = HUD(conf)
-    hud.game_loop()
+
+

@@ -1,10 +1,14 @@
-import json
 import numpy as np
 import math
 from carla import Vector3D as CarlaVector3D
 
+from dataclasses import dataclass
+from pycdr2 import IdlStruct
+from pycdr2.types import float64
 
-class Vector3D(object):
+
+@dataclass
+class Vector3D(IdlStruct):
     """Represents a 3D vector and provides useful helper functions.
 
     Args:
@@ -17,6 +21,9 @@ class Vector3D(object):
         y: The value of the second axis.
         z: The value of the third axis.
     """
+    x: float64
+    y: float64
+    z: float64
 
     def __init__(self, x: float = 0, y: float = 0, z: float = 0):
         self.x, self.y, self.z = float(x), float(y), float(z)
@@ -145,14 +152,6 @@ class Vector3D(object):
     @classmethod
     def from_dict(cls, dictionary):
         return cls(dictionary["x"], dictionary["y"], dictionary["z"])
-
-    def serialize(self):
-        return json.dumps(self.to_dict()).encode("utf-8")
-
-    @classmethod
-    def deserialize(cls, serialized):
-        deserialized = json.loads(serialized.decode("utf-8"))
-        return cls.from_dict(deserialized)
 
     def __add__(self, other):
         """Adds the two vectors together and returns the result."""

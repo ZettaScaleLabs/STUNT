@@ -1,10 +1,17 @@
-import json
 import numpy as np
 import math
 from carla import Vector2D as CarlaVector2D
 
+from dataclasses import dataclass
+from pycdr2 import IdlStruct
+from pycdr2.types import float64
 
-class Vector2D(object):
+
+@dataclass
+class Vector2D(IdlStruct):
+    x: float64
+    y: float64
+
     """Represents a 2D vector and provides helper functions."""
 
     def __init__(self, x: float, y: float):
@@ -91,11 +98,3 @@ class Vector2D(object):
     @classmethod
     def from_dict(cls, dictionary):
         return cls(dictionary["x"], dictionary["y"])
-
-    def serialize(self):
-        return json.dumps(self.to_dict()).encode("utf-8")
-
-    @classmethod
-    def deserialize(cls, serialized):
-        deserialized = json.loads(serialized.decode("utf-8"))
-        return cls.from_dict(deserialized)

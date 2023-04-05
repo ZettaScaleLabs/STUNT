@@ -1,9 +1,13 @@
-import json
 import numpy as np
 from stunt.types import Rotation
 
+from dataclasses import dataclass
+from pycdr2 import IdlStruct
+from pycdr2.types import float64
+# from typing import Dict
 
-class Quaternion(object):
+@dataclass
+class Quaternion(IdlStruct):
     """Represents the Rotation of an obstacle or vehicle in quaternion
     notation.
 
@@ -21,6 +25,11 @@ class Quaternion(object):
         matrix: A 3x3 numpy array that can be used to rotate 3D vectors from
             body frame to world frame.
     """
+    w: float64
+    x: float64
+    y: float64
+    z: float64
+    # matrix: Dict[float64, Dict[float64, Dict[float64, float64]]]
 
     def __init__(self, w: float = 0, x: float = 0, y: float = 0, z: float = 0):
         norm = np.linalg.norm([w, x, y, z])
@@ -243,10 +252,3 @@ class Quaternion(object):
             dictionary["w"], dictionary["x"], dictionary["y"], dictionary["z"]
         )
 
-    def serialize(self):
-        return json.dumps(self.to_dict()).encode("utf-8")
-
-    @classmethod
-    def deserialize(cls, serialized):
-        deserialized = json.loads(serialized.decode("utf-8"))
-        return cls.from_dict(deserialized)

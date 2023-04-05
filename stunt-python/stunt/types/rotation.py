@@ -1,9 +1,13 @@
 import numpy as np
-import json
 from carla import Rotation as CarlaRotation
 
+from dataclasses import dataclass
+from pycdr2 import IdlStruct
+from pycdr2.types import float64
 
-class Rotation(object):
+
+@dataclass
+class Rotation(IdlStruct):
     """Used to represent the rotation of an actor or obstacle.
 
     Rotations are applied in the order: Roll (X), Pitch (Y), Yaw (Z).
@@ -21,6 +25,9 @@ class Rotation(object):
         yaw:   Rotation about Z-axis.
         roll:  Rotation about X-axis.
     """
+    pitch: float64
+    yaw: float64
+    roll: float64
 
     def __init__(self, pitch: float = 0, yaw: float = 0, roll: float = 0):
         self.pitch = pitch
@@ -72,11 +79,3 @@ class Rotation(object):
     @classmethod
     def from_dict(cls, dictionary):
         return cls(dictionary["pitch"], dictionary["yaw"], dictionary["roll"])
-
-    def serialize(self):
-        return json.dumps(self.to_dict()).encode("utf-8")
-
-    @classmethod
-    def deserialize(cls, serialized):
-        deserialized = json.loads(serialized.decode("utf-8"))
-        return cls.from_dict(deserialized)

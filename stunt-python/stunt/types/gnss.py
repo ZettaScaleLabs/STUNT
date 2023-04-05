@@ -1,8 +1,17 @@
-import json
 from carla import GnssMeasurement as CarlaGnssMeasurement
 
+from dataclasses import dataclass
+from pycdr2 import IdlStruct
+from pycdr2.types import float64
 
-class GnssMeasurement(object):
+
+@dataclass
+class GnssMeasurement(IdlStruct):
+    altitude: float64
+    latitude: float64
+    longitude: float64
+    timestamp: float64
+
     def __init__(
         self,
         altitude=0.0,
@@ -68,11 +77,3 @@ class GnssMeasurement(object):
             dictionary["longitude"],
             dictionary["timestamp"],
         )
-
-    def serialize(self):
-        return json.dumps(self.to_dict()).encode("utf-8")
-
-    @classmethod
-    def deserialize(cls, serialized):
-        deserialized = json.loads(serialized.decode("utf-8"))
-        return cls.from_dict(deserialized)

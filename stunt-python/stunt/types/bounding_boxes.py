@@ -1,4 +1,3 @@
-import json
 import numpy as np
 
 from stunt.types import Vector2D, Vector3D, Transform, Location, Rotation
@@ -6,9 +5,18 @@ from stunt.types import Vector2D, Vector3D, Transform, Location, Rotation
 from carla import BoundingBox as CarlaBoundingBox
 from shapely.geometry import LineString
 
+from dataclasses import dataclass
+from pycdr2 import IdlStruct
+from pycdr2.types import float64
+from typing import Dict
 
-class BoundingBox2D(object):
+@dataclass
+class BoundingBox2D(IdlStruct):
     """Class that stores a 2D bounding box."""
+    x_min: float64
+    x_max: float64
+    y_min: float64
+    y_max: float64
 
     def __init__(self, x_min, x_max, y_min, y_max):
         assert x_min < x_max and y_min < y_max
@@ -113,16 +121,10 @@ class BoundingBox2D(object):
             dictionary["y_max"],
         )
 
-    def serialize(self):
-        return json.dumps(self.to_dict()).encode("utf-8")
-
-    @classmethod
-    def deserialize(cls, serialized):
-        deserialized = json.loads(serialized.decode("utf-8"))
-        return cls.from_dict(deserialized)
 
 
-class BoundingBox3D(object):
+@dataclass
+class BoundingBox3D(IdlStruct):
     """Class used to store a 3D bounding box.
 
     Args:
@@ -137,6 +139,9 @@ class BoundingBox3D(object):
         extent (:py:class:`~STUNT.utils.Vector3D`): The extent of the bounding
             box.
     """
+    transform: Transform
+    extent: Vector3D
+    corners: Dict[float64, Dict[float64, float64]]
 
     def __init__(
         self,
@@ -341,14 +346,6 @@ class BoundingBox3D(object):
         extent = Vector3D.from_dict(dictionary["extent"])
 
         return cls(transform, extent, dictionary["corners"])
-
-    def serialize(self):
-        return json.dumps(self.to_dict()).encode("utf-8")
-
-    @classmethod
-    def deserialize(cls, serialized):
-        deserialized = json.loads(serialized.decode("utf-8"))
-        return cls.from_dict(deserialized)
 
 
 def get_bounding_box_in_camera_view(bb_coordinates, image_width, image_height):

@@ -1,5 +1,4 @@
 import copy
-import json
 import numpy as np
 from numpy.linalg import inv
 
@@ -7,13 +6,23 @@ from stunt.types import Transform, Vector2D, Location
 
 from carla import LidarMeasurement as CarlaLidarMeasurement
 
+from dataclasses import dataclass
+from pycdr2 import IdlStruct
+from pycdr2.types import float64, uint8, sequence
 
-class LidarMeasurement(object):
+
+@dataclass
+class LidarMeasurement(IdlStruct):
+    channels: uint8
+    horizontal_angle: float64
+    point_cloud: sequence[uint8]
+    timestamp: float64
+
     def __init__(
         self,
         channels=0,
         horizontal_angle=0.0,
-        point_cloud=np.ndarray([]),
+        point_cloud=b"",
         timestamp=0,
     ):
         self.channels = channels
@@ -48,7 +57,7 @@ class LidarMeasurement(object):
         return cls(
             data.channels,
             data.horizontal_angle,
-            np.frombuffer(data.raw_data, dtype=np.dtype("f4")).tolist(),
+            data.raw_data,
             data.timestamp * 1000,
         )
 
@@ -58,6 +67,9 @@ class LidarMeasurement(object):
             self.horizontal_angle,
             self.point_cloud.tobytes(),
         )
+
+    def as_numpy(self):
+        return np.frombuffer(self.point_cloud, dtype=np.dtype("f4")).tolist(),
 
     def to_dict(self):
         return {
@@ -75,20 +87,20 @@ class LidarMeasurement(object):
             dictionary["point_cloud"],
         )
 
-    def serialize(self):
-        return json.dumps(self.to_dict()).encode("utf-8")
 
-    @classmethod
-    def deserialize(cls, serialized):
-        deserialized = json.loads(serialized.decode("utf-8"))
-        return cls.from_dict(deserialized)
+@dataclass
+class PointCloud(IdlStruct):
+    timestamp: float64
+    global_points: sequence[uint8]
+    points: Transform
 
-
-class PointCloud(object):
     def __init__(self, points, timestamp):
         self.timestamp = timestamp
         self.global_points = copy.deepcopy(points)
         self.points = self.to_camera_coordinates()
+
+    def as_numpy(self):
+        return np.frombuffer(self.global_points, dtype=np.dtype("f4")).tolist()
 
     def to_dict(self):
         return {
@@ -101,18 +113,8 @@ class PointCloud(object):
 
         return cls(
             dictionary["timestamp"],
-            np.frombuffer(
-                dictionary["global_points"], dtype=np.dtype("f4")
-            ).tolist(),
+            dictionary["global_points"],
         )
-
-    def serialize(self):
-        return json.dumps(self.to_dict()).encode("utf-8")
-
-    @classmethod
-    def deserialize(cls, serialized):
-        deserialized = json.loads(serialized.decode("utf-8"))
-        return cls.from_dict(deserialized)
 
     def to_camera_coordinates(
         self,

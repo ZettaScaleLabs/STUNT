@@ -1,4 +1,3 @@
-import json
 import math
 import numpy as np
 
@@ -10,8 +9,14 @@ from carla import (
     Transform as CarlaTransform,
 )
 
+from typing import Dict
+from dataclasses import dataclass
+from pycdr2 import IdlStruct
+from pycdr2.types import float64, int32
 
-class Transform(object):
+
+@dataclass
+class Transform(IdlStruct):
     """A class that stores the location and rotation of an obstacle.
 
     It can be created from a simulator transform, defines helper functions
@@ -40,6 +45,9 @@ class Transform(object):
             coordinate space with respect to the location and rotation of the
             given object.
     """
+    location: Location
+    rotation: Rotation
+    matrix: Dict[int32, Dict[int32, float64]]
 
     def __init__(
         self,
@@ -120,9 +128,9 @@ class Transform(object):
         sr = math.sin(np.radians(rotation.roll))
         cp = math.cos(np.radians(rotation.pitch))
         sp = math.sin(np.radians(rotation.pitch))
-        matrix[0, 3] = location.x
-        matrix[1, 3] = location.y
-        matrix[2, 3] = location.z
+        matrix[0, 3] = location.vector3d.x
+        matrix[1, 3] = location.vector3d.y
+        matrix[2, 3] = location.vector3d.z
         matrix[0, 0] = cp * cy
         matrix[0, 1] = cy * sp * sr - sy * cr
         matrix[0, 2] = -1 * (cy * sp * cr + sy * sr)
@@ -336,11 +344,3 @@ class Transform(object):
         rotation = Rotation.from_dict(dictionary["rotation"])
 
         return cls(location, rotation)
-
-    def serialize(self):
-        return json.dumps(self.to_dict()).encode("utf-8")
-
-    @classmethod
-    def deserialize(cls, serialized):
-        deserialized = json.loads(serialized.decode("utf-8"))
-        return cls.from_dict(deserialized)

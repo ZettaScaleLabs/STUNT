@@ -1,8 +1,20 @@
-import json
 from carla import VehicleControl as CarlaVehicleControl
 
+from dataclasses import dataclass
+from pycdr2 import IdlStruct
+from pycdr2.types import float64, uint8
 
-class VehicleControl(object):
+
+@dataclass
+class VehicleControl(IdlStruct):
+    throttle: float64
+    steer: float64
+    brake: float64
+    hand_brake: bool
+    reverse: bool
+    manual_gear_shift: bool
+    gear: uint8
+
     def __init__(
         self,
         throttle=0.0,
@@ -90,11 +102,3 @@ class VehicleControl(object):
             dictionary["manual_gear_shift"],
             dictionary["gear"],
         )
-
-    def serialize(self):
-        return json.dumps(self.to_dict()).encode("utf-8")
-
-    @classmethod
-    def deserialize(cls, serialized):
-        deserialized = json.loads(serialized.decode("utf-8"))
-        return cls.from_dict(deserialized)

@@ -1,9 +1,14 @@
-import json
 import time
 from stunt.types import Vector3D, Transform
 
 
-class Pose(object):
+from dataclasses import dataclass
+from pycdr2 import IdlStruct
+from pycdr2.types import float64
+
+
+@dataclass
+class Pose(IdlStruct):
     """Class used to wrap ego-vehicle information.
 
     Args:
@@ -20,6 +25,10 @@ class Pose(object):
         velocity_vector (:py:class:`~STUNT.utils.Vector3D`): Velocity vector
             in world frame
     """
+    transform: Transform
+    forward_speed: float64
+    velocity_vector: Vector3D
+    localization_time: float64
 
     def __init__(
         self,
@@ -69,11 +78,3 @@ class Pose(object):
             velocity_vector,
             dictionary["localization_time"],
         )
-
-    def serialize(self):
-        return json.dumps(self.to_dict()).encode("utf-8")
-
-    @classmethod
-    def deserialize(cls, serialized):
-        deserialized = json.loads(serialized.decode("utf-8"))
-        return cls.from_dict(deserialized)

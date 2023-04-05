@@ -1,9 +1,19 @@
-import json
 from stunt.types import Vector3D
 from carla import IMUMeasurement as CarlaIMUMeasurement
 
+from dataclasses import dataclass
+from pycdr2 import IdlStruct
+from pycdr2.types import float64
 
-class IMUMeasurement(object):
+
+
+@dataclass
+class IMUMeasurement(IdlStruct):
+    accelerometer: Vector3D
+    compass: float64
+    gyroscope: Vector3D
+    timestamp: float64
+
     def __init__(
         self,
         accelerometer=Vector3D(),
@@ -74,11 +84,3 @@ class IMUMeasurement(object):
             gyroscope,
             dictionary["timestamp"],
         )
-
-    def serialize(self):
-        return json.dumps(self.to_dict()).encode("utf-8")
-
-    @classmethod
-    def deserialize(cls, serialized):
-        deserialized = json.loads(serialized.decode("utf-8"))
-        return cls.from_dict(deserialized)

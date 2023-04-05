@@ -1,4 +1,3 @@
-import json
 from carla import Vector3D as CarlaVector3D
 from carla import Location as CarlaLocation
 
@@ -6,8 +5,12 @@ from stunt.types import Vector3D, Vector2D
 
 import math
 
+from dataclasses import dataclass
+from pycdr2 import IdlStruct
 
-class Location(Vector3D):
+
+@dataclass
+class Location(IdlStruct):
     """Stores a 3D location, and provides useful helper methods.
 
     Args:
@@ -20,9 +23,10 @@ class Location(Vector3D):
         y: The value of the y-axis.
         z: The value of the z-axis.
     """
+    vector3d: Vector3D
 
     def __init__(self, x: float = 0, y: float = 0, z: float = 0):
-        super(Location, self).__init__(x, y, z)
+        self.vector3d = Vector3D(x, y, z)
 
     @classmethod
     def from_simulator(cls, location):
@@ -88,7 +92,7 @@ class Location(Vector3D):
         Returns:
             :obj:`float`: The Euclidean distance between the two points.
         """
-        return (self - other).magnitude()
+        return (self.vector3d - other.vector3d).magnitude()
 
     def as_vector_2D(self) -> Vector2D:
         """Transforms the Location into a Vector2D.
@@ -99,7 +103,7 @@ class Location(Vector3D):
         Returns:
             :py:class:`.Vector2D`: A 2D vector.
         """
-        return Vector2D(self.x, self.y)
+        return Vector2D(self.vector3d.x, self.vector3d.y)
 
     def as_simulator_location(self):
         """Retrieves the location as a simulator location instance.
@@ -126,11 +130,3 @@ class Location(Vector3D):
     @classmethod
     def from_dict(cls, dictionary):
         return cls(dictionary["x"], dictionary["y"], dictionary["z"])
-
-    def serialize(self):
-        return json.dumps(self.to_dict()).encode("utf-8")
-
-    @classmethod
-    def deserialize(cls, serialized):
-        deserialized = json.loads(serialized.decode("utf-8"))
-        return cls.from_dict(deserialized)

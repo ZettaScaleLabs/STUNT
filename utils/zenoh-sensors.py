@@ -4,6 +4,7 @@ import argparse
 import signal
 import time
 
+from threading import Thread
 
 from stunt.types import (
     IMUMeasurement,
@@ -20,8 +21,10 @@ from stunt.simulator.sensors import (
     GNSSSensor,
     CameraSensor,
     LidarSensor,
+    CANSensor,
     ZenohSensor,
     ZenohControl,
+
 )
 
 from stunt.simulator.ground_truth import Localization, Obstacles, TrafficLights
@@ -70,113 +73,141 @@ def main(config):
 
     zsession = zenoh.open(zconf)
 
+    sensors = []
+
     # configuring and starting sensors
     imu_config = config["imu"]
-    imu_config["host"] = config["host"]
-    imu_config["port"] = config["port"]
-    imu_pub = ZenohSensor(
-        zsession,
-        imu_config["ke"],
-        IMUSensor,
-        IMUMeasurement,
-        imu_config,
-    )
+    if imu_config["enabled"] is True:
+        imu_config["host"] = config["host"]
+        imu_config["port"] = config["port"]
+        imu_pub = ZenohSensor(
+            zsession,
+            imu_config["ke"],
+            IMUSensor,
+            IMUMeasurement,
+            imu_config,
+        )
+        sensors.append(imu_pub)
 
     gnss_config = config["gnss"]
-    gnss_config["host"] = config["host"]
-    gnss_config["port"] = config["port"]
+    if gnss_config["enabled"] is True:
+        gnss_config["host"] = config["host"]
+        gnss_config["port"] = config["port"]
+        gnss_pub = ZenohSensor(
+            zsession,
+            gnss_config["ke"],
+            GNSSSensor,
+            GnssMeasurement,
+            gnss_config,
+        )
+        sensors.append(gnss_pub)
 
-    gnss_pub = ZenohSensor(
-        zsession,
-        gnss_config["ke"],
-        GNSSSensor,
-        GnssMeasurement,
-        gnss_config,
-    )
+    can_config = config["can"]
+    if can_config["enabled"] is True:
+        can_config["host"] = config["host"]
+        can_config["port"] = config["port"]
+        can_sensor = CANSensor(can_config)
+        can_pub = zsession.declare_publisher(can_config["ke"])
+
+        def publish_can(sensor, pub):
+            while True:
+                time.sleep(sensor.period)
+                can_pub.put(sensor.read_data().serialize())
+
+        t = Thread(target=publish_can, args=(can_sensor, can_pub,))
+        t.start()
 
     center_camera_config = config["center_camera"]
-    center_camera_config["host"] = config["host"]
-    center_camera_config["port"] = config["port"]
-
-    center_camera_pub = ZenohSensor(
-        zsession,
-        center_camera_config["ke"],
-        CameraSensor,
-        Image,
-        center_camera_config,
-    )
+    if center_camera_config["enabled"] is True:
+        center_camera_config["host"] = config["host"]
+        center_camera_config["port"] = config["port"]
+        center_camera_pub = ZenohSensor(
+            zsession,
+            center_camera_config["ke"],
+            CameraSensor,
+            Image,
+            center_camera_config,
+        )
+        sensors.append(center_camera_pub)
 
     tele_camera_config = config["tele_camera"]
-    tele_camera_config["host"] = config["host"]
-    tele_camera_config["port"] = config["port"]
+    if tele_camera_config["enabled"] is True:
+        tele_camera_config["host"] = config["host"]
+        tele_camera_config["port"] = config["port"]
+        tele_camera_pub = ZenohSensor(
+            zsession,
+            tele_camera_config["ke"],
+            CameraSensor,
+            Image,
+            tele_camera_config,
+        )
+        sensors.append(tele_camera_pub)
 
-    tele_camera_pub = ZenohSensor(
-        zsession,
-        tele_camera_config["ke"],
-        CameraSensor,
-        Image,
-        tele_camera_config,
-    )
+    center_lidar_config = config["center_lidar"]
+    if center_lidar_config["enabled"] is True:
+        center_lidar_config["host"] = config["host"]
+        center_lidar_config["port"] = config["port"]
+        center_lidar_pub = ZenohSensor(
+            zsession,
+            center_lidar_config["ke"],
+            LidarSensor,
+            LidarMeasurement,
+            center_lidar_config,
+        )
+        sensors.append(center_lidar_pub)
 
-    # center_lidar_config = config["center_lidar"]
-    # center_lidar_config["host"] = config["host"]
-    # center_lidar_config["port"] = config["port"]
-
-    # center_lidar_pub = ZenohSensor(
-    #     zsession,
-    #     center_lidar_config["ke"],
-    #     LidarSensor,
-    #     LidarMeasurement,
-    #     center_lidar_config,
-    # )
-
-    # tele_lidar_config = config["tele_lidar"]
-    # tele_lidar_config["host"] = config["host"]
-    # tele_lidar_config["port"] = config["port"]
-
-    # tele_lidar_pub = ZenohSensor(
-    #     zsession,
-    #     tele_lidar_config["ke"],
-    #     LidarSensor,
-    #     LidarMeasurement,
-    #     tele_lidar_config,
-    # )
+    tele_lidar_config = config["tele_lidar"]
+    if tele_lidar_config["enabled"] is True:
+        tele_lidar_config["host"] = config["host"]
+        tele_lidar_config["port"] = config["port"]
+        tele_lidar_pub = ZenohSensor(
+            zsession,
+            tele_lidar_config["ke"],
+            LidarSensor,
+            LidarMeasurement,
+            tele_lidar_config,
+        )
+        sensors.append(tele_lidar_pub)
 
     obstacles_config = config["obstacles"]
-    obstacles_config["host"] = config["host"]
-    obstacles_config["port"] = config["port"]
+    if obstacles_config["enabled"] is True:
+        obstacles_config["host"] = config["host"]
+        obstacles_config["port"] = config["port"]
 
-    obstacles_pub = ZenohSensor(
-        zsession,
-        obstacles_config["ke"],
-        Obstacles,
-        SimulatorObstacle,
-        obstacles_config,
-    )
+        obstacles_pub = ZenohSensor(
+            zsession,
+            obstacles_config["ke"],
+            Obstacles,
+            SimulatorObstacle,
+            obstacles_config,
+        )
+        sensors.append(obstacles_pub)
 
     traffic_lights_config = config["traffic_lights"]
-    traffic_lights_config["host"] = config["host"]
-    traffic_lights_config["port"] = config["port"]
-
-    traffic_lights_pub = ZenohSensor(
-        zsession,
-        traffic_lights_config["ke"],
-        TrafficLights,
-        TrafficLight,
-        traffic_lights_config,
-    )
+    if traffic_lights_config["enabled"] is True:
+        traffic_lights_config["host"] = config["host"]
+        traffic_lights_config["port"] = config["port"]
+        traffic_lights_pub = ZenohSensor(
+            zsession,
+            traffic_lights_config["ke"],
+            TrafficLights,
+            TrafficLight,
+            traffic_lights_config,
+        )
+        sensors.append(traffic_lights_pub)
 
     location_config = config["location"]
-    location_config["host"] = config["host"]
-    location_config["port"] = config["port"]
-
-    location_pub = ZenohSensor(
-        zsession,
-        location_config["ke"],
-        Localization,
-        Pose,
-        location_config,
-    )
+    if location_config["enabled"] is True:
+        location_config["host"] = config["host"]
+        location_config["port"] = config["port"]
+        location_pub = ZenohSensor(
+            zsession,
+            location_config["ke"],
+            Localization,
+            Pose,
+            location_config,
+        )
+        sensors.append(location_pub)
 
     signal.signal(signal.SIGINT, handler)
 
@@ -185,16 +216,10 @@ def main(config):
         time.sleep(1)
         # carla_world.tick()
 
-    location_pub.undeclare()
-    traffic_lights_pub.undeclare()
-    obstacles_pub.undeclare()
-    # tele_lidar_pub.undeclare()
-    # center_lidar_pub.undeclare()
-    tele_camera_pub.undeclare()
-    center_camera_pub.undeclare()
-    gnss_pub.undeclare()
-    imu_pub.undeclare()
+    for s in sensors:
+        s.undeclare()
 
+    exit(0)
 
 if __name__ == "__main__":
     # --- Command line argument parsing --- --- --- --- --- ---
