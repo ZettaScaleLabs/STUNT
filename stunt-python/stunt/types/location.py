@@ -1,12 +1,13 @@
 from carla import Vector3D as CarlaVector3D
 from carla import Location as CarlaLocation
 
-from stunt.types import Vector3D, Vector2D
+from stunt.types import Vector2D
 
 import math
 
 from dataclasses import dataclass
 from pycdr2 import IdlStruct
+from pycdr2.types import float64
 
 
 @dataclass
@@ -23,10 +24,12 @@ class Location(IdlStruct):
         y: The value of the y-axis.
         z: The value of the z-axis.
     """
-    vector3d: Vector3D
+    x: float64
+    y: float64
+    z: float64
 
     def __init__(self, x: float = 0, y: float = 0, z: float = 0):
-        self.vector3d = Vector3D(x, y, z)
+        self.x, self.y, self.z = float(x), float(y), float(z)
 
     @classmethod
     def from_simulator(cls, location):
@@ -92,7 +95,7 @@ class Location(IdlStruct):
         Returns:
             :obj:`float`: The Euclidean distance between the two points.
         """
-        return (self.vector3d - other.vector3d).magnitude()
+        return (self - other).magnitude()
 
     def as_vector_2D(self) -> Vector2D:
         """Transforms the Location into a Vector2D.
@@ -103,7 +106,7 @@ class Location(IdlStruct):
         Returns:
             :py:class:`.Vector2D`: A 2D vector.
         """
-        return Vector2D(self.vector3d.x, self.vector3d.y)
+        return Vector2D(self.x, self.y)
 
     def as_simulator_location(self):
         """Retrieves the location as a simulator location instance.
@@ -112,7 +115,7 @@ class Location(IdlStruct):
             An instance of the simulator class representing the location.
         """
 
-        return CarlaLocation(self.vector3d.x, self.vector3d.y, self.vector3d.z)
+        return CarlaLocation(self.x, self.y, self.z)
 
     def __repr__(self):
         return self.__str__()

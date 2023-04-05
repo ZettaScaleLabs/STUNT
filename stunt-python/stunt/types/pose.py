@@ -54,10 +54,12 @@ class Pose(IdlStruct):
         return self.__str__()
 
     def __str__(self):
-        return f"Pose(transform: {self.transform}, "
-        +"forward speed: {self.forward_speed}, "
-        +"velocity vector: {self.velocity_vector},"
-        +" ts: {self.localization_time})"
+        str_repr = f"Pose(transform: {self.transform}, " \
+            f"forward speed: {self.forward_speed}, " \
+            f"velocity vector: {self.velocity_vector}, " \
+            f" ts: {self.localization_time})"
+
+        return str_repr
 
     def to_dict(self):
         return {

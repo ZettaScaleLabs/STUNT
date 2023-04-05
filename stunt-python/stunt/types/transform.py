@@ -47,7 +47,7 @@ class Transform(IdlStruct):
     """
     location: Location
     rotation: Rotation
-    matrix: Dict[int32, Dict[int32, float64]]
+    forward_vector: Vector3D
 
     def __init__(
         self,
@@ -128,9 +128,9 @@ class Transform(IdlStruct):
         sr = math.sin(np.radians(rotation.roll))
         cp = math.cos(np.radians(rotation.pitch))
         sp = math.sin(np.radians(rotation.pitch))
-        matrix[0, 3] = location.vector3d.x
-        matrix[1, 3] = location.vector3d.y
-        matrix[2, 3] = location.vector3d.z
+        matrix[0, 3] = location.x
+        matrix[1, 3] = location.y
+        matrix[2, 3] = location.z
         matrix[0, 0] = cp * cy
         matrix[0, 1] = cy * sp * sr - sy * cr
         matrix[0, 2] = -1 * (cy * sp * cr + sy * sr)

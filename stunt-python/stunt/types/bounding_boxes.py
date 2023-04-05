@@ -141,7 +141,7 @@ class BoundingBox3D(IdlStruct):
     """
     transform: Transform
     extent: Vector3D
-    corners: Dict[float64, Dict[float64, float64]]
+    # corners: Dict[float64, Dict[float64, float64]]
 
     def __init__(
         self,

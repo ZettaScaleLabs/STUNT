@@ -1,6 +1,8 @@
 import json
 from zenoh import CongestionControl
 
+import traceback
+
 
 class ZenohSensor:
     def __init__(self, session, ke, sensor_type, data_type, configuration={}):

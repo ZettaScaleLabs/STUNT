@@ -57,7 +57,7 @@
     "can":{
         "name":"stunt-can",
         "ke":"stunt/can",
-        "enabled": true
+        "enabled": false
     },
     "center_lidar":{
         "name":"stunt-center-lidar",
