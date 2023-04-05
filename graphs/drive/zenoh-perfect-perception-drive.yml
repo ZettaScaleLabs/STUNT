@@ -61,7 +61,7 @@ sources:
       #goal: [116.0, 129.0, 0.0]
       #goal: [84.0, 130.0, 0.0]
       # map: {{ BASE_DIR }}/var/maps/town01.xodr
-      map: /{{ BASE_DIR }}/var/maps/town01.xodr
+      map: "{{ BASE_DIR }}/var/maps/town01.xodr"
     descriptor: "file://{{ BASE_DIR }}/nodes/sources/route-planner/route-planner.yml"
 
 sinks:
