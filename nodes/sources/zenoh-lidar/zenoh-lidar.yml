@@ -1,7 +1,7 @@
 id: ZenohIMU
 uri: file://{{ BASE_DIR }}/nodes/sources/zenoh-lidar/zenoh-lidar.py
 configuration:
-  locator: 'tcp/127.0.0.1:7887'
+  locator: tcp/zenoh-router:7447
   mode: client
   key_expression: /stunt/lidar
   frequency: 30

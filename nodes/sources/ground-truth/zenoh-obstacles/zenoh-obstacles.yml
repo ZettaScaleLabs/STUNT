@@ -3,7 +3,7 @@ vars:
   BASE_DIR: "/var/zenoh-flow"
 uri: "file://{{ BASE_DIR }}/nodes/sources/ground-truth/zenoh-obstacles/zenoh-obstacles.py"
 configuration:
-  locator: 'tcp/127.0.0.1:7887'
+  locator: tcp/zenoh-router:7447
   mode: client
   key_expression: /stunt/obstacles
   frequency: 1

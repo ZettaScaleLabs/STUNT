@@ -3,7 +3,7 @@ vars:
   BASE_DIR: "/var/zenoh-flow"
 uri: "file://{{ BASE_DIR }}/nodes/sinks/zenoh-control/zenoh-control.py"
 configuration:
-  locator: 'tcp/127.0.0.1:7887'
+  locator: tcp/zenoh-router:7447
   mode: client
   key_expression: /stunt/control
 inputs: [Data]
