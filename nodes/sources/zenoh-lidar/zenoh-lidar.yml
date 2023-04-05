@@ -3,7 +3,7 @@ uri: file://{{ BASE_DIR }}/nodes/sources/zenoh-lidar/zenoh-lidar.py
 configuration:
   locator: tcp/zenoh-router:7447
   mode: client
-  key_expression: /stunt/lidar
+  key_expression: stunt/lidar
   frequency: 30
 outputs :
   - id: LIDAR

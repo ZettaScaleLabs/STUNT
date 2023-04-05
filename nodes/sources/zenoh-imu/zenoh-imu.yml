@@ -3,7 +3,7 @@ uri: file://{{ BASE_DIR }}/nodes/sources/zenoh-imu/zenoh-imu.py
 configuration:
   locator: tcp/zenoh-router:7447
   mode: client
-  key_expression: /stunt/imu
+  key_expression: stunt/imu
   frequency: 30
 outputs :
   - id: IMU

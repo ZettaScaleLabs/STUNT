@@ -3,7 +3,7 @@ uri: file://{{ BASE_DIR }}/nodes/sources/zenoh-camera/zenoh-camera.py
 configuration:
   locator: tcp/zenoh-router:7447
   mode: client
-  key_expression: /stunt/camera
+  key_expression: stunt/camera
   frequency: 30
   jpeg_quality: 25
 outputs :

@@ -5,6 +5,6 @@ uri: "file://{{ BASE_DIR }}/nodes/sources/ground-truth/zenoh-obstacles/zenoh-obs
 configuration:
   locator: tcp/zenoh-router:7447
   mode: client
-  key_expression: /stunt/obstacles
+  key_expression: stunt/obstacles
   frequency: 1
 outputs: [Obstacles]

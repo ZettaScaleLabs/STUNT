@@ -3,7 +3,7 @@ uri: file://{{ BASE_DIR }}/nodes/sources/zenoh-gnss/zenoh-gnss.py
 configuration:
   locator: tcp/zenoh-router:7447
   mode: client
-  key_expression: /stunt/gnss
+  key_expression: stunt/gnss
   frequency: 30
 outputs :
   - id: GNSS
