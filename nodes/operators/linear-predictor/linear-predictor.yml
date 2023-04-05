@@ -9,4 +9,4 @@ configuration:
 inputs:
   - ObstacleTrajectories
   - TTD
-outputs: ObstaclePredictions
+outputs: [ObstaclePredictions]

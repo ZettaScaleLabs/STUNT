@@ -194,5 +194,5 @@ links:
     node : PIDController
     output : Control
   to:
-    node : Control
+    node : Drive
     input : Data
