@@ -4,6 +4,7 @@ from stunt.types import Location, Transform
 from carla import LaneType, Map as CarlaMap
 from stunt.map import Lane
 
+# This comes from CARLA:
 from agents.navigation.global_route_planner import GlobalRoutePlanner
 
 CARLA_VERSION = "0.9.10"

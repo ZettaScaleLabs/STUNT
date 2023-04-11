@@ -1,5 +1,9 @@
 #!/bin/bash
 
+set -e
+
+mkdir -p $STUNT_HOME/dependencies/
+mkdir -p $STUNT_HOME/prediction/
 
 ###############################################################################
 # Get models & code bases we depend on
@@ -13,7 +17,7 @@ if [[ $REPLY =~ ^[Yy]$ ]]
 then
     echo "[x] Downloading all model weights..."
     cd $STUNT_HOME/dependencies/
-    ~/.local/bin/gdown https://drive.google.com/uc?id=1rQKFDxGDFi3rBLsMrJzb7oGZvvtwgyiL
+    gdown https://drive.google.com/uc?id=1rQKFDxGDFi3rBLsMrJzb7oGZvvtwgyiL
     unzip models.zip ; rm models.zip
 
 fi
@@ -43,7 +47,7 @@ bash build.sh
 
 ###### Clone the Prediction Repository #####
 echo "[x] Cloning the prediction code..."
-cd $STUNT_HOME/STUNT/prediction/
+cd $STUNT_HOME/prediction/
 git clone https://github.com/erdos-project/prediction.git
 
 ###### Get DeepSORT and SORT tracker code bases ######
@@ -91,25 +95,25 @@ cd $STUNT_HOME/dependencies/
 git clone https://github.com/mileyan/AnyNet.git
 cd AnyNet/models/spn_t1/ ; python3 setup.py clean ; python3 setup.py build
 
-###### Download the Carla simulator ######
-read -p "do you want to download the carla? " -n 1 -r
-echo    # (optional) move to a new line
-if [[ $REPLY =~ ^[Yy]$ ]]
-then
-echo "[x] Downloading the CARLA 0.9.10.1 simulator..."
-cd $STUNT_HOME/dependencies/
-if [ "$1" != 'challenge' ] && [ ! -d "CARLA_0.9.10.1" ]; then
-    mkdir CARLA_0.9.10.1
-    cd CARLA_0.9.10.1
-    wget https://carla-releases.s3.eu-west-3.amazonaws.com/Linux/CARLA_0.9.10.1.tar.gz
-    tar -xvf CARLA_0.9.10.1.tar.gz
-    rm CARLA_0.9.10.1.tar.gz
-fi
-fi
+# ###### Download the Carla simulator ######
+# read -p "do you want to download the carla? " -n 1 -r
+# echo    # (optional) move to a new line
+# if [[ $REPLY =~ ^[Yy]$ ]]
+# then
+# echo "[x] Downloading the CARLA 0.9.10.1 simulator..."
+# cd $STUNT_HOME/dependencies/
+# if [ "$1" != 'challenge' ] && [ ! -d "CARLA_0.9.10.1" ]; then
+#     mkdir CARLA_0.9.10.1
+#     cd CARLA_0.9.10.1
+#     wget https://carla-releases.s3.eu-west-3.amazonaws.com/Linux/CARLA_0.9.10.1.tar.gz
+#     tar -xvf CARLA_0.9.10.1.tar.gz
+#     rm CARLA_0.9.10.1.tar.gz
+# fi
+# fi
 
 
 
-#install carla egg
-echo "installing carla egg..."
-sudo apt-get install python-setuptools
-easy_install3 --user --no-deps dependencies/CARLA_0.9.10.1/PythonAPI/carla/dist/carla-0.9.10-py3.7-linux-x86_64.egg
+# #install carla egg
+# echo "installing carla egg..."
+# sudo apt-get install python-setuptools
+# easy_install3 --user --no-deps dependencies/CARLA_0.9.10.1/PythonAPI/carla/dist/carla-0.9.10-py3.7-linux-x86_64.egg
