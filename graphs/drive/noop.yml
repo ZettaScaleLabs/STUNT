@@ -1,0 +1,39 @@
+flow: ControlDataDump
+
+vars:
+  BASE_DIR: "/var/zenoh-flow"
+
+configuration:
+  host: majinbu
+  port: 2000
+  map: "{{ BASE_DIR }}/var/maps/town01.xodr"
+  frequency: 20
+operators:
+  - id: NoOp
+    descriptor:  "file://{{ BASE_DIR }}/nodes/operators/noop/noop.yml"
+
+sources:
+
+  - id : CarlaLocalization
+    descriptor : "file://{{ BASE_DIR }}/nodes/sources/ground-truth/zenoh-localization/zenoh-location.yml"
+
+
+sinks:
+  - id : PyPrint
+    descriptor : "file://{{ BASE_DIR }}/nodes/sinks/generic-sink-py/generic-sink.yml"
+
+links:
+#sources
+- from:
+    node : CarlaLocalization
+    output : Pose
+  to:
+    node : NoOp
+    input : in
+
+- from:
+    node : NoOp
+    output : out
+  to:
+    node : PyPrint
+    input : Data

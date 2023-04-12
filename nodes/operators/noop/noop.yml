@@ -1,0 +1,9 @@
+id: noop
+
+vars:
+  BASE_DIR: "/var/zenoh-flow"
+
+uri: "file://{{ BASE_DIR }}/nodes/operators/noop/noop.py"
+
+inputs: [in]
+outputs: [out]

@@ -7,7 +7,7 @@ from stunt.map import Lane
 # This comes from CARLA:
 from agents.navigation.global_route_planner import GlobalRoutePlanner
 
-CARLA_VERSION = "0.9.10"
+CARLA_VERSION = "0.9.14"
 WAYPOINT_DISTANCE = 1.0
 
 
