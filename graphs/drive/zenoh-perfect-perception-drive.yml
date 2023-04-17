@@ -4,7 +4,7 @@ vars:
   BASE_DIR: "/var/zenoh-flow"
 
 configuration:
-  host: majinbu
+  host: carla
   port: 2000
   map: "{{ BASE_DIR }}/var/maps/town01.xodr"
   frequency: 20

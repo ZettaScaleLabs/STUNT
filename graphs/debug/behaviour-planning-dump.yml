@@ -1,20 +1,26 @@
-flow: ControlDataDump
+flow: BehaviourPlanningDump
+
 configuration:
-  host: '192.168.122.35'
+  host: carla
+  port: 2000
+  map: "{{ BASE_DIR }}/var/maps/town01.xodr"
+  frequency: 20
+  goal: [387.73, 330.07, 0.0]
+
 operators:
   - id: PerfectLocalization
-    descriptor:  {{ BASE_DIR }}/nodes/operators/perfect-localization/localization.yml
+    descriptor:  "file://{{ BASE_DIR }}/nodes/operators/perfect-localization/localization.yml"
+
   - id: BehaviourPlanning
-    configuration:
-      goal: [116.0, 129.0, 0.0]
-    descriptor:  {{ BASE_DIR }}/nodes/operators/behaviour-planning/behaviour-planning.yml
+    descriptor:  "file://{{ BASE_DIR }}/nodes/operators/behaviour-planning/behaviour-planning.yml"
+
 sources:
   - id : CarlaLocalization
-    descriptor : {{ BASE_DIR }}/nodes/sources/ground-truth/carla-localization/carla-localization.yml
+    descriptor : "file://{{ BASE_DIR }}/nodes/sources/ground-truth/zenoh-localization/zenoh-location.yml"
 
 sinks:
   - id : PyPrint
-    descriptor : {{ BASE_DIR }}/nodes/sinks/generic-sink-py/generic-sink.yml
+    descriptor: "file://{{ BASE_DIR }}/nodes/sinks/generic-sink-py/generic-sink.yml"
 
 links:
 - from:
