@@ -259,7 +259,7 @@ class BehaviourPlanning(Operator):
         return best_next_state
 
     def get_goal_location(self, ego_transform):
-        if len(self.route.waypoints) > 1:
+        if len(self.route.waypoints) > 2:
             dist = ego_transform.location.distance(
                 self.route.waypoints[0].location
             )
