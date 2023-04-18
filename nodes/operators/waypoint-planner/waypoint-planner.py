@@ -2,18 +2,15 @@ from zenoh_flow.interfaces import Operator
 from zenoh_flow import Input, Output
 from zenoh_flow.types import Context
 from typing import Dict, Any
-
+import logging
 import asyncio
 import json
-
-
 from stunt.types import (
     Pose,
     Obstacle,
     ObstacleTrajectory,
     ObstaclePrediction,
     BehaviorPlannerState,
-    TimeToDecision,
     Trajectory,
     TrafficLight,
     World,
@@ -25,7 +22,6 @@ DEFAULT_STOP_FOR_PEOPLE = True
 DEFAULT_STOP_FOR_VEHICLES = True
 DEFAULT_STOP_FOR_UNCONTROLLED_JUNCTIONS = True
 
-DEFAULT_PREDICTION_TTD = 500
 DEFAULT_TARGET_SPEED = 6.0
 
 
@@ -37,6 +33,7 @@ class WaypointPlanner(Operator):
         inputs: Dict[str, Input],
         outputs: Dict[str, Output],
     ):
+        logging.basicConfig(level=logging.DEBUG)
         configuration = configuration if configuration is not None else {}
 
         self.map_file = configuration.get("map", None)
@@ -49,17 +46,27 @@ class WaypointPlanner(Operator):
         self.trajectory_input = inputs.get("Trajectory", None)
         self.pose_input = inputs.get("Pose", None)
         self.obstacles_input = inputs.get("ObstaclePredictions", None)
-        self.ttd_input = inputs.get("TTD", None)
         self.output = outputs.get("Waypoints", None)
+
+        if self.traffic_lights_input is None:
+            raise ValueError("Cannot find input: 'TrafficLights'")
+        if self.trajectory_input is None:
+            raise ValueError("Cannot find input: 'Trajectory'")
+        if self.pose_input is None:
+            raise ValueError("Cannot find input: 'Pose'")
+        if self.obstacles_input is None:
+            raise ValueError("Cannot find input: 'ObstaclePredictions'")
+        if self.output is None:
+            raise ValueError("Cannot find output: 'Waypoints'")
 
         self.start_time = 0
         self.world = World(configuration)
 
         self.obstacle_trajectories = []
         self.trajectory = None
-        self.ttd = TimeToDecision(500)
         self.traffic_lights = []
 
+        # TODO this should come from perception
         self.target_speed = configuration.get(
             "target_speed", DEFAULT_TARGET_SPEED
         )
@@ -114,10 +121,6 @@ class WaypointPlanner(Operator):
         data_msg = await self.obstacles_input.recv()
         return ("ObstaclePredictions", data_msg)
 
-    async def wait_ttd(self):
-        data_msg = await self.ttd_input.recv()
-        return ("TTD", data_msg)
-
     async def wait_pose(self):
         data_msg = await self.pose_input.recv()
         return ("Pose", data_msg)
@@ -132,9 +135,6 @@ class WaypointPlanner(Operator):
 
     def create_task_list(self):
         task_list = [] + self.pending
-
-        if not any(t.get_name() == "TTD" for t in task_list):
-            task_list.append(asyncio.create_task(self.wait_ttd(), name="TTD"))
 
         if not any(t.get_name() == "ObstaclePredictions" for t in task_list):
             task_list.append(
@@ -173,9 +173,7 @@ class WaypointPlanner(Operator):
         for d in done:
             (who, data_msg) = d.result()
 
-            if who == "TTD":
-                self.ttd = TimeToDecision.deserialize(data_msg.data)
-            elif who == "Trajectory":
+            if who == "Trajectory":
                 # getting the trajectory from the behaviour planner
                 # it generates the kind of GPS waypoints towards the
                 # destination

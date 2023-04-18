@@ -6,7 +6,5 @@ configuration:
   prediction_radius: 50
   prediction_num_past_steps: 5
   prediction_num_future_steps: 10
-inputs:
-  - ObstacleTrajectories
-  - TTD
+inputs: [ObstacleTrajectories]
 outputs: [ObstaclePredictions]

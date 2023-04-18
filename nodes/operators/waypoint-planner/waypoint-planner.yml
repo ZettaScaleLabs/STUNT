@@ -33,7 +33,6 @@ configuration:
 
 inputs:
   - Pose
-  - TTD
   - Trajectory
   - ObstaclePredictions
   - TrafficLights

@@ -17,9 +17,6 @@ operators:
       map: "{{ BASE_DIR }}/var/maps/town01.xodr"
     descriptor:  "file://{{ BASE_DIR }}/nodes/operators/behaviour-planning/behaviour-planning.yml"
 
-  - id: TTD
-    descriptor:  "file://{{ BASE_DIR }}/nodes/operators/time-to-decision/time-to-decision.yml"
-
   - id: PerfectTracker
     descriptor: "file://{{ BASE_DIR }}/nodes/operators/perfect-tracker/perfect-tracker.yml"
 
@@ -119,20 +116,6 @@ links:
     input : Pose
 
 - from:
-    node : PerfectLocalization
-    output : Pose
-  to:
-    node : TTD
-    input : Pose
-
-- from:
-    node : TTD
-    output : TTD
-  to:
-    node : LinearPredictor
-    input : TTD
-
-- from:
     node : PerfectTracker
     output : ObstacleTrajectories
   to:
@@ -160,13 +143,6 @@ links:
   to:
     node : WaypointPlanner
     input : Trajectory
-
-- from:
-    node : TTD
-    output : TTD
-  to:
-    node : WaypointPlanner
-    input : TTD
 
 - from:
     node : LinearPredictor
