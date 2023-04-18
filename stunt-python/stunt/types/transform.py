@@ -53,9 +53,10 @@ class Transform(IdlStruct):
         self,
         location: Location = Location(),
         rotation: Rotation = Rotation(),
+        forward_vector: Vector3D = None,
         matrix=None,
     ):
-        if matrix is not None:
+        if matrix is not None and forward_vector is None:
             self.matrix = matrix
             self.location = Location(matrix[0, 3], matrix[1, 3], matrix[2, 3])
 
@@ -75,6 +76,14 @@ class Transform(IdlStruct):
                 math.degrees(yaw_r),
                 math.degrees(roll_r),
             )
+
+        elif forward_vector is not None and matrix is None:
+            self.location, self.rotation = location, rotation
+            self.matrix = Transform._create_matrix(
+                self.location, self.rotation
+            )
+            self.forward_vector = forward_vector
+
         else:
             self.location, self.rotation = location, rotation
             self.matrix = Transform._create_matrix(
@@ -85,6 +94,8 @@ class Transform(IdlStruct):
             self.forward_vector = Vector3D(
                 self.matrix[0, 0], self.matrix[1, 0], self.matrix[2, 0]
             )
+
+
 
     @classmethod
     def from_simulator(cls, transform):

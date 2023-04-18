@@ -9,6 +9,8 @@ from stunt.types import Pose
 from stunt import DEFAULT_SAMPLING_FREQUENCY
 import zenoh
 from zenoh import Reliability
+import logging
+
 
 DEFAULT_ZENOH_LOCATOR = "tcp/127.0.0.1:7447"
 DEFAULT_MODE = "peer"
@@ -23,6 +25,7 @@ class ZenohLocation(Source):
         outputs: Dict[str, Output],
     ):
 
+        logging.basicConfig(level=logging.DEBUG)
         self.period = 1 / int(
             configuration.get("frequency", DEFAULT_SAMPLING_FREQUENCY)
         )
@@ -60,6 +63,7 @@ class ZenohLocation(Source):
 
     def on_sensor_update(self, sample):
         self.pose = Pose.deserialize(sample.payload)
+        logging.debug(f"[ZenohLocation] Received location from simulator {pose}")
 
     def finalize(self) -> None:
         self.sub.undeclare()

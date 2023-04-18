@@ -18,6 +18,7 @@ from stunt.types import (
 )
 
 from stunt.types.planner import cost_overtake
+import logging
 
 DEFAULT_INITIAL_STATE = BehaviorPlannerState.FOLLOW_WAYPOINTS
 DEFAULT_MIN_MOVING_SPEED = 0.7
@@ -31,6 +32,8 @@ class BehaviourPlanning(Operator):
         inputs: Dict[str, Input],
         outputs: Dict[str, Output],
     ):
+
+        logging.basicConfig(level=logging.DEBUG)
         configuration = configuration if configuration is not None else {}
 
         self.map_file = configuration.get("map", None)
@@ -55,8 +58,14 @@ class BehaviourPlanning(Operator):
         self.is_first = True
 
         self.pose_input = inputs.get("Pose", None)
+        if self.pose_input is None:
+            raise ValueError("Input 'Pose' not found")
         self.route_input = inputs.get("Route")
+        if self.route_input is None:
+            raise ValueError("Input 'Route' not found")
         self.output = outputs.get("Trajectory", None)
+        if self.output is None:
+            raise ValueError("Output 'Trajectory' not found")
 
         self.pending = []
 
@@ -92,6 +101,7 @@ class BehaviourPlanning(Operator):
         self.pending = list(pending)
         for d in done:
             (who, data_msg) = d.result()
+            logging.debug(f"[BehaviourPlanning] Received from input {who}")
 
             if who == "Route":
                 # Storing the route and the goal.

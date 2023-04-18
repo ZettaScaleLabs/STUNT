@@ -3,7 +3,7 @@ from zenoh_flow import Output
 from zenoh_flow.types import Context
 from typing import Any, Dict
 import asyncio
-
+import logging
 from stunt.map import HDMap
 from stunt.types import (
     Waypoints,
@@ -25,7 +25,7 @@ class Destination(Source):
         outputs: Dict[str, Output],
     ):
         configuration = {} if configuration is None else configuration
-
+        logging.basicConfig(level=logging.DEBUG)
         self.map_file = configuration.get("map", None)
         if self.map_file is None:
             raise ValueError("BehaviourPlanning cannot proceed without a map!")
@@ -60,8 +60,11 @@ class Destination(Source):
                 [RoadOption.LANE_FOLLOW for _ in range(len(waypoints))]
             )
             route = Waypoints(waypoints, road_options=road_options)
-            self.ego_position == None
+
+            logging.debug(f"[RoutePlanner] Sending route from {self.ego_position} to {self.goal_location}")
             await self.output.send(route.serialize())
+
+            self.ego_position = None
         else:
             await asyncio.sleep(DEFAULT_SLEEP_TIME_S)
 

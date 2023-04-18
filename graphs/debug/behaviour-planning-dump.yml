@@ -1,4 +1,6 @@
 flow: BehaviourPlanningDump
+vars:
+  BASE_DIR: "/var/zenoh-flow"
 
 configuration:
   host: carla
@@ -16,13 +18,27 @@ operators:
 
 sources:
   - id : CarlaLocalization
+    configuration:
+      locator: "tcp/zenoh-router:7447"
+      mode: "peer"
+      key_expression: "stunt/ground-truth/location"
     descriptor : "file://{{ BASE_DIR }}/nodes/sources/ground-truth/zenoh-localization/zenoh-location.yml"
+
+  - id: RoutePlanner
+    descriptor: "file://{{ BASE_DIR }}/nodes/sources/route-planner/route-planner.yml"
+
 
 sinks:
   - id : PyPrint
     descriptor: "file://{{ BASE_DIR }}/nodes/sinks/generic-sink-py/generic-sink.yml"
 
 links:
+- from:
+    node : RoutePlanner
+    output : Route
+  to:
+    node : BehaviourPlanning
+    input : Route
 - from:
     node : CarlaLocalization
     output : Pose

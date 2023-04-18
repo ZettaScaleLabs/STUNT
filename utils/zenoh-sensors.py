@@ -222,6 +222,7 @@ def main(config):
 
     exit(0)
 
+
 if __name__ == "__main__":
     # --- Command line argument parsing --- --- --- --- --- ---
     parser = argparse.ArgumentParser(
