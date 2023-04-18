@@ -63,7 +63,7 @@ class ZenohLocation(Source):
 
     def on_sensor_update(self, sample):
         self.pose = Pose.deserialize(sample.payload)
-        logging.debug(f"[ZenohLocation] Received location from simulator {pose}")
+        logging.debug(f"[ZenohLocation] Received location from simulator {self.pose}")
 
     def finalize(self) -> None:
         self.sub.undeclare()

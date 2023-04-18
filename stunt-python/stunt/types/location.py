@@ -1,7 +1,7 @@
 from carla import Vector3D as CarlaVector3D
 from carla import Location as CarlaLocation
 
-from stunt.types import Vector2D
+from stunt.types import Vector2D, Vector3D
 
 import math
 
@@ -30,6 +30,12 @@ class Location(IdlStruct):
 
     def __init__(self, x: float = 0, y: float = 0, z: float = 0):
         self.x, self.y, self.z = float(x), float(y), float(z)
+
+    @classmethod
+    def from_vector3d(cls, vector3: Vector3D):
+        if not isinstance(vector3, Vector3D):
+            raise ValueError("The vector3 must be a Vector3D")
+        return cls(vector3.x, vector3.y, vector3.z)
 
     @classmethod
     def from_simulator(cls, location):
@@ -117,6 +123,9 @@ class Location(IdlStruct):
 
         return CarlaLocation(self.x, self.y, self.z)
 
+    def as_vector3(self):
+        return Vector3D(self.x, self.y, self.z)
+
     def __repr__(self):
         return self.__str__()
 
@@ -129,6 +138,19 @@ class Location(IdlStruct):
             "y": self.y,
             "z": self.z,
         }
+
+    def __add__(self, other):
+        """Adds the two vectors together and returns the result."""
+        return type(self)(
+            x=self.x + other.x, y=self.y + other.y, z=self.z + other.z
+        )
+
+    def __sub__(self, other):
+        """Subtracts the other vector from self and returns the result."""
+        return type(self)(
+            x=self.x - other.x, y=self.y - other.y, z=self.z - other.z
+        )
+
 
     @classmethod
     def from_dict(cls, dictionary):
