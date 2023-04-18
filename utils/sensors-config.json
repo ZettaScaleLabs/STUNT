@@ -95,7 +95,7 @@
     },
     "control":{
         "ke":"stunt/ego-control",
-        "enabled": false
+        "enabled": true
     },
     "obstacles":{
         "name":"ground-truth-obstacles",
