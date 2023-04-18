@@ -35,8 +35,8 @@ operators:
     configuration:
       # PID parameters
       P: 0.01
-      I: 0.5
-      D: 0.03
+      I: 0.1
+      D: 0.01
     descriptor: "file://{{ BASE_DIR }}/nodes/operators/pid-control/pid-control.yml"
 
 
