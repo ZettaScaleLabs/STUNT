@@ -3,12 +3,12 @@ from zenoh_flow import Output
 from zenoh_flow.types import Context
 from typing import Any, Dict
 import asyncio
-
 import json
-from stunt.types import Obstacle
 from stunt import DEFAULT_SAMPLING_FREQUENCY
 import zenoh
 from zenoh import Reliability
+from queue import LifoQueue, Empty
+import logging
 
 DEFAULT_ZENOH_LOCATOR = "tcp/127.0.0.1:7447"
 DEFAULT_MODE = "peer"
@@ -22,7 +22,7 @@ class ZenohObstacles(Source):
         configuration: Dict[str, Any],
         outputs: Dict[str, Output],
     ):
-
+        logging.basicConfig(level=logging.DEBUG)
         self.period = 1 / int(
             configuration.get("frequency", DEFAULT_SAMPLING_FREQUENCY)
         )
@@ -47,25 +47,29 @@ class ZenohObstacles(Source):
         )
 
         self.output = outputs.get("Obstacles", None)
-        self.obstacles = None
+        self.obstacles = LifoQueue()
 
     async def iteration(self):
         await asyncio.sleep(self.period)
+        obstacles = []
+        flag = True
 
-        if self.obstacles is not None:
-            obstacles = []
-            for obstacle in self.obstacles:
-                obstacles.append(obstacle.to_dict())
+        while flag:
+            try:
+                obstacle = self.obstacles.get_nowait()
+                obstacles.append(obstacle)
+            except Empty as e:
+                logging.warning(f'[ZenohObstacles] no data in the queue: {e}')
+                flag = False
+
+        if len(obstacles) > 0:
             await self.output.send(json.dumps(obstacles).encode("utf-8"))
-            self.obstacles = None
-
         return None
 
     def on_sensor_update(self, sample):
         obs = json.loads(sample.payload.decode("utf-8"))
-        self.obstacles = []
         for o in obs:
-            self.obstacles.append(Obstacle.from_dict(o))
+            self.obstacles.put_nowait(o)
 
     def finalize(self) -> None:
         self.sub.undeclare()

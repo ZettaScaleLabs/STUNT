@@ -1,43 +1,66 @@
 flow: ControlDataDump
+vars:
+  BASE_DIR: "/var/zenoh-flow"
+
 configuration:
-  host: '192.168.122.35'
+  host: carla
+  port: 2000
+  map: "{{ BASE_DIR }}/var/maps/town01.xodr"
+  frequency: 20
 operators:
   - id: PerfectLocalization
-    descriptor:  {{ BASE_DIR }}/nodes/operators/perfect-localization/localization.yml
+    descriptor:  "file://{{ BASE_DIR }}/nodes/operators/perfect-localization/localization.yml"
 
   - id: BehaviourPlanning
     configuration:
-      goal: [116.0, 129.0, 0.0]
-    descriptor:  {{ BASE_DIR }}/nodes/operators/behaviour-planning/behaviour-planning.yml
-
-  - id: TTD
-    descriptor:  {{ BASE_DIR }}/nodes/operators/time-to-decision/time-to-decision.yml
+      map: "{{ BASE_DIR }}/var/maps/town01.xodr"
+    descriptor:  "file://{{ BASE_DIR }}/nodes/operators/behaviour-planning/behaviour-planning.yml"
 
   - id: PerfectTracker
-    descriptor: {{ BASE_DIR }}/nodes/operators/perfect-tracker/perfect-tracker.yml
+    descriptor: "file://{{ BASE_DIR }}/nodes/operators/perfect-tracker/perfect-tracker.yml"
 
   - id: LinearPredictor
-    descriptor: {{ BASE_DIR }}/nodes/operators/linear-predictor/linear-predictor.yml
+    descriptor: "file://{{ BASE_DIR }}/nodes/operators/linear-predictor/linear-predictor.yml"
 
   - id: WaypointPlanner
-    descriptor: {{ BASE_DIR }}/nodes/operators/waypoint-planner/waypoint-planner.yml
+    configuration:
+      map: "{{ BASE_DIR }}/var/maps/town01.xodr"
+    descriptor: "file://{{ BASE_DIR }}/nodes/operators/waypoint-planner/waypoint-planner.yml"
+
 
 sources:
 
-  - id : CarlaTrafficLights
-    descriptor : {{ BASE_DIR }}/nodes/sources/ground-truth/carla-trafficlights/carla-trafficlights.yml
+  - id : CarlaLocalization
+    configuration:
+      key-expressions:
+        Pose: "stunt/ground-truth/location"
+    descriptor: builtin://zenoh
 
   - id : CarlaObstacles
     configuration:
-      type: 'vehicle.*'
-    descriptor : {{ BASE_DIR }}/nodes/sources/ground-truth/carla-obstacles/carla-obstacles.yml
+      key-expressions:
+        Obstacles: "stunt/ground-truth/obstacles"
+    descriptor : builtin://zenoh
 
-  - id : CarlaLocalization
-    descriptor : {{ BASE_DIR }}/nodes/sources/ground-truth/carla-localization/carla-localization.yml
+  - id : CarlaTrafficLights
+    configuration:
+      key-expressions:
+        TrafficLights: "stunt/ground-truth/traffic-lightss"
+    descriptor : builtin://zenoh
+
+  - id: RoutePlanner
+    configuration:
+      #goal: [387.73, 330.07, 0.0]
+      goal: [116.0, 129.0, 0.0]
+      #goal: [84.0, 130.0, 0.0]
+      # map: {{ BASE_DIR }}/var/maps/town01.xodr
+      map: "{{ BASE_DIR }}/var/maps/town01.xodr"
+    descriptor: "file://{{ BASE_DIR }}/nodes/sources/route-planner/route-planner.yml"
+
 
 sinks:
   - id : PyPrint
-    descriptor : {{ BASE_DIR }}/nodes/sinks/generic-sink-py/generic-sink.yml
+    descriptor : "file://{{ BASE_DIR }}/nodes/sinks/generic-sink-py/generic-sink.yml"
 
 links:
 #sources
@@ -55,6 +78,13 @@ links:
     node : PerfectTracker
     input : Obstacles
 
+- from:
+    node : RoutePlanner
+    output : Route
+  to:
+    node : BehaviourPlanning
+    input : Route
+
 # operators
 
 - from:
@@ -63,20 +93,6 @@ links:
   to:
     node : PerfectTracker
     input : Pose
-
-- from:
-    node : PerfectLocalization
-    output : Pose
-  to:
-    node : TTD
-    input : Pose
-
-- from:
-    node : TTD
-    output : TTD
-  to:
-    node : LinearPredictor
-    input : TTD
 
 - from:
     node : PerfectTracker
@@ -92,7 +108,6 @@ links:
     node : BehaviourPlanning
     input : Pose
 
-
 - from:
     node : PerfectLocalization
     output : Pose
@@ -106,13 +121,6 @@ links:
   to:
     node : WaypointPlanner
     input : Trajectory
-
-- from:
-    node : TTD
-    output : TTD
-  to:
-    node : WaypointPlanner
-    input : TTD
 
 - from:
     node : LinearPredictor

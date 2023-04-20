@@ -39,43 +39,58 @@ operators:
 
 sources:
 
-  - id : CarlaTrafficLights
+  - id : CarlaLocalization
     configuration:
-      locator: "tcp/zenoh-router:7447"
-      mode: "peer"
-      key_expression: "stunt/ground-truth/traffic-lights"
-    descriptor : "file://{{ BASE_DIR }}/nodes/sources/ground-truth/zenoh-trafficlights/zenoh-trafficlights.yml"
+      key-expressions:
+        Pose: "stunt/ground-truth/location"
+    descriptor: builtin://zenoh
 
   - id : CarlaObstacles
     configuration:
-      locator: "tcp/zenoh-router:7447"
-      mode: "peer"
-      key_expression: "stunt/ground-truth/obstacles"
-      types:
-        - 'vehicle.*'
-        - 'walker.pedestrian.*'
-    descriptor : "file://{{ BASE_DIR }}/nodes/sources/ground-truth/zenoh-obstacles/zenoh-obstacles.yml"
+      key-expressions:
+        Obstacles: "stunt/ground-truth/obstacles"
+    descriptor : builtin://zenoh
 
-  - id : CarlaLocalization
+  - id : CarlaTrafficLights
     configuration:
-      locator: "tcp/zenoh-router:7447"
-      mode: "peer"
-      key_expression: "stunt/ground-truth/location"
-    descriptor : "file://{{ BASE_DIR }}/nodes/sources/ground-truth/zenoh-localization/zenoh-location.yml"
+      key-expressions:
+        TrafficLights: "stunt/ground-truth/traffic-lightss"
+    descriptor : builtin://zenoh
+
+  # - id : CarlaTrafficLights
+  #   configuration:
+  #     locator: "tcp/zenoh-router:7447"
+  #     mode: "peer"
+  #     key_expression: "stunt/ground-truth/traffic-lights"
+  #   descriptor : "file://{{ BASE_DIR }}/nodes/sources/ground-truth/zenoh-trafficlights/zenoh-trafficlights.yml"
+
+  # - id : CarlaObstacles
+  #   configuration:
+  #     locator: "tcp/zenoh-router:7447"
+  #     mode: "peer"
+  #     key_expression: "stunt/ground-truth/obstacles"
+  #     types:
+  #       - 'vehicle.*'
+  #       - 'walker.pedestrian.*'
+  #   descriptor : "file://{{ BASE_DIR }}/nodes/sources/ground-truth/zenoh-obstacles/zenoh-obstacles.yml"
+
+  # - id : CarlaLocalization
+  #   configuration:
+  #     locator: "tcp/zenoh-router:7447"
+  #     mode: "peer"
+  #     key_expression: "stunt/ground-truth/location"
+  #   descriptor : "file://{{ BASE_DIR }}/nodes/sources/ground-truth/zenoh-localization/zenoh-location.yml"
 
   - id: RoutePlanner
     configuration:
-      goal: [387.73, 330.07, 0.0]
-      #goal: [116.0, 129.0, 0.0]
+      #goal: [387.73, 330.07, 0.0]
+      goal: [116.0, 129.0, 0.0]
       #goal: [84.0, 130.0, 0.0]
       # map: {{ BASE_DIR }}/var/maps/town01.xodr
       map: "{{ BASE_DIR }}/var/maps/town01.xodr"
     descriptor: "file://{{ BASE_DIR }}/nodes/sources/route-planner/route-planner.yml"
 
 sinks:
-  - id : PyPrint
-    descriptor : "file://{{ BASE_DIR }}/nodes/sinks/generic-sink-py/generic-sink.yml"
-
   - id : Drive
     configuration:
       locator: "tcp/zenoh-router:7447"
@@ -172,14 +187,6 @@ links:
   to:
     node : PIDController
     input : Pose
-
-# sinks
-- from:
-    node : PIDController
-    output : Control
-  to:
-    node : PyPrint
-    input : Data
 
 - from:
     node : PIDController

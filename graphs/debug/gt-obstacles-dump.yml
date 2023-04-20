@@ -1,13 +1,31 @@
 flow: ControlDataDump
+vars:
+  BASE_DIR: "/var/zenoh-flow"
 configuration:
-  host: '192.168.122.35'
+  host: 'carla'
+  port: 2000
 operators: []
 sources:
+  # - id : CarlaObstacles
+  #   configuration:
+  #     locator: "tcp/zenoh-router:7447"
+  #     mode: "peer"
+  #     key_expression: "stunt/ground-truth/obstacles"
+  #     types:
+  #       - 'vehicle.*'
+  #       - 'walker.pedestrian.*'
+  #   descriptor : "file://{{ BASE_DIR }}/nodes/sources/ground-truth/zenoh-obstacles/zenoh-obstacles.yml"
+
   - id : CarlaObstacles
-    descriptor : {{ BASE_DIR }}/nodes/sources/ground-truth/carla-obstacles/carla-obstacles.yml
+    configuration:
+      key-expressions:
+        Obstacles: "stunt/ground-truth/obstacles"
+    descriptor : builtin://zenoh
+
+
 sinks:
   - id : PyPrint
-    descriptor : {{ BASE_DIR }}/nodes/sinks/generic-sink-py/generic-sink.yml
+    descriptor : "file://{{ BASE_DIR }}/nodes/sinks/generic-sink-py/generic-sink.yml"
 
 links:
 - from:

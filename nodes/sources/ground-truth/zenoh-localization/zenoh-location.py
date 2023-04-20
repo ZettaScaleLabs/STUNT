@@ -51,6 +51,7 @@ class ZenohLocation(Source):
 
         self.output = outputs.get("Pose", None)
         self.pose = None
+        logging.debug(f"[ZenohLocation] Initialized from: {configuration}")
 
     async def iteration(self):
         await asyncio.sleep(self.period)
@@ -63,7 +64,6 @@ class ZenohLocation(Source):
 
     def on_sensor_update(self, sample):
         self.pose = Pose.deserialize(sample.payload)
-        logging.debug(f"[ZenohLocation] Received location from simulator {self.pose}")
 
     def finalize(self) -> None:
         self.sub.undeclare()

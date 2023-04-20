@@ -2,7 +2,7 @@ from zenoh_flow.interfaces import Operator
 from zenoh_flow import Input, Output
 from zenoh_flow.types import Context
 from typing import Dict, Any
-
+import logging
 
 import time
 import asyncio
@@ -33,7 +33,7 @@ class PIDController(Operator):
         outputs: Dict[str, Output],
     ):
         configuration = configuration if configuration is not None else {}
-
+        logging.basicConfig(level=logging.DEBUG)
         self.pending = []
 
         self.p = configuration.get("P", DEFAULT_P_PARAMETER)
@@ -163,55 +163,58 @@ class PIDController(Operator):
         return task_list
 
     async def iteration(self):
+        try:
+            (done, pending) = await asyncio.wait(
+                self.create_task_list(),
+                return_when=asyncio.FIRST_COMPLETED,
+            )
 
-        (done, pending) = await asyncio.wait(
-            self.create_task_list(),
-            return_when=asyncio.FIRST_COMPLETED,
-        )
+            self.pending = list(pending)
+            for d in done:
+                (who, data_msg) = d.result()
+                logging.debug(f"[PIDController] Received from input {who}")
 
-        self.pending = list(pending)
-        for d in done:
+                if who == "Waypoints":
+                    self.waypoints = Waypoints.deserialize(data_msg.data)
 
-            (who, data_msg) = d.result()
+                elif who == "Pose":
+                    # print("[PID] received pose")
+                    if self.waypoints is None:
+                        logging.debug("[PIDController] Has no waypoints to follow, car will be stopped!")
+                        await self.output.send(VehicleControl(brake=1.0).serialize())
+                        return None
 
-            if who == "Waypoints":
-                self.waypoints = Waypoints.deserialize(data_msg.data)
+                    pose = Pose.deserialize(data_msg.data)
+                    ego_transform = pose.transform
+                    current_speed = pose.forward_speed
 
-            elif who == "Pose":
-                # print("[PID] received pose")
-                if self.waypoints is None:
-                    # print("[PID] waypoints is empty")
-                    return None
+                    try:
+                        angle_steer = self.waypoints.get_angle(
+                            ego_transform, self.min_pid_steer_waypoint_distance
+                        )
+                        target_speed = self.waypoints.get_target_speed(
+                            ego_transform, self.min_pid_speed_waypoint_distance
+                        )
 
-                pose = Pose.deserialize(data_msg.data)
-                ego_transform = pose.transform
-                current_speed = pose.forward_speed
+                        throttle, brake = self.compute_throttle_and_brake(
+                            current_speed, target_speed
+                        )
 
-                try:
-                    angle_steer = self.waypoints.get_angle(
-                        ego_transform, self.min_pid_steer_waypoint_distance
-                    )
-                    target_speed = self.waypoints.get_target_speed(
-                        ego_transform, self.min_pid_speed_waypoint_distance
-                    )
+                        steer = self.radians_to_steer(angle_steer)
 
-                    throttle, brake = self.compute_throttle_and_brake(
-                        current_speed, target_speed
-                    )
+                        ctrl_data = VehicleControl(throttle, steer, brake)
 
-                    steer = self.radians_to_steer(angle_steer)
+                        await self.output.send(ctrl_data.serialize())
 
-                    ctrl_data = VehicleControl(throttle, steer, brake)
+                    except Exception:
+                        await self.output.send(self.control.serialize())
 
-                    await self.output.send(ctrl_data.serialize())
-
-                except Exception:
-                    await self.output.send(self.control.serialize())
-
-                # consume data
-                self.waypoints = None
-
-            return None
+                    # consume data
+                    self.waypoints = None
+        except Exception as e:
+            logging.warning(f'[PIDController] got error {e}, BRAKING!')
+            await self.output.send(VehicleControl(brake=1.0).serialize())
+        return None
 
     def finalize(self) -> None:
         return None

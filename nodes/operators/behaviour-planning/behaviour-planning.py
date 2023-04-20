@@ -92,95 +92,97 @@ class BehaviourPlanning(Operator):
         return task_list
 
     async def iteration(self):
+        try:
+            (done, pending) = await asyncio.wait(
+                self.create_task_list(),
+                return_when=asyncio.FIRST_COMPLETED,
+            )
 
-        (done, pending) = await asyncio.wait(
-            self.create_task_list(),
-            return_when=asyncio.FIRST_COMPLETED,
-        )
+            self.pending = list(pending)
+            for d in done:
+                (who, data_msg) = d.result()
+                logging.debug(f"[BehaviourPlanning] Received from input {who}")
 
-        self.pending = list(pending)
-        for d in done:
-            (who, data_msg) = d.result()
-            logging.debug(f"[BehaviourPlanning] Received from input {who}")
+                if who == "Route":
+                    # Storing the route and the goal.
+                    self.route = Waypoints.deserialize(data_msg.data)
+                    self.goal_location = self.route.waypoints[-1].location
 
-            if who == "Route":
-                # Storing the route and the goal.
-                self.route = Waypoints.deserialize(data_msg.data)
-                self.goal_location = self.route.waypoints[-1].location
+                elif who == "Pose":
 
-            elif who == "Pose":
+                    pose = Pose.deserialize(data_msg.data)
 
-                pose = Pose.deserialize(data_msg.data)
+                    ego_transform = pose.transform
+                    # print(
+                    #     f"BehaviourPlanning received pose {ego_transform.location}"
+                    # )
+                    # forward_speed = pose.forward_speed
 
-                ego_transform = pose.transform
-                # print(
-                #     f"BehaviourPlanning received pose {ego_transform.location}"
-                # )
-                # forward_speed = pose.forward_speed
+                    # In order to compute we need the route.
+                    if self.route is None:
+                        return None
 
-                # In order to compute we need the route.
-                if self.route is None:
-                    return None
+                    # update ego information
+                    self.ego_info.update(pose)
 
-                # update ego information
-                self.ego_info.update(pose)
+                    old_state = self.state
+                    # check if we the car can change its behaviour
+                    self.state = self.best_state_transition()
 
-                old_state = self.state
-                # check if we the car can change its behaviour
-                self.state = self.best_state_transition()
-
-                if (
-                    self.state != old_state
-                    and self.state == BehaviorPlannerState.OVERTAKE
-                ):
-                    self.route.remove_waypoint_if_close(
-                        ego_transform.location, 10
-                    )
-                else:
-                    if not self.map.is_intersection(ego_transform.location):
+                    if (
+                        self.state != old_state
+                        and self.state == BehaviorPlannerState.OVERTAKE
+                    ):
                         self.route.remove_waypoint_if_close(
                             ego_transform.location, 10
                         )
                     else:
-                        self.route.remove_waypoint_if_close(
-                            ego_transform.location, 3
+                        if not self.map.is_intersection(ego_transform.location):
+                            self.route.remove_waypoint_if_close(
+                                ego_transform.location, 10
+                            )
+                        else:
+                            self.route.remove_waypoint_if_close(
+                                ego_transform.location, 3
+                            )
+
+                    new_goal_location = self.get_goal_location(ego_transform)
+                    # print(
+                    #     f"BehaviourPlanning new_goal location {new_goal_location}"
+                    # )
+                    # print(
+                    #     f"BehaviourPlanning previous  location {new_goal_location}"
+                    # )
+
+                    if new_goal_location != self.goal_location:
+                        self.goal_location = new_goal_location
+                        waypoints = self.map.compute_waypoints(
+                            ego_transform.location, self.goal_location
                         )
-
-                new_goal_location = self.get_goal_location(ego_transform)
-                # print(
-                #     f"BehaviourPlanning new_goal location {new_goal_location}"
-                # )
-                # print(
-                #     f"BehaviourPlanning previous  location {new_goal_location}"
-                # )
-
-                if new_goal_location != self.goal_location:
-                    self.goal_location = new_goal_location
-                    waypoints = self.map.compute_waypoints(
-                        ego_transform.location, self.goal_location
-                    )
-                    road_options = deque(
-                        [RoadOption.LANE_FOLLOW for _ in range(len(waypoints))]
-                    )
-                    waypoints = Waypoints(waypoints, road_options=road_options)
-
-                    if waypoints.is_empty():
-                        # No more waypoints stop the car
-                        waypoints = Waypoints(
-                            deque([ego_transform]),
-                            deque([0]),
-                            deque(RoadOption.LANE_FOLLOW),
+                        road_options = deque(
+                            [RoadOption.LANE_FOLLOW for _ in range(len(waypoints))]
                         )
+                        waypoints = Waypoints(waypoints, road_options=road_options)
 
-                    trajectory = Trajectory(waypoints, self.state)
+                        if waypoints.is_empty():
+                            # No more waypoints stop the car
+                            waypoints = Waypoints(
+                                deque([ego_transform]),
+                                deque([0]),
+                                deque(RoadOption.LANE_FOLLOW),
+                            )
 
-                    await self.output.send(trajectory.serialize())
-                    # print(f"BehaviourPlanning sending trajectory {trajectory}")
-                elif old_state != self.state:
-                    trajectory = Trajectory(self.route, self.state)
-                    await self.output.send(trajectory.serialize())
-                    # print(f"BehaviourPlanning sending trajectory {trajectory}")
-                return None
+                        trajectory = Trajectory(waypoints, self.state)
+
+                        await self.output.send(trajectory.serialize())
+                        # print(f"BehaviourPlanning sending trajectory {trajectory}")
+                    elif old_state != self.state:
+                        trajectory = Trajectory(self.route, self.state)
+                        await self.output.send(trajectory.serialize())
+                        # print(f"BehaviourPlanning sending trajectory {trajectory}")
+        except Exception as e:
+            logging.warning(f"[BehaviourPlanning] got error {e}")
+        return None
 
     def finalize(self) -> None:
         return None

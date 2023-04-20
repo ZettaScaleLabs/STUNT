@@ -4,6 +4,8 @@ from zenoh_flow.types import Context
 from typing import Dict, Any
 import logging
 from stunt.types import Pose
+
+
 class PerfectLocalization(Operator):
     def __init__(
         self,
@@ -23,8 +25,8 @@ class PerfectLocalization(Operator):
 
         # perfect localization, forwards the localization received from the
         # ground truth
-        pose = Pose.deserialize(data.data)
-        logging.debug(f"[PerfectLocalization] Sending Localization {pose}")
+        # pose = Pose.deserialize(data.data)
+        # logging.debug(f"[PerfectLocalization] Sending Localization {pose}")
         await self.output.send(data.data)
 
         return None

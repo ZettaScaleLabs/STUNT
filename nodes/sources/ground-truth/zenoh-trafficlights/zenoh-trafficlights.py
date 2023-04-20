@@ -5,10 +5,11 @@ from typing import Any, Dict
 import asyncio
 
 import json
-from stunt.types import TrafficLight
 from stunt import DEFAULT_SAMPLING_FREQUENCY
 import zenoh
 from zenoh import Reliability
+from queue import LifoQueue, Empty
+import logging
 
 DEFAULT_ZENOH_LOCATOR = "tcp/127.0.0.1:7447"
 DEFAULT_MODE = "peer"
@@ -22,6 +23,7 @@ class ZenohTrafficLights(Source):
         configuration: Dict[str, Any],
         outputs: Dict[str, Output],
     ):
+        logging.basicConfig(level=logging.DEBUG)
 
         self.period = 1 / int(
             configuration.get("frequency", DEFAULT_SAMPLING_FREQUENCY)
@@ -47,26 +49,31 @@ class ZenohTrafficLights(Source):
         )
 
         self.output = outputs.get("TrafficLights", None)
-        self.traffic_lights = None
+        self.traffic_lights = LifoQueue()
 
     async def iteration(self):
         await asyncio.sleep(self.period)
 
-        if self.traffic_lights is not None:
-            obstacles = []
-            for obstacle in self.traffic_lights:
-                obstacles.append(obstacle.to_dict())
+        traffic_lights = []
+        flag = True
 
-            await self.output.send(json.dumps(obstacles).encode("utf-8"))
-            self.traffic_lights = None
+        while flag:
+            try:
+                traffic_light = self.traffic_lights.get_nowait()
+                traffic_lights.append(traffic_light)
+            except Empty as e:
+                logging.warning(f'[ZenohTrafficLights] no data in the queue: {e}')
+                flag = False
+
+        if len(traffic_lights) > 0:
+            await self.output.send(json.dumps(traffic_lights).encode("utf-8"))
 
         return None
 
     def on_sensor_update(self, sample):
         tls = json.loads(sample.payload.decode("utf-8"))
-        self.traffic_lights = []
         for tl in tls:
-            self.traffic_lights.append(TrafficLight.from_dict(tl))
+            self.traffic_lights.put_nowait(tl)
 
     def finalize(self) -> None:
         self.sub.undeclare()

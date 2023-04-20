@@ -162,97 +162,100 @@ class WaypointPlanner(Operator):
         return task_list
 
     async def iteration(self):
+        try:
+            (done, pending) = await asyncio.wait(
+                self.create_task_list(),
+                return_when=asyncio.FIRST_COMPLETED,
+            )
 
-        (done, pending) = await asyncio.wait(
-            self.create_task_list(),
-            return_when=asyncio.FIRST_COMPLETED,
-        )
+            self.pending = list(pending)
 
-        self.pending = list(pending)
+            for d in done:
+                (who, data_msg) = d.result()
 
-        for d in done:
-            (who, data_msg) = d.result()
+                logging.debug(f"[WaypointPlanner] Received from input {who}")
 
-            if who == "Trajectory":
-                # getting the trajectory from the behaviour planner
-                # it generates the kind of GPS waypoints towards the
-                # destination
-                self.trajectory = Trajectory.deserialize(data_msg.data)
+                if who == "Trajectory":
+                    # getting the trajectory from the behaviour planner
+                    # it generates the kind of GPS waypoints towards the
+                    # destination
+                    self.trajectory = Trajectory.deserialize(data_msg.data)
 
-                self.state = self.trajectory.state
+                    self.state = self.trajectory.state
 
-                if (
-                    self.trajectory.waypoints is not None
-                    and len(self.trajectory.waypoints.waypoints) > 0
-                ):
+                    if (
+                        self.trajectory.waypoints is not None
+                        and len(self.trajectory.waypoints.waypoints) > 0
+                    ):
 
-                    self.world.update_waypoints(
-                        self.trajectory.waypoints.waypoints[-1].location,
-                        self.trajectory.waypoints,
+                        self.world.update_waypoints(
+                            self.trajectory.waypoints.waypoints[-1].location,
+                            self.trajectory.waypoints,
+                        )
+
+                elif who == "ObstaclePredictions":
+                    predictions_list = json.loads(data_msg.data.decode("utf-8"))
+                    self.obstacle_trajectories = []
+                    for p in predictions_list:
+                        self.obstacle_trajectories.append(
+                            ObstaclePrediction.from_dict(p)
+                        )
+
+                elif who == "TrafficLights":
+                    traffic_lights = json.loads(data_msg.data.decode("utf-8"))
+                    self.traffic_lights = []
+                    for tl in traffic_lights:
+                        self.traffic_lights.append(TrafficLight.from_dict(tl))
+
+                elif who == "Pose":
+                    pose = Pose.deserialize(data_msg.data)
+
+                    # print(
+                    #     f"Waypoint planner received pose, can compute checks obstacles:{self.obstacle_trajectories is not None}, traffic_lights:{self.traffic_lights is not None}, trajectory:{self.trajectory is not None}"
+                    # )
+
+                    if (
+                        self.obstacle_trajectories is None
+                        or self.traffic_lights is None
+                        or self.trajectory is None
+                    ):
+                        return None
+
+                    predictions = self.get_predictions(
+                        self.obstacle_trajectories, pose.transform
+                    )
+                    self.world.update(
+                        pose.localization_time,
+                        pose,
+                        predictions,
+                        self.traffic_lights,
+                        self.map,
+                        None,
                     )
 
-            elif who == "ObstaclePredictions":
-                predictions_list = json.loads(data_msg.data.decode("utf-8"))
-                self.obstacle_trajectories = []
-                for p in predictions_list:
-                    self.obstacle_trajectories.append(
-                        ObstaclePrediction.from_dict(p)
+                    (
+                        speed_factor,
+                        _,
+                        _,
+                        speed_factor_tl,
+                        speed_factor_stop,
+                    ) = self.world.stop_for_agents(pose.localization_time)
+
+                    target_speed = speed_factor * self.target_speed
+
+                    output_wps = self.world.follow_waypoints(target_speed)
+
+                    # remove waypoints that are too close (we already reach them)
+                    output_wps.remove_waypoint_if_close(
+                        pose.transform.location, distance=5
                     )
 
-            elif who == "TrafficLights":
-                traffic_lights = json.loads(data_msg.data.decode("utf-8"))
-                self.traffic_lights = []
-                for tl in traffic_lights:
-                    self.traffic_lights.append(TrafficLight.from_dict(tl))
-
-            elif who == "Pose":
-                pose = Pose.deserialize(data_msg.data)
-
-                # print(
-                #     f"Waypoint planner received pose, can compute checks obstacles:{self.obstacle_trajectories is not None}, traffic_lights:{self.traffic_lights is not None}, trajectory:{self.trajectory is not None}"
-                # )
-
-                if (
-                    self.obstacle_trajectories is None
-                    or self.traffic_lights is None
-                    or self.trajectory is None
-                ):
-                    return None
-
-                predictions = self.get_predictions(
-                    self.obstacle_trajectories, pose.transform
-                )
-                self.world.update(
-                    pose.localization_time,
-                    pose,
-                    predictions,
-                    self.traffic_lights,
-                    self.map,
-                    None,
-                )
-
-                (
-                    speed_factor,
-                    _,
-                    _,
-                    speed_factor_tl,
-                    speed_factor_stop,
-                ) = self.world.stop_for_agents(pose.localization_time)
-
-                target_speed = speed_factor * self.target_speed
-
-                output_wps = self.world.follow_waypoints(target_speed)
-
-                # remove waypoints that are too close (we already reach them)
-                output_wps.remove_waypoint_if_close(
-                    pose.transform.location, distance=5
-                )
-
-                await self.output.send(output_wps.serialize())
-                self.obstacle_trajectories = None
-                self.traffic_lights = None
-                # self.trajectory = None
-
+                    await self.output.send(output_wps.serialize())
+                    self.obstacle_trajectories = None
+                    self.traffic_lights = None
+                    # self.trajectory = None
+        except Exception as e:
+            logging.warning(f"[WaypointPlanner] got error {e}")
         return None
 
     def finalize(self) -> None:

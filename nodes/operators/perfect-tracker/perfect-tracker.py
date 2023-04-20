@@ -2,7 +2,7 @@ from zenoh_flow.interfaces import Operator
 from zenoh_flow import Input, Output
 from zenoh_flow.types import Context
 from typing import Dict, Any
-
+import logging
 import asyncio
 
 import json
@@ -29,6 +29,7 @@ class PerfectTracker(Operator):
         inputs: Dict[str, Input],
         outputs: Dict[str, Output],
     ):
+        logging.basicConfig(level=logging.DEBUG)
         configuration = configuration if configuration is not None else {}
 
         self.pending = []
@@ -52,6 +53,13 @@ class PerfectTracker(Operator):
         self.obstacles_input = inputs.get("Obstacles", None)
         self.pose_input = inputs.get("Pose", None)
         self.output = outputs.get("ObstacleTrajectories", None)
+
+        if self.obstacles_input is None:
+            raise ValueError("Cannot find input: 'Obstacles'")
+        if self.pose_input is None:
+            raise ValueError("Cannot find input: 'Pose'")
+        if self.output is None:
+            raise ValueError("Cannot find output: 'ObstacleTrajectories'")
 
         self.pose = Pose()
         self.speed_limits = []
@@ -80,73 +88,76 @@ class PerfectTracker(Operator):
         return task_list
 
     async def iteration(self):
-
-        (done, pending) = await asyncio.wait(
-            self.create_task_list(),
-            return_when=asyncio.FIRST_COMPLETED,
-        )
-
-        self.pending = list(pending)
-
-        (who, data_msg) = done.pop().result()
-
-        if who == "Pose":
-            self.pose = Pose.deserialize(data_msg.data)
-
-        elif who == "Obstacles":
-
-            if self.pose is None:
-                return None
-
-            obstacle_trajectories = []
-
-            obstacles_list = json.loads(data_msg.data.decode("utf-8"))
-            # print(f'Perfect tracker received obstacles {len(obstacles_list)}')
-            for o in obstacles_list:
-                obstacle = Obstacle.from_dict(o)
-
-                # skipping the ego vehicle
-                if obstacle.detailed_label == "hero":
-                    continue
-                # skip tracking the object is too far away
-                if (
-                    self.pose.transform.location.distance(
-                        obstacle.transform.location
-                    )
-                    > self.dynamic_obstacle_distance_threshold
-                ):
-                    continue
-                # storing the obstacle in the hystory
-                self._obstacles[obstacle.id].append(obstacle)
-
-                cur_obstacle_trajectory = []
-                # Iterate through past frames of this obstacle.
-                for past_obstacle_loc in self._obstacles[obstacle.id]:
-                    # Get the transform of the center of
-                    # the obstacle's bounding box,
-                    # in relation to the Pose measurement.
-                    v_transform = (
-                        past_obstacle_loc.transform
-                        * past_obstacle_loc.bounding_box.transform
-                    )
-                    new_transform = (
-                        self.pose.transform.inverse_transform() * v_transform
-                    )
-                    cur_obstacle_trajectory.append(new_transform)
-
-                    obs_traj = ObstacleTrajectory(
-                        obstacle, cur_obstacle_trajectory
-                    ).to_dict()
-
-                    obstacle_trajectories.append(obs_traj)
-
-            await self.output.send(
-                json.dumps(obstacle_trajectories).encode("utf-8")
+        try:
+            (done, pending) = await asyncio.wait(
+                self.create_task_list(),
+                return_when=asyncio.FIRST_COMPLETED,
             )
-            # print(f'Perfect tracker tracked obstacles {len(obstacle_trajectories)}')
 
-            self.pose = None
+            self.pending = list(pending)
+            for d in done:
+                (who, data_msg) = d.result()
 
+                logging.debug(f"[PerfectTracker] Received from input {who}")
+
+                if who == "Pose":
+                    self.pose = Pose.deserialize(data_msg.data)
+
+                elif who == "Obstacles":
+
+                    if self.pose is None:
+                        return None
+
+                    obstacle_trajectories = []
+
+                    obstacles_list = json.loads(data_msg.data.decode("utf-8"))
+                    # print(f'Perfect tracker received obstacles {len(obstacles_list)}')
+                    for o in obstacles_list:
+                        obstacle = Obstacle.from_dict(o)
+
+                        # skipping the ego vehicle
+                        if obstacle.detailed_label == "hero":
+                            continue
+                        # skip tracking the object is too far away
+                        if (
+                            self.pose.transform.location.distance(
+                                obstacle.transform.location
+                            )
+                            > self.dynamic_obstacle_distance_threshold
+                        ):
+                            continue
+                        # storing the obstacle in the hystory
+                        self._obstacles[obstacle.id].append(obstacle)
+
+                        cur_obstacle_trajectory = []
+                        # Iterate through past frames of this obstacle.
+                        for past_obstacle_loc in self._obstacles[obstacle.id]:
+                            # Get the transform of the center of
+                            # the obstacle's bounding box,
+                            # in relation to the Pose measurement.
+                            v_transform = (
+                                past_obstacle_loc.transform
+                                * past_obstacle_loc.bounding_box.transform
+                            )
+                            new_transform = (
+                                self.pose.transform.inverse_transform() * v_transform
+                            )
+                            cur_obstacle_trajectory.append(new_transform)
+
+                            obs_traj = ObstacleTrajectory(
+                                obstacle, cur_obstacle_trajectory
+                            ).to_dict()
+
+                            obstacle_trajectories.append(obs_traj)
+
+                    await self.output.send(
+                        json.dumps(obstacle_trajectories).encode("utf-8")
+                    )
+                    # print(f'Perfect tracker tracked obstacles {len(obstacle_trajectories)}')
+
+                    self.pose = None
+        except Exception as e:
+            logging.warning(f"[PerfectTracker] got error {e}")
         return None
 
     def finalize(self) -> None:
