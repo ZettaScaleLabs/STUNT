@@ -1,8 +1,13 @@
-id: CarlaCamera
+id: RoutePlanner
+
 vars:
   BASE_DIR: "/var/zenoh-flow"
+
 uri: "file://{{ BASE_DIR }}/nodes/sources/route-planner/route-planner.py"
+
 configuration:
     goal: [116.0, 129.0, 0.0]
     map: "{{ BASE_DIR }}/var/maps/town01.xodr"
+
+inputs: [Goal]
 outputs: [Route]

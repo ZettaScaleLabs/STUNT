@@ -8,6 +8,7 @@ configuration:
   port: 2000
   map: "{{ BASE_DIR }}/var/maps/town01.xodr"
   frequency: 20
+
 operators:
   - id: PerfectLocalization
     descriptor:  "file://{{ BASE_DIR }}/nodes/operators/perfect-localization/localization.yml"
@@ -36,9 +37,17 @@ operators:
       D: 0.01
     descriptor: "file://{{ BASE_DIR }}/nodes/operators/pid-control/pid-control.yml"
 
+  - id: RoutePlanner
+    configuration:
+      # goal: [387.73, 330.07, 0.0]
+      # goal: [116.0, 129.0, 0.0]
+      # goal: [84.0, 130.0, 0.0]
+      # map: {{ BASE_DIR }}/var/maps/town01.xodr
+      map: "{{ BASE_DIR }}/var/maps/town01.xodr"
+    descriptor: "file://{{ BASE_DIR }}/nodes/operators/route-planner/route-planner.yml"
+
 
 sources:
-
   - id : CarlaLocalization
     configuration:
       key-expressions:
@@ -55,6 +64,12 @@ sources:
     configuration:
       key-expressions:
         TrafficLights: "stunt/ground-truth/traffic-lightss"
+    descriptor : builtin://zenoh
+
+  - id : ZenohGoalDestination
+    configuration:
+      key-expressions:
+        Goal: "stunt/ego-control/destination"
     descriptor : builtin://zenoh
 
   # - id : CarlaTrafficLights
@@ -81,15 +96,6 @@ sources:
   #     key_expression: "stunt/ground-truth/location"
   #   descriptor : "file://{{ BASE_DIR }}/nodes/sources/ground-truth/zenoh-localization/zenoh-location.yml"
 
-  - id: RoutePlanner
-    configuration:
-      goal: [387.73, 330.07, 0.0]
-      #goal: [116.0, 129.0, 0.0]
-      #goal: [84.0, 130.0, 0.0]
-      # map: {{ BASE_DIR }}/var/maps/town01.xodr
-      map: "{{ BASE_DIR }}/var/maps/town01.xodr"
-    descriptor: "file://{{ BASE_DIR }}/nodes/sources/route-planner/route-planner.yml"
-
 sinks:
   - id : Drive
     configuration:
@@ -115,11 +121,11 @@ links:
     input : Obstacles
 
 - from:
-    node : RoutePlanner
-    output : Route
+    node : ZenohGoalDestination
+    output : Goal
   to:
-    node : BehaviourPlanning
-    input : Route
+    node : RoutePlanner
+    input : Goal
 
 # operators
 
@@ -151,6 +157,13 @@ links:
   to:
     node : WaypointPlanner
     input : Pose
+
+- from:
+    node: RoutePlanner
+    output: Route
+  to:
+    node: BehaviourPlanning
+    input: Route
 
 - from:
     node : BehaviourPlanning
