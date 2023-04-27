@@ -29,7 +29,7 @@ class PerfectTracker(Operator):
         inputs: Dict[str, Input],
         outputs: Dict[str, Output],
     ):
-        logging.basicConfig(level=logging.DEBUG)
+        logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.DEBUG)
         configuration = configuration if configuration is not None else {}
 
         self.pending = []
@@ -98,7 +98,7 @@ class PerfectTracker(Operator):
             for d in done:
                 (who, data_msg) = d.result()
 
-                logging.debug(f"[PerfectTracker] Received from input {who}")
+                # logging.debug(f"[PerfectTracker] Received from input {who}")
 
                 if who == "Pose":
                     self.pose = Pose.deserialize(data_msg.data)

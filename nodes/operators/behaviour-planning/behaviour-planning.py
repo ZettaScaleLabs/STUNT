@@ -33,7 +33,7 @@ class BehaviourPlanning(Operator):
         outputs: Dict[str, Output],
     ):
 
-        logging.basicConfig(level=logging.DEBUG)
+        logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.DEBUG)
         configuration = configuration if configuration is not None else {}
 
         self.map_file = configuration.get("map", None)
@@ -101,12 +101,13 @@ class BehaviourPlanning(Operator):
             self.pending = list(pending)
             for d in done:
                 (who, data_msg) = d.result()
-                logging.debug(f"[BehaviourPlanning] Received from input {who}")
+                # logging.debug(f"[BehaviourPlanning] Received from input {who}")
 
                 if who == "Route":
                     # Storing the route and the goal.
                     self.route = Waypoints.deserialize(data_msg.data)
                     self.goal_location = self.route.waypoints[-1].location
+                    # logging.debug(f"[BehaviourPlanning] Route to destination: {self.goal_location} ( {len(self.route.waypoints)} waypoints)")
 
                 elif who == "Pose":
 
@@ -120,6 +121,7 @@ class BehaviourPlanning(Operator):
 
                     # In order to compute we need the route.
                     if self.route is None:
+                        # logging.warn("[BehaviourPlanning] route is none!")
                         return None
 
                     # update ego information
@@ -147,12 +149,13 @@ class BehaviourPlanning(Operator):
                             )
 
                     new_goal_location = self.get_goal_location(ego_transform)
-                    # print(
-                    #     f"BehaviourPlanning new_goal location {new_goal_location}"
-                    # )
-                    # print(
-                    #     f"BehaviourPlanning previous  location {new_goal_location}"
-                    # )
+
+                    distance_to_new = ego_transform.location.distance(new_goal_location)
+                    distance_to_old = ego_transform.location.distance(self.goal_location)
+                    # logging.debug(f"[BehaviourPlanning] Previous goal location: {self.goal_location} new goal location: {new_goal_location}")
+                    # logging.debug(f"[BehaviourPlanning] Distance between pose and old goal location is {distance_to_old}")
+                    # logging.debug(f"[BehaviourPlanning] Distance between pose and new goal location is {distance_to_new}")
+
 
                     if new_goal_location != self.goal_location:
                         self.goal_location = new_goal_location
@@ -165,6 +168,8 @@ class BehaviourPlanning(Operator):
                         waypoints = Waypoints(waypoints, road_options=road_options)
 
                         if waypoints.is_empty():
+                            logging.debug("[BehaviourPlanning] No more waypoints stop the car")
+
                             # No more waypoints stop the car
                             waypoints = Waypoints(
                                 deque([ego_transform]),

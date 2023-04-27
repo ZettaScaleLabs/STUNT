@@ -283,10 +283,6 @@ class FOTPlanner(Operator):
         data_msg = await self.obstacles_input.recv()
         return ("ObstaclePredictions", data_msg)
 
-    async def wait_ttd(self):
-        data_msg = await self.ttd_input.recv()
-        return ("TTD", data_msg)
-
     async def wait_pose(self):
         data_msg = await self.pose_input.recv()
         return ("Pose", data_msg)
@@ -301,9 +297,6 @@ class FOTPlanner(Operator):
 
     def create_task_list(self):
         task_list = [] + self.pending
-
-        if not any(t.get_name() == "TTD" for t in task_list):
-            task_list.append(asyncio.create_task(self.wait_ttd(), name="TTD"))
 
         if not any(t.get_name() == "ObstaclePredictions" for t in task_list):
             task_list.append(

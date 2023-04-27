@@ -28,7 +28,7 @@ class LinearPredictor(Operator):
         inputs: Dict[str, Input],
         outputs: Dict[str, Output],
     ):
-        logging.basicConfig(level=logging.DEBUG)
+        logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.DEBUG)
         configuration = configuration if configuration is not None else {}
 
         self.pending = []
@@ -56,7 +56,7 @@ class LinearPredictor(Operator):
         try:
             data_msg = await self.obstacles_input.recv()
             trajectory_list = json.loads(data_msg.data.decode("utf-8"))
-            logging.debug(f"[LinearPredictor] received {len(trajectory_list)} trajectories")
+            # logging.debug(f"[LinearPredictor] received {len(trajectory_list)} trajectories")
             obstacle_trajectories = []
             for t in trajectory_list:
                 obstacle_trajectories.append(
@@ -126,7 +126,7 @@ class LinearPredictor(Operator):
                     ).to_dict()
                 )
 
-            logging.debug(f"[LinearPredictor] computed {len(obstacle_predictions_list)}  predictions")
+            # logging.debug(f"[LinearPredictor] computed {len(obstacle_predictions_list)}  predictions")
             await self.output.send(
                 json.dumps(obstacle_predictions_list).encode("utf-8")
             )

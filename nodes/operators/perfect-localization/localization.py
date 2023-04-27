@@ -14,7 +14,7 @@ class PerfectLocalization(Operator):
         inputs: Dict[str, Input],
         outputs: Dict[str, Output],
     ):
-        logging.basicConfig(level=logging.DEBUG)
+        logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.DEBUG)
         self.input = inputs.get("Pose", None)
         self.output = outputs.get("Pose", None)
 

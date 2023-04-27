@@ -25,7 +25,7 @@ class Destination(Source):
         outputs: Dict[str, Output],
     ):
         configuration = {} if configuration is None else configuration
-        logging.basicConfig(level=logging.DEBUG)
+        logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.DEBUG)
         self.map_file = configuration.get("map", None)
         if self.map_file is None:
             raise ValueError("BehaviourPlanning cannot proceed without a map!")

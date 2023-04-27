@@ -83,8 +83,8 @@ sources:
 
   - id: RoutePlanner
     configuration:
-      #goal: [387.73, 330.07, 0.0]
-      goal: [116.0, 129.0, 0.0]
+      goal: [387.73, 330.07, 0.0]
+      #goal: [116.0, 129.0, 0.0]
       #goal: [84.0, 130.0, 0.0]
       # map: {{ BASE_DIR }}/var/maps/town01.xodr
       map: "{{ BASE_DIR }}/var/maps/town01.xodr"

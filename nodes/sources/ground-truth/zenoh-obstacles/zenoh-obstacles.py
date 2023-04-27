@@ -22,7 +22,7 @@ class ZenohObstacles(Source):
         configuration: Dict[str, Any],
         outputs: Dict[str, Output],
     ):
-        logging.basicConfig(level=logging.DEBUG)
+        logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.DEBUG)
         self.period = 1 / int(
             configuration.get("frequency", DEFAULT_SAMPLING_FREQUENCY)
         )

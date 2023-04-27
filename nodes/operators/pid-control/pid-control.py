@@ -33,7 +33,7 @@ class PIDController(Operator):
         outputs: Dict[str, Output],
     ):
         configuration = configuration if configuration is not None else {}
-        logging.basicConfig(level=logging.DEBUG)
+        logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.DEBUG)
         self.pending = []
 
         self.p = configuration.get("P", DEFAULT_P_PARAMETER)
@@ -172,7 +172,7 @@ class PIDController(Operator):
             self.pending = list(pending)
             for d in done:
                 (who, data_msg) = d.result()
-                logging.debug(f"[PIDController] Received from input {who}")
+                # logging.debug(f"[PIDController] Received from input {who}")
 
                 if who == "Waypoints":
                     self.waypoints = Waypoints.deserialize(data_msg.data)
@@ -180,7 +180,7 @@ class PIDController(Operator):
                 elif who == "Pose":
                     # print("[PID] received pose")
                     if self.waypoints is None:
-                        logging.debug("[PIDController] Has no waypoints to follow, car will be stopped!")
+                        # logging.debug("[PIDController] Has no waypoints to follow, car will be stopped!")
                         await self.output.send(VehicleControl(brake=1.0).serialize())
                         return None
 

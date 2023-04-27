@@ -33,7 +33,7 @@ class WaypointPlanner(Operator):
         inputs: Dict[str, Input],
         outputs: Dict[str, Output],
     ):
-        logging.basicConfig(level=logging.DEBUG)
+        logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.DEBUG)
         configuration = configuration if configuration is not None else {}
 
         self.map_file = configuration.get("map", None)
@@ -182,7 +182,7 @@ class WaypointPlanner(Operator):
                     self.trajectory = Trajectory.deserialize(data_msg.data)
 
                     self.state = self.trajectory.state
-
+                    logging.debug(f"[WaypointPlanner] Trajectory contains {len(self.trajectory.waypoints.waypoints)}")
                     if (
                         self.trajectory.waypoints is not None
                         and len(self.trajectory.waypoints.waypoints) > 0
@@ -192,6 +192,8 @@ class WaypointPlanner(Operator):
                             self.trajectory.waypoints.waypoints[-1].location,
                             self.trajectory.waypoints,
                         )
+                    else:
+                        logging.warning(f"[WaypointPlanner] Received trajectory without waypoints")
 
                 elif who == "ObstaclePredictions":
                     predictions_list = json.loads(data_msg.data.decode("utf-8"))
@@ -210,9 +212,9 @@ class WaypointPlanner(Operator):
                 elif who == "Pose":
                     pose = Pose.deserialize(data_msg.data)
 
-                    # print(
-                    #     f"Waypoint planner received pose, can compute checks obstacles:{self.obstacle_trajectories is not None}, traffic_lights:{self.traffic_lights is not None}, trajectory:{self.trajectory is not None}"
-                    # )
+                    logging.info(
+                        f"[WaypointPlanner] can compute checks obstacles:{self.obstacle_trajectories is not None}, traffic_lights:{self.traffic_lights is not None}, trajectory:{self.trajectory is not None}"
+                    )
 
                     if (
                         self.obstacle_trajectories is None
@@ -246,13 +248,12 @@ class WaypointPlanner(Operator):
                     output_wps = self.world.follow_waypoints(target_speed)
 
                     # remove waypoints that are too close (we already reach them)
-                    output_wps.remove_waypoint_if_close(
-                        pose.transform.location, distance=5
-                    )
-
+                    # output_wps.remove_waypoint_if_close(
+                    #     pose.transform.location, distance=1
+                    # )
                     await self.output.send(output_wps.serialize())
-                    self.obstacle_trajectories = None
-                    self.traffic_lights = None
+                    self.obstacle_trajectories = []
+                    self.traffic_lights = []
                     # self.trajectory = None
         except Exception as e:
             logging.warning(f"[WaypointPlanner] got error {e}")
