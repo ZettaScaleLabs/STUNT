@@ -9,5 +9,7 @@ configuration:
     goal: [116.0, 129.0, 0.0]
     map: "{{ BASE_DIR }}/var/maps/town01.xodr"
 
-inputs: [Goal]
+inputs:
+  - Goal
+  - Pose
 outputs: [Route]

@@ -8,7 +8,6 @@ configuration:
   port: 2000
   map: "{{ BASE_DIR }}/var/maps/town01.xodr"
   frequency: 20
-
 operators:
   - id: PerfectLocalization
     descriptor:  "file://{{ BASE_DIR }}/nodes/operators/perfect-localization/localization.yml"
@@ -27,7 +26,7 @@ operators:
   - id: WaypointPlanner
     configuration:
       map: "{{ BASE_DIR }}/var/maps/town01.xodr"
-    descriptor: "file://{{ BASE_DIR }}/nodes/operators/waypoint-planner/waypoint-planner.yml"
+    descriptor: "file://{{ BASE_DIR }}/nodes/operators/fot-planner/fot-planner.yml"
 
   - id: PIDController
     configuration:
@@ -37,17 +36,9 @@ operators:
       D: 0.01
     descriptor: "file://{{ BASE_DIR }}/nodes/operators/pid-control/pid-control.yml"
 
-  - id: RoutePlanner
-    configuration:
-      # goal: [387.73, 330.07, 0.0]
-      # goal: [116.0, 129.0, 0.0]
-      # goal: [84.0, 130.0, 0.0]
-      # map: {{ BASE_DIR }}/var/maps/town01.xodr
-      map: "{{ BASE_DIR }}/var/maps/town01.xodr"
-    descriptor: "file://{{ BASE_DIR }}/nodes/operators/route-planner/route-planner.yml"
-
 
 sources:
+
   - id : CarlaLocalization
     configuration:
       key-expressions:
@@ -66,11 +57,38 @@ sources:
         TrafficLights: "stunt/ground-truth/traffic-lightss"
     descriptor : builtin://zenoh
 
-  - id : ZenohGoalDestination
+  # - id : CarlaTrafficLights
+  #   configuration:
+  #     locator: "tcp/zenoh-router:7447"
+  #     mode: "peer"
+  #     key_expression: "stunt/ground-truth/traffic-lights"
+  #   descriptor : "file://{{ BASE_DIR }}/nodes/sources/ground-truth/zenoh-trafficlights/zenoh-trafficlights.yml"
+
+  # - id : CarlaObstacles
+  #   configuration:
+  #     locator: "tcp/zenoh-router:7447"
+  #     mode: "peer"
+  #     key_expression: "stunt/ground-truth/obstacles"
+  #     types:
+  #       - 'vehicle.*'
+  #       - 'walker.pedestrian.*'
+  #   descriptor : "file://{{ BASE_DIR }}/nodes/sources/ground-truth/zenoh-obstacles/zenoh-obstacles.yml"
+
+  # - id : CarlaLocalization
+  #   configuration:
+  #     locator: "tcp/zenoh-router:7447"
+  #     mode: "peer"
+  #     key_expression: "stunt/ground-truth/location"
+  #   descriptor : "file://{{ BASE_DIR }}/nodes/sources/ground-truth/zenoh-localization/zenoh-location.yml"
+
+  - id: RoutePlanner
     configuration:
-      key-expressions:
-        Goal: "stunt/ego-control/destination"
-    descriptor : builtin://zenoh
+      goal: [387.73, 330.07, 0.0]
+      #goal: [116.0, 129.0, 0.0]
+      #goal: [84.0, 130.0, 0.0]
+      # map: {{ BASE_DIR }}/var/maps/town01.xodr
+      map: "{{ BASE_DIR }}/var/maps/town01.xodr"
+    descriptor: "file://{{ BASE_DIR }}/nodes/sources/route-planner/route-planner.yml"
 
 sinks:
   - id : Drive
@@ -97,11 +115,11 @@ links:
     input : Obstacles
 
 - from:
-    node : ZenohGoalDestination
-    output : Goal
-  to:
     node : RoutePlanner
-    input : Goal
+    output : Route
+  to:
+    node : BehaviourPlanning
+    input : Route
 
 # operators
 
@@ -110,13 +128,6 @@ links:
     output : Pose
   to:
     node : PerfectTracker
-    input : Pose
-
-- from:
-    node : PerfectLocalization
-    output : Pose
-  to:
-    node : RoutePlanner
     input : Pose
 
 - from:
@@ -140,13 +151,6 @@ links:
   to:
     node : WaypointPlanner
     input : Pose
-
-- from:
-    node: RoutePlanner
-    output: Route
-  to:
-    node: BehaviourPlanning
-    input: Route
 
 - from:
     node : BehaviourPlanning

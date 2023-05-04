@@ -1,5 +1,5 @@
 {
-    "locators":["tcp/zenoh-router:7447"],
+    "locators":["tcp/majinbu:7447"],
     "mode":"client",
     "ego_name":"hero",
     "host":"carla",
