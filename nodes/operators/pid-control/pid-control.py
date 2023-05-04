@@ -181,7 +181,7 @@ class PIDController(Operator):
                     # print("[PID] received pose")
                     if self.waypoints is None:
                         # logging.debug("[PIDController] Has no waypoints to follow, car will be stopped!")
-                        await self.output.send(VehicleControl(brake=1.0).serialize())
+                        # await self.output.send(VehicleControl(brake=1.0).serialize())
                         return None
 
                     pose = Pose.deserialize(data_msg.data)

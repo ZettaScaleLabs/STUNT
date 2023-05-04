@@ -6,6 +6,7 @@ import time
 import asyncio
 import json
 import carla
+import logging
 
 from collections import deque
 from stunt.types import (
@@ -203,6 +204,7 @@ class FOTPlanner(Operator):
         inputs: Dict[str, Input],
         outputs: Dict[str, Output],
     ):
+        logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.DEBUG)
         configuration = configuration if configuration is not None else {}
 
         self.carla_port = int(configuration.get("port", DEFAULT_CARLA_PORT))
@@ -324,106 +326,108 @@ class FOTPlanner(Operator):
         return task_list
 
     async def iteration(self):
+        try:
+            (done, pending) = await asyncio.wait(
+                self.create_task_list(),
+                return_when=asyncio.FIRST_COMPLETED,
+            )
 
-        (done, pending) = await asyncio.wait(
-            self.create_task_list(),
-            return_when=asyncio.FIRST_COMPLETED,
-        )
+            self.pending = list(pending)
 
-        self.pending = list(pending)
+            for d in done:
+                (who, data_msg) = d.result()
 
-        for d in done:
-            (who, data_msg) = d.result()
+                if who == "Trajectory":
+                    # getting the trajectory from the behaviour planner
+                    # it generates the kind of GPS waypoints towards the
+                    # destination
+                    self.trajectory = Trajectory.deserialize(data_msg.data)
 
-            if who == "TTD":
-                self.ttd = TimeToDecision.deserialize(data_msg.data)
-            elif who == "Trajectory":
-                # getting the trajectory from the behaviour planner
-                # it generates the kind of GPS waypoints towards the
-                # destination
-                self.trajectory = Trajectory.deserialize(data_msg.data)
+                    self.state = self.trajectory.state
 
-                self.state = self.trajectory.state
+                    if (
+                        self.trajectory.waypoints is not None
+                        and len(self.trajectory.waypoints.waypoints) > 0
+                    ):
 
-                if (
-                    self.trajectory.waypoints is not None
-                    and len(self.trajectory.waypoints.waypoints) > 0
-                ):
+                        self.world.update_waypoints(
+                            self.trajectory.waypoints.waypoints[-1].location,
+                            self.trajectory.waypoints,
+                        )
 
-                    self.world.update_waypoints(
-                        self.trajectory.waypoints.waypoints[-1].location,
-                        self.trajectory.waypoints,
+                elif who == "ObstaclePredictions":
+                    predictions_list = json.loads(data_msg.data.decode("utf-8"))
+                    self.obstacle_trajectories = []
+                    for p in predictions_list:
+                        self.obstacle_trajectories.append(
+                            ObstaclePrediction.from_dict(p)
+                        )
+
+                elif who == "TrafficLights":
+                    traffic_lights = json.loads(data_msg.data.decode("utf-8"))
+                    self.traffic_lights = []
+                    for tl in traffic_lights:
+                        self.traffic_lights.append(TrafficLight.from_dict(tl))
+
+                elif who == "Pose":
+                    pose = Pose.deserialize(data_msg.data)
+
+                    # print(
+                    #     f"FOTPlanner received pose, can compute checks obstcles:{self.obstacle_trajectories is not None}, traffic_lights:{self.traffic_lights is not None}, trajectory:{self.trajectory is not None}"
+                    # )
+
+                    if (
+                        self.obstacle_trajectories is None
+                        or self.traffic_lights is None
+                        or self.trajectory is None
+                    ):
+                        return None
+
+                    predictions = self.get_predictions(
+                        self.obstacle_trajectories, pose.transform
                     )
 
-            elif who == "ObstaclePredictions":
-                predictions_list = json.loads(data_msg.data.decode("utf-8"))
-                self.obstacle_trajectories = []
-                for p in predictions_list:
-                    self.obstacle_trajectories.append(
-                        ObstaclePrediction.from_dict(p)
+                    self.world.update(
+                        pose.localization_time,
+                        pose,
+                        predictions,
+                        self.traffic_lights,
+                        self.map,
+                        None,
                     )
 
-            elif who == "TrafficLights":
-                traffic_lights = json.loads(data_msg.data.decode("utf-8"))
-                self.traffic_lights = []
-                for tl in traffic_lights:
-                    self.traffic_lights.append(TrafficLight.from_dict(tl))
+                    (
+                        speed_factor,
+                        speed_factor_p,
+                        speed_factor_v,
+                        speed_factor_tl,
+                        speed_factor_stop,
+                    ) = self.world.stop_for_agents(pose.localization_time)
+                    speed_factor = min(speed_factor_stop, speed_factor_tl)
+                    output_wps = self.planner.run(pose.localization_time)
+                    output_wps.apply_speed_factor(speed_factor)
+                    road_options = deque(
+                        [
+                            RoadOption.LANE_FOLLOW
+                            for _ in range(len(output_wps.waypoints))
+                        ]
+                    )
+                    output_wps.road_options = road_options
+                    # remove waypoints that are too close (we already reach them)
+                    output_wps.remove_waypoint_if_close(
+                        pose.transform.location, distance=1
+                    )
 
-            elif who == "Pose":
-                pose = Pose.deserialize(data_msg.data)
+                    logging.info(f"[FOTPlanner] Computed waypoints {output_wps}")
 
-                # print(
-                #     f"FOTPlanner received pose, can compute checks obstcles:{self.obstacle_trajectories is not None}, traffic_lights:{self.traffic_lights is not None}, trajectory:{self.trajectory is not None}"
-                # )
+                    await self.output.send(output_wps.serialize())
 
-                if (
-                    self.obstacle_trajectories is None
-                    or self.traffic_lights is None
-                    or self.trajectory is None
-                ):
-                    return None
-
-                predictions = self.get_predictions(
-                    self.obstacle_trajectories, pose.transform
-                )
-
-                self.world.update(
-                    pose.localization_time,
-                    pose,
-                    predictions,
-                    self.traffic_lights,
-                    self.map,
-                    None,
-                )
-
-                (
-                    speed_factor,
-                    speed_factor_p,
-                    speed_factor_v,
-                    speed_factor_tl,
-                    speed_factor_stop,
-                ) = self.world.stop_for_agents(pose.localization_time)
-                speed_factor = min(speed_factor_stop, speed_factor_tl)
-                output_wps = self.planner.run(pose.localization_time)
-                output_wps.apply_speed_factor(speed_factor)
-                road_options = deque(
-                    [
-                        RoadOption.LANE_FOLLOW
-                        for _ in range(len(output_wps.waypoints))
-                    ]
-                )
-                output_wps.road_options = road_options
-                # remove waypoints that are too close (we already reach them)
-                output_wps.remove_waypoint_if_close(
-                    pose.transform.location, distance=1
-                )
-
-                await self.output.send(output_wps.serialize())
-
-                # consume data
-                self.obstacle_trajectories = None
-                self.traffic_lights = None
-                self.trajectory = None
+                    # consume data
+                    self.obstacle_trajectories = []
+                    self.traffic_lights = []
+                    # self.trajectory = None
+        except Exception as e:
+            logging.warning(f"[FOTPlanner] got error {e}")
 
         return None
 
